@@ -30,6 +30,7 @@ function diceRoll(args) {
     return "Invalid Dice";
 }
 
+// This should probably just be a dictionary
 function cardinalToOrdinal(num){
     switch (num){
         case 1:
@@ -74,24 +75,10 @@ function getRedditComment(sub, callback){
 
 //Emma's Markov
 var bot_at = "<@348179384580177922>";
-var current_message = 0;
-var interval = 20;
-var update = "";
-var history = "";
+var history = fs.readFileSync("chat.log", "utf8");
 var quotes = new MarkovChain(fs.readFileSync("chat.log", "utf8"));
-var endcheck = "";
-
-var rubyPatience = 0;
-var soccerLoaded = 0;
-var groupsLoaded = 0;
-var killianAccepted = 0;
-var killianPayment = "";
-var soccerEntries = {};
-var teamPool = [];
-var teamOwners = {};
-var memePool = [];
-
-var groups = {};
+var messageCount = 0;
+var timeSinceLast = 1;
 
 function load_history (file) {
     var lineReader = require("readline").createInterface({
@@ -104,7 +91,7 @@ function load_history (file) {
     quotes = new MarkovChain(history);
 }
 
-function send_markov (user, userID, channelID, message, evt) {
+function send_markov (channelID) {
     logger.info("attempting markov chain");
     bot.sendMessage({
         to: channelID,
@@ -115,68 +102,21 @@ function send_markov (user, userID, channelID, message, evt) {
     });
 }
 
-function get_previous_messages (bot, channelID, last_message_ID) {
-    bot.getMessages(
-        {channelID: channelID, limit: 100, before: last_id},
-        function(err, messageArray) {
-            returned_messages = messageArray.length;
-            messageArray.forEach(
-                function(message) {
-                    //logger.info(message.content);
-                    last_id = message.id;
-                    if ((message.content.substring(0, bot_at.length) != bot_at) && (message.content.substring(0, 1) != "!") && (message.author.id != bot.id)){
-                        history = history.concat(message.content, "\n");
-                    }
-             });
-        if (returned_messages == 100){
-            get_previous_messages(bot, channelID, last_id);
-        }
-        else {
-            logger.info("HMMMMMMMMMMM?!");
-            console.log(returned_messages);
-            logger.info(err);
-            logger.info("endcheck is " + endcheck + " and last_id is " + last_id);
-            if (last_id != endcheck){
-                endcheck = last_id;
-                logger.info("Sleeping for 20 seconds");
-                setTimeout(get_previous_messages(bot, channelID, last_id), 20000);
-            }
-            else{
-                logger.info("finished, actually done or was 20 second sleep not enough? who knows");
-            }
-        }
-    });
-}
+// Ruby vars
+var rubyPatience = 0;
 
-function get_channel_history (bot, channelID) {
-    bot.getMessages(
-        {channelID: channelID, limit: 100},
-        function(err, messageArray) {
-            returned_messages = messageArray.length;
-            messageArray.forEach(
-                function(message) {
-                    //logger.info(message.content);
-                    last_id = message.id;
-                    if ((message.content.substring(0, bot_at.length) != bot_at) && (message.content.substring(0, 1) != "!") && (message.author.id != bot.id)){
-                        history = history.concat(message.content, "\n");
-                    }
-            });
-        if (returned_messages == 100){
-            get_previous_messages(bot, channelID, last_id);
-        }
-    });
-}
+// Soccer vars
+var soccerLoaded = 0;
+var groupsLoaded = 0;
+var killianAccepted = 0;
+var killianPayment = "";
+var soccerEntries = {};
+var teamPool = [];
+var teamOwners = {};
+var memePool = [];
 
-function test_hist (bot, channelID) {
-    var url = "http://discordapp.com/channels/88601349020725248/messages";
-    logger.info(url);
+var groups = {};
 
-    request(url, function(error, response, body){
-        console.log("error:", error); // Print the error if one occurred
-        console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
-        console.log("body:", body); // Print the HTML for the Google homepage.
-    });
-}
 
 function loadSoccer () {
     soccerEntries = JSON.parse(fs.readFileSync('entries.json', 'utf8'));
@@ -563,30 +503,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 });
                 break;
             case "markov":
-                send_markov(user, userID, channelID, message, evt);
-                break;
-            case "hist":
-                if (user === "Darragh"){
-                    logger.info("Darragh Confirmed")
-
-                    history = "";
-                    get_channel_history(bot, channelID);
-                    logger.info("loaded history");
-                }
-                break;
-            case "init":
-                if (user === "Darragh"){
-                    logger.info("Darragh Confirmed")
-
-                    quotes = new MarkovChain(history);
-                    logger.info("initialised markov bot");
-                    fs.writeFile("chat.log", history, function (err) {
-                        if (err) throw err;
-                    });
-                }
-                break;
-            case "test":
-                test_hist(bot, channelID);
+                send_markov(channelID);
                 break;
             case "roll":
                 var diceReturn = diceRoll(args);
@@ -619,6 +536,35 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
 
             // Just add any case commands if you want to..
+         }
+     }
+     else if (message.indexOf(bot_at) > -1){
+         logger.info("I have been @");
+         send_markov(channelID);
+     }
+     else if (userID != 348179384580177922) {
+         history = history.concat(message + "\n");
+         fs.writeFile("chat.log", history, function(err) {
+             if (err){
+                 throw err;
+             }
+         });
+
+         timeSinceLast++;
+         var chance = getRandomInt(1, timeSinceLast);
+         if (chance > 20){
+             logger.info("its been too long, time to pipe up");
+             send_markov(channelID);
+             timeSinceLast = 1;
+         }
+
+         if (messageCount > 100){
+             messageCount = 0;
+             quotes = new MarkovChain(history);
+             logger.info("updated markov history");
+         }
+         else{
+             messageCount++;
          }
      }
      if (message.indexOf("🙃") > -1){
