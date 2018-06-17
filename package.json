@@ -1,0 +1,11 @@
+{
+  "name": "posbot",
+  "version": "0.0.1",
+  "description": "Positivity Bot",
+  "main": "bot.js",
+  "author": "Darragh",
+  "dependencies": {
+    "discord.io": "github:woor/discord.io#gateway_v6",
+    "winston": "^2.3.1"
+  }
+}
