@@ -504,160 +504,161 @@ var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 var killVotes = {};
 
 function getWolves(){
-	var wolves = [];
-	var keys = Object.keys(players);
+    var wolves = [];
+    var keys = Object.keys(players);
 
-	for (var player of keys){
-		if (players[player]["role"] === "woof"){
-			wolves.push(players[player]["name"]);
-		}
-	}
-	return wolves;
+    for (var player of keys){
+        if (players[player]["role"] === "woof"){
+            wolves.push(players[player]["name"]);
+        }
+    }
+    return wolves;
 }
 
 function assignRoles(){
-	var keys = Object.keys(players);
-	roles = rolesSet[keys.length-1].slice(0);
+    var keys = Object.keys(players);
+    roles = rolesSet[keys.length-1].slice(0);
 
-	for (var player of keys){
-		var index = getRandomInt(0, roles.length-1);
-		var role = roles[index];
-		players[player]["role"] = role;
-	}
-	for (var player of keys){
-		var role = players[player]["role"];
-		var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
-		if (role === "woof"){
-			roleMsg = roleMsg + util.format("\nThe wolves are: %s", getWolves);
-		}
-		bot.sendMessage({
-			to: player,
-			message: roleMsg
-		});
-	}
+    for (var player of keys){
+        var index = getRandomInt(0, roles.length-1);
+        var role = roles[index];
+        players[player]["role"] = role;
+    }
+    for (var player of keys){
+        var role = players[player]["role"];
+        var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
+        if (role === "woof"){
+            var wolves = getWolves();
+            roleMsg = roleMsg + util.format("\nThe wolves are: %s", wolves);
+        }
+        bot.sendMessage({
+            to: player,
+            message: roleMsg
+        });
+    }
 }
 
 function killPlayer(channel){
-	var keys = Object.keys(killVotes);
-	var victim = keys[0];
+    var keys = Object.keys(killVotes);
+    var victim = keys[0];
 
-	for (var potential of keys){
-		if (killVotes[potential] > killVotes[victim]){
-			victim = potential;
-		}
-	}
+    for (var potential of keys){
+        if (killVotes[potential] > killVotes[victim]){
+            victim = potential;
+        }
+    }
 
-	bot.sendMessage({
-		to: channel,
-		message: util.format("%s is dead", players[victim]["name"])
-	})
+    bot.sendMessage({
+        to: channel,
+        message: util.format("%s is dead", players[victim]["name"])
+    })
 
-	if (allWolvesDead()){
+    if (allWolvesDead()){
 
-	}
-	else if (allVillagersDead()){
+    }
+    else if (allVillagersDead()){
 
-	}
+    }
 
-	return false;
+    return false;
 
 }
 
 function victimVote(wolf, target, channel){
-	var keys = Object.keys(players);
+    var keys = Object.keys(players);
 
-	for (var player of keys){
-		var displayName = players[player]["name"];
-		var name = displayName.toLowerCase();
-		var victim = target.toLowerCase();
-		if (name === victim || name.indexOf(victim) > -1){
-			if (player in killVotes){
-				killVotes[player]++;
-			}
-			else{
-				killVotes[player] = 1;
-			}
-			players[wolf]["voted"] = true;
-			if (night === 1){
-				bot.sendMessage({
-					to: player,
-					message: util.format("You have voted to kill %s", displayName)
-				});
-			}
-			
-			if (night === 1 && nightVotesDone()){
-				var done = killPlayer(channel);
-				if (done === false){
-					var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames)
-					bot.sendMessage({
-						to: channel,
-						message: dayChangeMsg
-					});
-				}
-			}
-			else if(night === 0 && dayVotesDone()){
-				var done = killPlayer(channel);
-				if (done === false){
-					var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
-					bot.sendMessage({
-						to: channel,
-						message: dayChangeMsg
-					});
-				}
-			}
-		}
-	}
+    for (var player of keys){
+        var displayName = players[player]["name"];
+        var name = displayName.toLowerCase();
+        var victim = target.toLowerCase();
+        if (name === victim || name.indexOf(victim) > -1){
+            if (player in killVotes){
+                killVotes[player]++;
+            }
+            else{
+                killVotes[player] = 1;
+            }
+            players[wolf]["voted"] = true;
+            if (night === 1){
+                bot.sendMessage({
+                    to: player,
+                    message: util.format("You have voted to kill %s", displayName)
+                });
+            }
+            
+            if (night === 1 && nightVotesDone()){
+                var done = killPlayer(channel);
+                if (done === false){
+                    var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames)
+                    bot.sendMessage({
+                        to: channel,
+                        message: dayChangeMsg
+                    });
+                }
+            }
+            else if(night === 0 && dayVotesDone()){
+                var done = killPlayer(channel);
+                if (done === false){
+                    var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
+                    bot.sendMessage({
+                        to: channel,
+                        message: dayChangeMsg
+                    });
+                }
+            }
+        }
+    }
 }
 
 function nightVotesDone(){
-	var keys = Object.keys(players);
+    var keys = Object.keys(players);
 
-	for (var player of keys){
-		if (players[player]["role"] === "woof" && players[player]["voted"] === false){
-			return false;
-		}
-	}
+    for (var player of keys){
+        if (players[player]["role"] === "woof" && players[player]["voted"] === false){
+            return false;
+        }
+    }
 
-	night = 0;
-	return true;
+    night = 0;
+    return true;
 }
 
 function dayVotesDone(){
-	var keys = Object.keys(players);
+    var keys = Object.keys(players);
 
-	for (var player of keys){
-		if (players[player]["voted"] === false){
-			return false;
-		}
-	}
+    for (var player of keys){
+        if (players[player]["voted"] === false){
+            return false;
+        }
+    }
 
-	night = 1;
-	return true;
+    night = 1;
+    return true;
 }
 
 function allWolvesDead(){
-	var keys = Object.keys(players);
+    var keys = Object.keys(players);
 
-	for (var player of keys){
-		if (players[player]["role"] === "woof" && players[player]["alive"] === true){
-			return false;
-		}
-	}
+    for (var player of keys){
+        if (players[player]["role"] === "woof" && players[player]["alive"] === true){
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 function allVillagersDead(){
-	var keys = Object.keys(players);
+    var keys = Object.keys(players);
 
-	for (var player of keys){
-		if (players[player]["role"] !== "woof" && players[player]["alive"] === true){
-			return false;
-		}
-	}
+    for (var player of keys){
+        if (players[player]["role"] !== "woof" && players[player]["alive"] === true){
+            return false;
+        }
+    }
 
-	night = 0;
-	return true;
+    night = 0;
+    return true;
 }
 
 bot.on("message", function (user, userID, channelID, message, evt) {
@@ -779,22 +780,26 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     bot.sendMessage({
                         to: channelID,
                         message: util.format("The roles are assigned and night falls, wolves use \"!kill <name>\" in PM to choose your victim. Everyone else, maybe prayer will help\n"
-                        	+ "The player list is: %s", playerNames)
+                            + "The player list is: %s", playerNames)
                     });
                 }
                 break;
             case "kill":
-            	if (game === 1 && start === 1 && night === 1 && userID in players && players[userID]["role"] === "woof" && players[userID]["voted"] === false){
-            		var target = args[1];
-            		victimVote(userID, target, channelID);
-            	}
-            	break;
+                if (game === 1 && start === 1 && night === 1 && userID in players && players[userID]["role"] === "woof" && players[userID]["voted"] === false){
+                    var target = args[0];
+                    if (target){
+                        victimVote(userID, target, channelID);
+                    }
+                }
+                break;
             case "vote":
-            	if (game === 1 && start === 1 && night === 0 && userID in players && players[userID]["voted"] === false){
-            		var target = args[1];
-            		victimVote(userID, target, channelID);
-            	}
-            	break;
+                if (game === 1 && start === 1 && night === 0 && userID in players && players[userID]["voted"] === false){
+                    var target = args[0];
+                    if (target){
+                        victimVote(userID, target, channelID);
+                    }
+                }
+                break;
             case "end":
                 game = 0;
                 start = 0;
@@ -806,55 +811,55 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         }
     }
     else if (userID != 348179384580177922 && message.indexOf(bot_at) > -1){
-    	logger.info("I have been @");
-    	var messageContents = message.replace(bot_at, "");
-    	logger.info("@ with message contents: " + messageContents);
-    	var messageParts = messageContents.split(" ");
-    	var index = getRandomInt(0, messageParts.length - 1);
-    	var word = messageParts[index];
-    	if (!word.trim()){
-    		send_markov(channelID);
-    	}
-    	else{
-    		logger.info("attempting markov with word: " + word);
-    		specific_markov(channelID, word);
-    	}
+        logger.info("I have been @");
+        var messageContents = message.replace(bot_at, "");
+        logger.info("@ with message contents: " + messageContents);
+        var messageParts = messageContents.split(" ");
+        var index = getRandomInt(0, messageParts.length - 1);
+        var word = messageParts[index];
+        if (!word.trim()){
+            send_markov(channelID);
+        }
+        else{
+            logger.info("attempting markov with word: " + word);
+            specific_markov(channelID, word);
+        }
     }
     else if (userID != 348179384580177922) {
-    	history = history.concat(message + "\n");
-    	fs.writeFile("chat.log", history, function(err) {
-    		if (err){
-    			throw err;
-    		}
-    	});
+        history = history.concat(message + "\n");
+        fs.writeFile("chat.log", history, function(err) {
+            if (err){
+                throw err;
+            }
+        });
 
-    	timeSinceLast++;
-    	var chance = getRandomInt(1, timeSinceLast);
-    	if (chance > 30){
-    		logger.info("its been too long, time to pipe up");
-    		send_markov(channelID);
-    		timeSinceLast = 1;
-    	}
+        timeSinceLast++;
+        var chance = getRandomInt(1, timeSinceLast);
+        if (chance > 30){
+            logger.info("its been too long, time to pipe up");
+            send_markov(channelID);
+            timeSinceLast = 1;
+        }
 
-    	if (messageCount > 100){
-    		messageCount = 0;
-    		quotes = new MarkovChain(history);
-    		logger.info("updated markov history");
-    	}
-    	else{
-    		messageCount++;
-    	}
+        if (messageCount > 100){
+            messageCount = 0;
+            quotes = new MarkovChain(history);
+            logger.info("updated markov history");
+        }
+        else{
+            messageCount++;
+        }
     }
     if (message.indexOf("🙃") > -1){
-    	bot.sendMessage({
-    		to: channelID,
-    		message: "don't worry sam! Something something something"
-    	});
+        bot.sendMessage({
+            to: channelID,
+            message: "don't worry sam! Something something something"
+        });
     }
     if (message.indexOf("^w^") > -1){
-    	bot.sendMessage({
-    		to: channelID,
-    		message: "How he do that face?"
-    	});
+        bot.sendMessage({
+            to: channelID,
+            message: "How he do that face?"
+        });
     }
 });
