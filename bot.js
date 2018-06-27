@@ -588,7 +588,7 @@ function victimVote(wolf, target, channel){
 			if (night === 1 && nightVotesDone()){
 				var done = killPlayer(channel);
 				if (done === false){
-					var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s" playerNames)
+					var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames)
 					bot.sendMessage({
 						to: channel,
 						message: dayChangeMsg
@@ -598,7 +598,7 @@ function victimVote(wolf, target, channel){
 			else if(night === 0 && dayVotesDone()){
 				var done = killPlayer(channel);
 				if (done === false){
-					var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s" playerNames)
+					var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
 					bot.sendMessage({
 						to: channel,
 						message: dayChangeMsg
@@ -779,7 +779,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     bot.sendMessage({
                         to: channelID,
                         message: util.format("The roles are assigned and night falls, wolves use \"!kill <name>\" in PM to choose your victim. Everyone else, maybe prayer will help\n"
-                        	+ "The player list is: %s" playerNames)
+                        	+ "The player list is: %s", playerNames)
                     });
                 }
                 break;
