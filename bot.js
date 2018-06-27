@@ -561,7 +561,7 @@ function killPlayer(){
     }
 
     bot.sendMessage({
-        to: channel,
+        to: wolfChannel,
         message: util.format("%s is dead", players[victim]["name"])
     })
 
