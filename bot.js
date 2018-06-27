@@ -586,12 +586,14 @@ function killPlayer(){
 
 function victimVote(wolf, target){
     var keys = Object.keys(players);
+    var found = false;
 
     for (var player of keys){
         var displayName = players[player]["name"];
         var name = displayName.toLowerCase();
         var victim = target.toLowerCase();
         if (name === victim || name.indexOf(victim) > -1){
+            found = true;
             if (player in killVotes){
                 killVotes[player]++;
             }
@@ -627,6 +629,12 @@ function victimVote(wolf, target){
                 }
             }
         }
+    }
+    if (found === false){
+        bot.sendMessage({
+            to: wolf,
+            message: util.format("Cannot find player %s", target)
+        });
     }
 }
 
@@ -794,7 +802,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "start":
-                if (game === 1 && start === 0 && playerNames.length > 2){
+                if (game === 1 && start === 0){
                     start = 1;
                     assignRoles();
                     night = 1;
@@ -810,6 +818,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     var target = args[0];
                     if (target){
                         victimVote(userID, target);
+                    }
+                    else{
+                        logger.info("target is undefined: " + target);
                     }
                 }
                 break;
