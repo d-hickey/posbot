@@ -560,6 +560,8 @@ function killPlayer(){
         }
     }
 
+    players[victim]["alive"] = false;
+    killVotes= {};
     bot.sendMessage({
         to: wolfChannel,
         message: util.format("%s is dead", players[victim]["name"])
