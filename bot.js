@@ -489,6 +489,8 @@ var night = 0;
 var playerNames = [];
 var players = {};
 var roles = [];
+var wolfChannel = "";
+var killVotes = {};
 
 var roles1 = ["woof"];
 var roles2 = ["villager", "woof"];
@@ -501,7 +503,16 @@ var roles8 = ["villager", "villager", "villager", "villager", "villager", "woof"
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
-var killVotes = {};
+function resetWolves(){
+    game = 0;
+    start = 0;
+    night = 0;
+    playerNames = [];
+    players = {};
+    roles = [];
+    wolfChannel = "";
+    killVotes = {};
+}
 
 function getWolves(){
     var wolves = [];
@@ -522,6 +533,7 @@ function assignRoles(){
     for (var player of keys){
         var index = getRandomInt(0, roles.length-1);
         var role = roles[index];
+        roles.splice(index, 1);
         players[player]["role"] = role;
     }
     for (var player of keys){
@@ -538,7 +550,7 @@ function assignRoles(){
     }
 }
 
-function killPlayer(channel){
+function killPlayer(){
     var keys = Object.keys(killVotes);
     var victim = keys[0];
 
@@ -554,17 +566,25 @@ function killPlayer(channel){
     })
 
     if (allWolvesDead()){
-
+        resetWolves();
+        bot.sendMessage({
+            to: wolfChannel,
+            message: "Congrats Villagers, all the wolves are dead"
+        });
     }
     else if (allVillagersDead()){
-
+        resetWolves();
+        bot.sendMessage({
+            to: wolfChannel,
+            message: "Congrats Wuffles, you've eaten them all"
+        });
     }
 
     return false;
 
 }
 
-function victimVote(wolf, target, channel){
+function victimVote(wolf, target){
     var keys = Object.keys(players);
 
     for (var player of keys){
@@ -581,27 +601,27 @@ function victimVote(wolf, target, channel){
             players[wolf]["voted"] = true;
             if (night === 1){
                 bot.sendMessage({
-                    to: player,
+                    to: wolf,
                     message: util.format("You have voted to kill %s", displayName)
                 });
             }
             
             if (night === 1 && nightVotesDone()){
-                var done = killPlayer(channel);
+                var done = killPlayer();
                 if (done === false){
                     var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames)
                     bot.sendMessage({
-                        to: channel,
+                        to: wolfChannel,
                         message: dayChangeMsg
                     });
                 }
             }
             else if(night === 0 && dayVotesDone()){
-                var done = killPlayer(channel);
+                var done = killPlayer();
                 if (done === false){
                     var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
                     bot.sendMessage({
-                        to: channel,
+                        to: wolfChannel,
                         message: dayChangeMsg
                     });
                 }
@@ -754,6 +774,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "werewolf":
                 if (game === 0){
                     game = 1;
+                    wolfChannel = channelID;
                     bot.sendMessage({
                         to: channelID,
                         message: "Werewolf game started, use !join to join or !start to start"
@@ -788,7 +809,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 1 && start === 1 && night === 1 && userID in players && players[userID]["role"] === "woof" && players[userID]["voted"] === false){
                     var target = args[0];
                     if (target){
-                        victimVote(userID, target, channelID);
+                        victimVote(userID, target);
                     }
                 }
                 break;
@@ -796,7 +817,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 1 && start === 1 && night === 0 && userID in players && players[userID]["voted"] === false){
                     var target = args[0];
                     if (target){
-                        victimVote(userID, target, channelID);
+                        victimVote(userID, target);
                     }
                 }
                 break;
