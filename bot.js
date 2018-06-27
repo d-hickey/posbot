@@ -571,6 +571,7 @@ function killPlayer(){
             to: wolfChannel,
             message: "Congrats Villagers, all the wolves are dead"
         });
+        return true;
     }
     else if (allVillagersDead()){
         resetWolves();
@@ -578,6 +579,7 @@ function killPlayer(){
             to: wolfChannel,
             message: "Congrats Wuffles, you've eaten them all"
         });
+        return true;
     }
 
     return false;
