@@ -52,7 +52,7 @@ function cardinalToOrdinal(num){
 }
 
 // Reddit Functions
-var subs = ["LadyBoners", "happy", "aww", "RoastMe", "relationships", "meirl", "me_irl", "gonewild", "Tinder"];
+var subs = ["LadyBoners", "happy", "aww", "RoastMe", "relationships", "meirl", "me_irl", "gonewild", "Tinder", "PrequelMemes", "UpliftingNews"];
 
 function getRedditComment(sub, callback){
     var url = "http://www.reddit.com/r/" + sub + "/comments/.json?limit=50";
@@ -78,7 +78,7 @@ var bot_at = "<@348179384580177922>";
 var history = fs.readFileSync("chat.log", "utf8");
 var quotes = new MarkovChain(fs.readFileSync("chat.log", "utf8"));
 var messageCount = 0;
-var timeSinceLast = 1;
+var timeSinceLast = 10;
 
 function load_history (file) {
     var lineReader = require("readline").createInterface({
@@ -93,12 +93,21 @@ function load_history (file) {
 
 function send_markov (channelID) {
     logger.info("attempting markov chain");
+    var limit = getRandomInt(1, 25);
     bot.sendMessage({
         to: channelID,
         message: quotes.start( function(wordList) {
             var tmpList = Object.keys(wordList);
             return tmpList[~~(Math.random()*tmpList.length)];
-        }).end().process()
+        }).end(limit).process()
+    });
+}
+
+function specific_markov (channelID, word) {
+    var limit = getRandomInt(2, 20);
+    bot.sendMessage({
+        to: channelID,
+        message: quotes.start(word).end(limit).process()
     });
 }
 
@@ -133,6 +142,17 @@ function loadSoccer () {
     });
 
     soccerLoaded = 1;
+}
+
+function reloadSoccer () {
+    groupsLoaded = 0;
+
+    var url = "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2018/worldcup.standings.json";
+
+    request(url, function(error, response, body){
+        groups = JSON.parse(body);
+        groupsLoaded = 1;
+    });
 }
 
 function bad_input () {
@@ -298,7 +318,7 @@ function soccer (args, user) {
             for (var i = groups["groups"].length - 1; i >= 0; i--) {
                 var grp = groups["groups"][i];
                 for (var j = 0; j < grp["standings"].length; j++) {
-                    if (grp["standings"][j]["pos"] === 1 && grp["standings"][j]["won"] >= won && (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]) > gd){
+                    if (grp["standings"][j]["won"] > won ||(grp["standings"][j]["won"] === won && (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]) > gd)){
                         teamName = grp["standings"][j]["team"]["name"];
                         won = grp["standings"][j]["won"];
                         gd = (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]);
@@ -323,7 +343,7 @@ function soccer (args, user) {
             for (var i = groups["groups"].length - 1; i >= 0; i--) {
                 var grp = groups["groups"][i];
                 for (var j = 0; j < grp["standings"].length; j++) {
-                    if (grp["standings"][j]["pos"] === 4 && grp["standings"][j]["lost"] >= lost && (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]) < gd){
+                    if (grp["standings"][j]["lost"] > lost || (grp["standings"][j]["lost"] === lost && (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]) < gd)){
                         teamName = grp["standings"][j]["team"]["name"];
                         lost = grp["standings"][j]["lost"];
                         gd = (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]);
@@ -338,9 +358,25 @@ function soccer (args, user) {
             }
         }
         if (args[0] === "prizes"){
+            var memeTotal = memePool.length;
+            var lastPrize = Math.floor(memeTotal * 0.08);
+            var fourthPrize = Math.floor(memeTotal * 0.12);
+            var thirdPrize = Math.floor(memeTotal * 0.15);
+            var secondPrize = Math.floor(memeTotal * 0.25);
+            var firstPrize = memeTotal - (secondPrize + thirdPrize + fourthPrize + lastPrize);
             return "The meme pool will be split up amongst the owners of the teams who place 1st through 4th, there will also be a consolation prize for the team who comes last.\n"+
-                    "Remember you can always donate more memes to the prize pool with \"!soccer pay <meme_link>\".";
-        } 
+                    "Remember you can always donate more memes to the prize pool with \"!soccer pay <meme_link>\".\n"+
+                    "Meme pool total: " + memeTotal + "\n"+
+                    "First place prize: " + firstPrize + " memes\n"+
+                    "Second place prize: " + secondPrize + " memes\n"+
+                    "Third place prize: " + thirdPrize + " memes\n"+
+                    "Fourth place prize: " + fourthPrize + " memes\n"+
+                    "Last place consolation prize: " + lastPrize + " memes\n";
+        }
+        if (args[0] === "reload"){
+            reloadSoccer();
+            return "Reloading fixtures";
+        }
     }
     if (args.length === 2){
         if (args[0] === "pay"){
@@ -434,6 +470,13 @@ function soccer (args, user) {
     return "Could not process command";
 }
 
+// werewolf vars
+var game = 0;
+var start = 0;
+var playerNames = [];
+var players = {};
+
+
 // Initialize Discord Bot
 var bot = new Discord.Client({
    token: auth.token,
@@ -489,11 +532,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 });
                 break;
             case "compliment":
-                var subno = getRandomInt(0, 8);
+                var subcount = subs.length;
+                var subno = getRandomInt(0, subcount-1);
                 var sub = subs[subno];
                 var rec = user
                 if (args.length > 0){
-                    rec = args[0];
+                    rec = args.join(" ");
                 }
                 getRedditComment(sub, function(comm){
                     bot.sendMessage({
@@ -534,13 +578,54 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: soccer(args, user)
                 });
                 break;
+            case "werewolf":
+                if (game === 0){
+                    game = 1;
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "Werewolf game started, use !join to join or !start to start"
+                    });
+                }
+                break;
+            case "join":
+                if (game === 1){
+                    if (playerNames.indexOf(user) === -1){
+                        playerNames.push(user);
+                    }
+                    bot.sendMessage({
+                        to: channelID,
+                        message: util.format("Players: %s", playerNames)
+                    });
+                }
+                break;
+            case "start":
+                if (game === 1 && playerNames.length > 2){
+                    start = 1;
+                }
+            case "end":
+                game = 0;
+                start = 0;
+                playerNames = [];
+                players = {};
+                break;
 
             // Just add any case commands if you want to..
          }
      }
-     else if (message.indexOf(bot_at) > -1){
+     else if (userID != 348179384580177922 && message.indexOf(bot_at) > -1){
          logger.info("I have been @");
-         send_markov(channelID);
+         var messageContents = message.replace(bot_at, "");
+         logger.info("@ with message contents: " + messageContents);
+         var messageParts = messageContents.split(" ");
+         var index = getRandomInt(0, messageParts.length - 1);
+         var word = messageParts[index];
+         if (!word.trim()){
+             send_markov(channelID);
+         }
+         else{
+             logger.info("attempting markov with word: " + word);
+             specific_markov(channelID, word);
+         }
      }
      else if (userID != 348179384580177922) {
          history = history.concat(message + "\n");
@@ -552,7 +637,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
 
          timeSinceLast++;
          var chance = getRandomInt(1, timeSinceLast);
-         if (chance > 20){
+         if (chance > 30){
              logger.info("its been too long, time to pipe up");
              send_markov(channelID);
              timeSinceLast = 1;
