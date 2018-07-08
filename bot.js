@@ -495,7 +495,7 @@ function resetVotes(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        player[player].voted = false;
+        players[player].voted = false;
     }
 }
 
