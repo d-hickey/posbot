@@ -123,6 +123,7 @@ var soccerEntries = {};
 var teamPool = [];
 var teamOwners = {};
 var memePool = [];
+var soccerPlaces = {};
 
 var groups = {};
 
@@ -132,6 +133,7 @@ function loadSoccer () {
     memePool = JSON.parse(fs.readFileSync('memes.json', 'utf8'));
     teamPool= JSON.parse(fs.readFileSync('teams.json', 'utf8'));
     teamOwners = JSON.parse(fs.readFileSync('teamowners.json', 'utf8'));
+    soccerPlaces = JSON.parse(fs.readFileSync('places.json', 'utf8'));
 
     var url = "https://raw.githubusercontent.com/openfootball/world-cup.json/master/2018/worldcup.standings.json";
     logger.info(url);
@@ -308,53 +310,32 @@ function soccer (args, user) {
             return "Please specify a group letter";
         }
         if (args[0] === "amiwinning"){
-            if (groupsLoaded === 0){
-                return "Loading Fixtures, please wait a few moments and try again";
-            }
-            var teamName = "";
-            var won =  0;
-            var gd = 0;
+            var keys = Object.keys(soccerPlaces);
 
-            for (var i = groups["groups"].length - 1; i >= 0; i--) {
-                var grp = groups["groups"][i];
-                for (var j = 0; j < grp["standings"].length; j++) {
-                    if (grp["standings"][j]["won"] > won ||(grp["standings"][j]["won"] === won && (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]) > gd)){
-                        teamName = grp["standings"][j]["team"]["name"];
-                        won = grp["standings"][j]["won"];
-                        gd = (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]);
-                    }             
+            for (var place of keys){
+                if (place !== "last" && place !== "remaining"){
+                    var teamName = soccerPlaces[place];
+                    if (teamOwners[teamName] === user){
+                        return "Yeah";
+                    }
                 }
             }
-            if (teamOwners[teamName] === user){
-                return util.format("Yes, good job %s, your team, %s, is winning with %d win(s) and a goal difference of %d", user, teamName, won, gd);
+            var rem = soccerPlaces["remaining"];
+            for (remTeam of rem){
+                if (teamOwners[remTeam] === user){
+                    return "Totes";
+                }
             }
-            else{
-                return util.format("No, %s, none of your teams are winning. %s is currently ahead with %d win(s) and a goal difference of %d. I'm sure this is your fault somehow.", user, teamName, won, gd);
-            }
+            return "Nah, you lose.";
         }
         if (args[0] === "amilosing"){
-            if (groupsLoaded === 0){
-                return "Loading Fixtures, please wait a few moments and try again";
-            }
-            var teamName = "";
-            var lost =  0;
-            var gd = 100;
+            var teamName = soccerPlaces["last"];
 
-            for (var i = groups["groups"].length - 1; i >= 0; i--) {
-                var grp = groups["groups"][i];
-                for (var j = 0; j < grp["standings"].length; j++) {
-                    if (grp["standings"][j]["lost"] > lost || (grp["standings"][j]["lost"] === lost && (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]) < gd)){
-                        teamName = grp["standings"][j]["team"]["name"];
-                        lost = grp["standings"][j]["lost"];
-                        gd = (grp["standings"][j]["goals_for"] - grp["standings"][j]["goals_against"]);
-                    }             
-                }
-            }
             if (teamOwners[teamName] === user){
-                return util.format("Congratulations, %s, %s are dead last with %d lost game(s) and a goal difference of %d. I bet you can smell those consolation memes already.", user, teamName, lost, gd);
+                return util.format("Yeah, %s lost hard.", teamName);
             }
             else{
-                return util.format("Not one of your teams are in last place, %s. Considering there's a prize for last, this might actually be bad news. %s is currently the worst team in the tournament.", user, teamName);
+                return util.format("No, %s lost the most, you didn't lose quite as good.", teamName);
             }
         }
         if (args[0] === "prizes"){
@@ -561,7 +542,7 @@ function killPlayer(){
     }
 
     players[victim]["alive"] = false;
-    killVotes= {};
+    killVotes = {};
     bot.sendMessage({
         to: wolfChannel,
         message: util.format("%s is dead", players[victim]["name"])
@@ -613,8 +594,7 @@ function victimVote(wolf, target){
             }
             
             if (night === 1 && nightVotesDone()){
-                var done = killPlayer();
-                if (done === false){
+                if (killPlayer() === false){
                     var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames)
                     bot.sendMessage({
                         to: wolfChannel,
@@ -623,8 +603,7 @@ function victimVote(wolf, target){
                 }
             }
             else if(night === 0 && dayVotesDone()){
-                var done = killPlayer();
-                if (done === false){
+                if (killPlayer() === false){
                     var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
                     bot.sendMessage({
                         to: wolfChannel,
@@ -837,10 +816,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "end":
-                game = 0;
-                start = 0;
-                playerNames = [];
-                players = {};
+                resetWolves();
                 break;
 
             // Just add any case commands if you want to..
