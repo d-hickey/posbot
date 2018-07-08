@@ -564,9 +564,9 @@ function killPlayer(){
         });
         return true;
     }
-
-    return false;
-
+    else{
+        return false;
+    }
 }
 
 function victimVote(wolf, target){
@@ -577,7 +577,7 @@ function victimVote(wolf, target){
         var displayName = players[player]["name"];
         var name = displayName.toLowerCase();
         var victim = target.toLowerCase();
-        if (name === victim || name.indexOf(victim) > -1){
+        if ((name === victim || name.indexOf(victim) > -1) && players[player]["alive"] === true){
             found = true;
             if (player in killVotes){
                 killVotes[player]++;
@@ -595,6 +595,7 @@ function victimVote(wolf, target){
             
             if (night === 1 && nightVotesDone()){
                 if (killPlayer() === false){
+                    night = 0;
                     var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames)
                     bot.sendMessage({
                         to: wolfChannel,
@@ -604,6 +605,7 @@ function victimVote(wolf, target){
             }
             else if(night === 0 && dayVotesDone()){
                 if (killPlayer() === false){
+                    night = 1;
                     var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
                     bot.sendMessage({
                         to: wolfChannel,
@@ -625,12 +627,11 @@ function nightVotesDone(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player]["role"] === "woof" && players[player]["voted"] === false){
+        if (players[player]["alive"] === true && players[player]["role"] === "woof" && players[player]["voted"] === false){
             return false;
         }
     }
 
-    night = 0;
     return true;
 }
 
@@ -638,12 +639,11 @@ function dayVotesDone(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player]["voted"] === false){
+        if (players[player]["alive"] === true && players[player]["voted"] === false){
             return false;
         }
     }
 
-    night = 1;
     return true;
 }
 
