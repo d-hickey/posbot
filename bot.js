@@ -545,7 +545,7 @@ function killPlayer(){
     players[victim]["alive"] = false;
     killVotes = {};
 
-    var deathMsg = util.format("%s is dead and they were a %s", players[victim]["name"]);
+    var deathMsg = util.format("%s is dead and they were a %s", players[victim]["name"], player[victim]["role"]);
 
     var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames);
     if (night === 0){
@@ -555,14 +555,14 @@ function killPlayer(){
     if (allWolvesDead()){       
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s\nCongrats Villagers, all the wolves are dead", deathMsg)
+            message: util.format("%s\nCongrats Villagers, all the wolves are dead\nGAME OVER", deathMsg)
         });
         resetWolves();
     }
     else if (allVillagersDead()){       
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s\nCongrats Wuffles, you've eaten them all", deathMsg)
+            message: util.format("%s\nCongrats Wuffles, you've eaten them all\nGAME OVER", deathMsg)
         });
         resetWolves();
     }
