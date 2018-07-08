@@ -552,19 +552,19 @@ function killPlayer(){
         dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames);
     }
 
-    if (allWolvesDead()){
-        resetWolves();
+    if (allWolvesDead()){       
         bot.sendMessage({
             to: wolfChannel,
             message: util.format("%s\nCongrats Villagers, all the wolves are dead", deathMsg)
         });
-    }
-    else if (allVillagersDead()){
         resetWolves();
+    }
+    else if (allVillagersDead()){       
         bot.sendMessage({
             to: wolfChannel,
             message: util.format("%s\nCongrats Wuffles, you've eaten them all", deathMsg)
         });
+        resetWolves();
     }
     else{
         if (night === 0){
