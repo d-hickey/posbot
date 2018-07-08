@@ -545,7 +545,7 @@ function killPlayer(){
     players[victim]["alive"] = false;
     killVotes = {};
 
-    var deathMsg = util.format("%s is dead and they were a %s", players[victim]["name"], player[victim]["role"]);
+    var deathMsg = util.format("%s is dead and they were a %s", players[victim]["name"], players[victim]["role"]);
 
     var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames);
     if (night === 0){
