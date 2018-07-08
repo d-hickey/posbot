@@ -493,6 +493,7 @@ function resetWolves(){
     roles = [];
     wolfChannel = "";
     killVotes = {};
+    logger.info("Werewolf game reset");
 }
 
 function getWolves(){
@@ -543,29 +544,39 @@ function killPlayer(){
 
     players[victim]["alive"] = false;
     killVotes = {};
-    bot.sendMessage({
-        to: wolfChannel,
-        message: util.format("%s is dead", players[victim]["name"])
-    })
+
+    var deathMsg = util.format("%s is dead and they were a %s", players[victim]["name"]);
+
+    var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames);
+    if (night === 0){
+        dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames);
+    }
 
     if (allWolvesDead()){
         resetWolves();
         bot.sendMessage({
             to: wolfChannel,
-            message: "Congrats Villagers, all the wolves are dead"
+            message: util.format("%s\nCongrats Villagers, all the wolves are dead", deathMsg)
         });
-        return true;
     }
     else if (allVillagersDead()){
         resetWolves();
         bot.sendMessage({
             to: wolfChannel,
-            message: "Congrats Wuffles, you've eaten them all"
+            message: util.format("%s\nCongrats Wuffles, you've eaten them all", deathMsg)
         });
-        return true;
     }
     else{
-        return false;
+        if (night === 0){
+            night = 1;
+        }
+        else{
+            night = 0;
+        }
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s\n%s", deathMsg, dayChangeMsg)
+        });
     }
 }
 
@@ -594,24 +605,10 @@ function victimVote(wolf, target){
             }
             
             if (night === 1 && nightVotesDone()){
-                if (killPlayer() === false){
-                    night = 0;
-                    var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames)
-                    bot.sendMessage({
-                        to: wolfChannel,
-                        message: dayChangeMsg
-                    });
-                }
+                killPlayer();
             }
             else if(night === 0 && dayVotesDone()){
-                if (killPlayer() === false){
-                    night = 1;
-                    var dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
-                    bot.sendMessage({
-                        to: wolfChannel,
-                        message: dayChangeMsg
-                    });
-                }
+                killPlayer();
             }
         }
     }
