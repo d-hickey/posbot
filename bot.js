@@ -35,19 +35,14 @@ function cardinalToOrdinal(num){
     switch (num){
         case 1:
             return "1st";
-            break;
         case 2:
             return "2nd";
-            break;
         case 3:
             return "3rd";
-            break;
         case 4:
             return "4th";
-            break;
         default:
             return "";
-            break;
     }
 }
 
@@ -166,7 +161,7 @@ function bad_input () {
         return "Okay, but like what action? I'm not a mind reader you know!";
     }
     if (choice === 3){
-        return "Listen here m80, I'm not here to play games. This is serious business! Tell me what you want to do or I'll assign Italy as one of your teams."
+        return "Listen here m80, I'm not here to play games. This is serious business! Tell me what you want to do or I'll assign Italy as one of your teams.";
     }
 }
 
@@ -221,7 +216,7 @@ function drawTeam(user){
     var team = teamPool[index-1];
 
     teamPool.splice(index-1, 1);
-    soccerEntries[user]["teams"].push(team);
+    soccerEntries[user].teams.push(team);
     teamOwners[team] = user;
 
     drawUpdate();
@@ -235,20 +230,20 @@ function acceptPayment(user, meme){
         return "We are all out of teams, unfortunately, but we thank you for this generous donation";
     }
     if (user in soccerEntries){
-        if (soccerEntries[user]["payments"].length === 4){
+        if (soccerEntries[user].payments.length === 4){
             memePool.push(meme);
             paymentUpdate();
             return util.format("It appears you have hit your entry limit, %s, but we thank you for this generous donation", user);
         }
-        soccerEntries[user]["payments"].push(meme);
+        soccerEntries[user].payments.push(meme);
         memePool.push(meme);
         paymentUpdate();
         return util.format("%s: Your payment has been successfully processed, you may now draw another team.", user);
     }
     else{
         soccerEntries[user] = {};
-        soccerEntries[user]["payments"] = [];
-        soccerEntries[user]["payments"].push(meme);
+        soccerEntries[user].payments = [];
+        soccerEntries[user].payments.push(meme);
         memePool.push(meme);
         paymentUpdate();
         return util.format("%s: Thank you for choosing posbot, your payment has been accepted and you can draw your first team.", user);
@@ -264,7 +259,7 @@ function soccer (args, user) {
             return util.format("Alright listen up %s, because I'm only going to say this once (unless you use this command again). This is posbot's fantastic fantasy football world cup sweepstakes." +
                 "You stake your bet by using \"!soccer pay <meme_link>\", then you can pull a team using \"!soccer draw\". Entries are limited to 4 per person." +
                 "If you want to withdraw your bet, you can use \"!soccer pullout\". If you want to check your teams, you can use \"!soccer check\"." +
-                "Other commands available: \"!soccer group <group_letter>\", \"!soccer team <team_name>\", \"!soccer amiwinning\", \"!soccer amilosing\", \"!soccer prizes\"", user)
+                "Other commands available: \"!soccer group <group_letter>\", \"!soccer team <team_name>\", \"!soccer amiwinning\", \"!soccer amilosing\", \"!soccer prizes\"", user);
         }
         if (args[0] === "pay"){
             return "Please provide payment using \"!soccer pay <meme_link>\"";
@@ -272,7 +267,7 @@ function soccer (args, user) {
         if (args[0] === "draw"){
             if (user in soccerEntries){
                 if ("teams" in soccerEntries[user]){
-                    if (soccerEntries[user]["teams"].length < soccerEntries[user]["payments"].length){
+                    if (soccerEntries[user].teams.length < soccerEntries[user].payments.length){
                         var picked = drawTeam(user);
                         return util.format("Congratulations %s, you have drawn %s. Good luck!", user, picked);
                     }
@@ -281,7 +276,7 @@ function soccer (args, user) {
                     }
                 }
                 else{
-                    soccerEntries[user]["teams"] = [];
+                    soccerEntries[user].teams = [];
                     var picked = drawTeam(user);
                     return util.format("Congratulations %s, you have drawn %s. Good luck!", user, picked);
                 }
@@ -296,10 +291,10 @@ function soccer (args, user) {
         if (args[0] === "check"){
             if (user in soccerEntries){
                 if ("teams" in soccerEntries[user]){
-                    return util.format("%s: You have made %s payment(s) and drawn %s teams: %s.", user, soccerEntries[user]["payments"].length, soccerEntries[user]["teams"].length, soccerEntries[user]["teams"]);
+                    return util.format("%s: You have made %s payment(s) and drawn %s teams: %s.", user, soccerEntries[user].payments.length, soccerEntries[user].teams.length, soccerEntries[user].teams);
                 }
                 else{
-                    return util.format("%s: You have made %s payment(s), but have drawn no teams. Use \"!soccer draw\"", user, soccerEntries[user]["payments"].length);
+                    return util.format("%s: You have made %s payment(s), but have drawn no teams. Use \"!soccer draw\"", user, soccerEntries[user].payments.length);
                 }
             }
             else{
@@ -320,8 +315,8 @@ function soccer (args, user) {
                     }
                 }
             }
-            var rem = soccerPlaces["remaining"];
-            for (remTeam of rem){
+            var rem = soccerPlaces.remaining;
+            for (var remTeam of rem){
                 if (teamOwners[remTeam] === user){
                     return "Totes";
                 }
@@ -329,7 +324,7 @@ function soccer (args, user) {
             return "Nah, you lose.";
         }
         if (args[0] === "amilosing"){
-            var teamName = soccerPlaces["last"];
+            var teamName = soccerPlaces.last;
 
             if (teamOwners[teamName] === user){
                 return util.format("Yeah, %s lost hard.", teamName);
@@ -400,20 +395,20 @@ function soccer (args, user) {
             }
 
             var groupName = "Group " + args[1].toUpperCase();
-            for (var i = groups["groups"].length - 1; i >= 0; i--) {
-                var grp = groups["groups"][i];
-                if (grp["name"] === groupName){
-                    var groupString = groupName + ":\n"
-                    for (var j = 0; j < grp["standings"].length; j++) {
-                        var teamName = grp["standings"][j]["team"]["name"];
-                        var position = grp["standings"][j]["pos"];
-                        var played = grp["standings"][j]["played"];
-                        var won = grp["standings"][j]["won"];
-                        var draw = grp["standings"][j]["drawn"];
-                        var lost = grp["standings"][j]["lost"];
-                        var goals_for = grp["standings"][j]["goals_for"];
-                        var goals_against = grp["standings"][j]["goals_against"];
-                        var pts = grp["standings"][j]["pts"];
+            for (var i = groups.groups.length - 1; i >= 0; i--) {
+                var grp = groups.groups[i];
+                if (grp.name === groupName){
+                    var groupString = groupName + ":\n";
+                    for (var j = 0; j < grp.standings.length; j++) {
+                        var teamName = grp.standings[j].team.name;
+                        var position = grp.standings[j].pos;
+                        var played = grp.standings[j].played;
+                        var won = grp.standings[j].won;
+                        var draw = grp.standings[j].drawn;
+                        var lost = grp.standings[j].lost;
+                        var goals_for = grp.standings[j].goals_for;
+                        var goals_against = grp.standings[j].goals_against;
+                        var pts = grp.standings[j].pts;
                         groupString = groupString + util.format("%s: %s (%s) MP:%d W:%d D:%d L:%d GF:%d GA:%d pts:%d\n", cardinalToOrdinal(position), teamName, teamOwners[teamName], played, won, draw, lost, goals_for, goals_against, pts);
                     }
                     return groupString;
@@ -427,20 +422,20 @@ function soccer (args, user) {
             }
 
             var teamName = args[1].toLowerCase();
-            for (var i = groups["groups"].length - 1; i >= 0; i--) {
-                var grp = groups["groups"][i];
-                for (var j = 0; j < grp["standings"].length; j++) {
-                    if (grp["standings"][j]["team"]["name"].toLowerCase().replace(/ /g,'') === teamName){
-                        teamName = grp["standings"][j]["team"]["name"];
-                        var groupName = grp["name"];
-                        var position = grp["standings"][j]["pos"];
-                        var played = grp["standings"][j]["played"];
-                        var won = grp["standings"][j]["won"];
-                        var draw = grp["standings"][j]["drawn"];
-                        var lost = grp["standings"][j]["lost"];
-                        var goals_for = grp["standings"][j]["goals_for"];
-                        var goals_against = grp["standings"][j]["goals_against"];
-                        var pts = grp["standings"][j]["pts"];
+            for (var i = groups.groups.length - 1; i >= 0; i--) {
+                var grp = groups.groups[i];
+                for (var j = 0; j < grp.standings.length; j++) {
+                    if (grp.standings[j].team.name.toLowerCase().replace(/ /g,'') === teamName){
+                        teamName = grp.standings[j].team.name;
+                        var groupName = grp.name;
+                        var position = grp.standings[j].pos;
+                        var played = grp.standings[j].played;
+                        var won = grp.standings[j].won;
+                        var draw = grp.standings[j].drawn;
+                        var lost = grp.standings[j].lost;
+                        var goals_for = grp.standings[j].goals_for;
+                        var goals_against = grp.standings[j].goals_against;
+                        var pts = grp.standings[j].pts;
                         return util.format("%s (%s): %s in %s - MP:%d W:%d D:%d L:%d GF:%d GA:%d pts:%d\n", teamName, teamOwners[teamName], cardinalToOrdinal(position), groupName, played, won, draw, lost, goals_for, goals_against, pts);
                     }             
                 }
@@ -475,12 +470,12 @@ var killVotes = {};
 
 var roles1 = ["woof"];
 var roles2 = ["villager", "woof"];
-var roles3 = ["villager", "villager", "woof"];
-var roles4 = ["villager", "villager", "villager", "woof"];
-var roles5 = ["villager", "villager", "villager", "villager", "woof"];
-var roles6 = ["villager", "villager", "villager", "villager", "woof", "woof"];
-var roles7 = ["villager", "villager", "villager", "villager", "villager", "woof", "woof"];
-var roles8 = ["villager", "villager", "villager", "villager", "villager", "woof", "woof", "woof"];
+var roles3 = ["seer", "villager", "woof"];
+var roles4 = ["seer", "villager", "villager", "woof"];
+var roles5 = ["seer", "villager", "villager", "villager", "woof"];
+var roles6 = ["seer", "villager", "villager", "villager", "woof", "woof"];
+var roles7 = ["seer", "villager", "villager", "villager", "villager", "woof", "woof"];
+var roles8 = ["seer", "villager", "villager", "villager", "villager", "woof", "woof", "woof"];
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
@@ -496,13 +491,21 @@ function resetWolves(){
     logger.info("Werewolf game reset");
 }
 
+function resetVotes(){
+    var keys = Object.keys(players);
+
+    for (var player of keys){
+        player[player].voted = false;
+    }
+}
+
 function getWolves(){
     var wolves = [];
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player]["role"] === "woof"){
-            wolves.push(players[player]["name"]);
+        if (players[player].role === "woof"){
+            wolves.push(players[player].dname);
         }
     }
     return wolves;
@@ -516,14 +519,17 @@ function assignRoles(){
         var index = getRandomInt(0, roles.length-1);
         var role = roles[index];
         roles.splice(index, 1);
-        players[player]["role"] = role;
+        players[player].role = role;
     }
     for (var player of keys){
-        var role = players[player]["role"];
+        var role = players[player].role;
         var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
         if (role === "woof"){
             var wolves = getWolves();
-            roleMsg = roleMsg + util.format("\nThe wolves are: %s", wolves);
+            roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies?\nThe wolves are: %s", wolves);
+        }
+        if (role === "seer"){
+            roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
         }
         bot.sendMessage({
             to: player,
@@ -542,10 +548,10 @@ function killPlayer(){
         }
     }
 
-    players[victim]["alive"] = false;
+    players[victim].alive = false;
     killVotes = {};
 
-    var deathMsg = util.format("%s is dead and they were a %s", players[victim]["name"], players[victim]["role"]);
+    var deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
 
     var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames);
     if (night === 0){
@@ -573,6 +579,7 @@ function killPlayer(){
         else{
             night = 0;
         }
+        resetVotes();
         bot.sendMessage({
             to: wolfChannel,
             message: util.format("%s\n%s", deathMsg, dayChangeMsg)
@@ -585,10 +592,10 @@ function victimVote(wolf, target){
     var found = false;
 
     for (var player of keys){
-        var displayName = players[player]["name"];
+        var displayName = players[player].dname;
         var name = displayName.toLowerCase();
         var victim = target.toLowerCase();
-        if ((name === victim || name.indexOf(victim) > -1) && players[player]["alive"] === true){
+        if ((name === victim || name.indexOf(victim) > -1) && players[player].alive === true){
             found = true;
             if (player in killVotes){
                 killVotes[player]++;
@@ -596,7 +603,7 @@ function victimVote(wolf, target){
             else{
                 killVotes[player] = 1;
             }
-            players[wolf]["voted"] = true;
+            players[wolf].voted = true;
             if (night === 1){
                 bot.sendMessage({
                     to: wolf,
@@ -620,11 +627,62 @@ function victimVote(wolf, target){
     }
 }
 
+function seeRole(seer, subject){
+    var keys = Object.keys(players);
+    var found = false;
+
+    for (var player of keys){
+        var displayName = players[player].dname;
+        var name = displayName.toLowerCase();
+        var victim = subject.toLowerCase();
+        if ((name === victim || name.indexOf(victim) > -1) && players[player].alive === true){
+            found = true;
+            players[seer].voted = true;
+            
+            bot.sendMessage({
+                to: seer,
+                message: util.format("Where there once was doubt, there is now certainty. %s is a %s", displayName, players[player].role)
+            });
+            
+            if (night === 1 && nightVotesDone()){
+                killPlayer();
+            }
+            else if(night === 2 && nightVotesDone()){
+                //switch to day
+                night = 0;
+                resetVotes();
+                bot.sendMessage({
+                    to: wolfChannel,
+                    message: "It is a beautiful morning, but all is not right in this town. There were howls in the night and someone has pooped in your garden." +
+                    " There are wolves about and someone has gotta pay.\n Time to vote with \"!vote <name>\". Who is the wolf?"
+                });
+            }
+        }
+    }
+    if (found === false){
+        bot.sendMessage({
+            to: seer,
+            message: util.format("Cannot find player %s", subject)
+        });
+    }
+}
+
+function prepFirstNight(){
+    var keys = Object.keys(players);
+
+    for (var player of keys){
+        if (players[player].role === "woof"){
+            players[player].voted = true;
+        }
+    }
+}
+
 function nightVotesDone(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player]["alive"] === true && players[player]["role"] === "woof" && players[player]["voted"] === false){
+        if (players[player].alive === true && players[player].voted === false && 
+            (players[player].role === "woof" || players[player].role === "seer")){
             return false;
         }
     }
@@ -636,7 +694,7 @@ function dayVotesDone(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player]["alive"] === true && players[player]["voted"] === false){
+        if (players[player].alive === true && players[player].voted === false){
             return false;
         }
     }
@@ -648,7 +706,7 @@ function allWolvesDead(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player]["role"] === "woof" && players[player]["alive"] === true){
+        if (players[player].role === "woof" && players[player].alive === true){
             return false;
         }
     }
@@ -660,7 +718,7 @@ function allVillagersDead(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player]["role"] !== "woof" && players[player]["alive"] === true){
+        if (players[player].role !== "woof" && players[player].alive === true){
             return false;
         }
     }
@@ -703,20 +761,11 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: util.format("%s, you're a %s", user, noun)
                 });
                 break;
-            case "gethistory":
-                bot.getMessages({
-                    channelID: channelID
-                }, function(err, messagearray){
-                    messagearray.forEach(function(value){
-                        logger.info(value)
-                    })
-                });
-                break;
             case "compliment":
                 var subcount = subs.length;
                 var subno = getRandomInt(0, subcount-1);
                 var sub = subs[subno];
-                var rec = user
+                var rec = user;
                 if (args.length > 0){
                     rec = args.join(" ");
                 }
@@ -724,7 +773,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     bot.sendMessage({
                         to: channelID,
                         message: rec + ": " + comm
-                    })
+                    });
                 });
                 break;
             case "markov":
@@ -773,7 +822,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 1 && start === 0){
                     if (playerNames.indexOf(user) === -1){
                         playerNames.push(user);
-                        players[userID] = { "name" : user, "role" : "", "alive" : true, "voted" : false  }
+                        players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false  };
                     }
                     bot.sendMessage({
                         to: channelID,
@@ -782,19 +831,20 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "start":
-                if (game === 1 && start === 0){
+                if (game === 1 && start === 0 && playerNames.length > 2){
                     start = 1;
                     assignRoles();
-                    night = 1;
+                    prepFirstNight();
+                    night = 2;
                     bot.sendMessage({
                         to: channelID,
-                        message: util.format("The roles are assigned and night falls, wolves use \"!kill <name>\" in PM to choose your victim. Everyone else, maybe prayer will help\n"
-                            + "The player list is: %s", playerNames)
+                        message: util.format("The roles are assigned and night falls. No murdering tonight, simply check your role. Special villagers can do their thing though.\n" +
+                            "The player list is: %s", playerNames)
                     });
                 }
                 break;
             case "kill":
-                if (game === 1 && start === 1 && night === 1 && userID in players && players[userID]["role"] === "woof" && players[userID]["voted"] === false){
+                if (game === 1 && start === 1 && night === 1 && userID in players && players[userID].role === "woof" && players[userID].voted === false){
                     var target = args[0];
                     if (target){
                         victimVote(userID, target);
@@ -805,10 +855,19 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "vote":
-                if (game === 1 && start === 1 && night === 0 && userID in players && players[userID]["voted"] === false){
+                if (game === 1 && start === 1 && night === 0 && userID in players && players[userID].voted === false){
                     var target = args[0];
                     if (target){
                         victimVote(userID, target);
+                    }
+                }
+                break;
+            case "see":
+                if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false && 
+                    players[userID].role === "seer" && players[userID].alive === true){
+                    var subject = args[0];
+                    if (subject){
+                        seeRole(userID, subject);
                     }
                 }
                 break;
