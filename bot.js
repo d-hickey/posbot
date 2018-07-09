@@ -549,6 +549,10 @@ function killPlayer(){
     }
 
     players[victim].alive = false;
+    var index = playerNames.indexOf(players[victim].dname);
+    if (index !== -1){
+        playerNames.splice(index, 1);
+    }  
     killVotes = {};
 
     var deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
@@ -812,9 +816,13 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 0){
                     game = 1;
                     wolfChannel = channelID;
+
+                    playerNames.push(user);
+                    players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false };
+
                     bot.sendMessage({
                         to: channelID,
-                        message: "Werewolf game started, use !join to join or !start to start"
+                        message: util.format("Werewolf game started, use !join to join or !start to start\nPlayers: %s", playerNames)
                     });
                 }
                 break;
@@ -822,7 +830,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 1 && start === 0){
                     if (playerNames.indexOf(user) === -1){
                         playerNames.push(user);
-                        players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false  };
+                        players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false };
                     }
                     bot.sendMessage({
                         to: channelID,
