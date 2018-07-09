@@ -596,6 +596,9 @@ function victimVote(wolf, target){
     var found = false;
 
     for (var player of keys){
+        if (game === 0){
+            break;
+        }
         var displayName = players[player].dname;
         var name = displayName.toLowerCase();
         var victim = target.toLowerCase();
