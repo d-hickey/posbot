@@ -470,7 +470,7 @@ var killVotes = {};
 
 var roles1 = ["woof"];
 var roles2 = ["villager", "woof"];
-var roles3 = ["seer", "villager", "woof"];
+var roles3 = ["villager", "villager", "woof"];
 var roles4 = ["seer", "villager", "villager", "woof"];
 var roles5 = ["seer", "villager", "villager", "villager", "woof"];
 var roles6 = ["seer", "villager", "villager", "villager", "woof", "woof"];
@@ -540,22 +540,36 @@ function assignRoles(){
 
 function killPlayer(){
     var keys = Object.keys(killVotes);
-    var victim = keys[0];
+    var deathMsg = "";
 
-    for (var potential of keys){
-        if (killVotes[potential] > killVotes[victim]){
-            victim = potential;
-        }
+    if (keys.length > 0){
+        var victim = keys[0];
+
+        for (var potential of keys){
+            if (killVotes[potential] > killVotes[victim]){
+                victim = potential;
+            }
+            else if (killVotes[potential] === killVotes[victim]){
+                // random, replace with tiebreaker
+                var rand = getRandomInt(0, 1);
+                if (rand === 1){
+                    victim = potential;
+                }
+            }
+        }   
+
+        players[victim].alive = false;
+        var index = playerNames.indexOf(players[victim].dname);
+        if (index !== -1){
+            playerNames.splice(index, 1);
+        }  
+        killVotes = {};
+
+        deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
     }
-
-    players[victim].alive = false;
-    var index = playerNames.indexOf(players[victim].dname);
-    if (index !== -1){
-        playerNames.splice(index, 1);
-    }  
-    killVotes = {};
-
-    var deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
+    else{
+        deathMsg = "Nobody is dead. Strange, I'm fairly sure somebody should be dead. Anyway... ";
+    }
 
     var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames);
     if (night === 0){
@@ -674,6 +688,25 @@ function seeRole(seer, subject){
     }
 }
 
+function readyVote(voter){
+    players[voter].voted = true;
+    
+    if (nightVotesDone() || dayVotesDone()){
+        if (night === 2){
+            night = 0;
+            resetVotes();
+            bot.sendMessage({
+                to: wolfChannel,
+                message: "Oh damn, it's day time y'all, time to \"!vote <name>\". Get them wuffles."
+            });
+        }
+        else{
+            killPlayer();
+        }
+    }
+
+}
+
 function prepFirstNight(){
     var keys = Object.keys(players);
 
@@ -688,8 +721,7 @@ function nightVotesDone(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].alive === true && players[player].voted === false && 
-            (players[player].role === "woof" || players[player].role === "seer")){
+        if (players[player].alive === true && players[player].voted === false){
             return false;
         }
     }
@@ -845,11 +877,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 1 && start === 0 && playerNames.length > 2){
                     start = 1;
                     assignRoles();
-                    prepFirstNight();
+                    //prepFirstNight();
                     night = 2;
                     bot.sendMessage({
                         to: channelID,
                         message: util.format("The roles are assigned and night falls. No murdering tonight, simply check your role. Special villagers can do their thing though.\n" +
+                            "Everyone has to use !ready in their DMs to advance to day, please refrain from revealing any info you might have until dawn\n" +
                             "The player list is: %s", playerNames)
                     });
                 }
@@ -880,6 +913,27 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     if (subject){
                         seeRole(userID, subject);
                     }
+                }
+                break;
+            case "ready":
+                if (game === 1 && start === 1 && userID in players){
+                    readyVote(userID);
+                }
+                break;
+            case "players":
+                if (game === 1){
+                    bot.sendMessage({
+                        to: wolfChannel,
+                        message: util.format("Players: %s", playerNames)
+                    });
+                }
+                break;
+            case "votes":
+                if (game === 1 && start === 1 && night === 0){
+                    bot.sendMessage({
+                        to: wolfChannel,
+                        message: util.format("Votes: %s", killVotes)
+                    });
                 }
                 break;
             case "end":
