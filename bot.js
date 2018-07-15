@@ -397,7 +397,7 @@ function soccer (args, user) {
 
                 var payees = "";
                 for (var winner of keys){
-                    var memePayout = payout[winner].toString().replace(',', ' ');
+                    var memePayout = payout[winner].toString().replace(/,/g, ' ');
                     payees = util.format("%s%s: %s\n\n", payees, winner, memePayout);
                 }
                 soccerPlaces.paid = true;
