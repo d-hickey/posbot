@@ -260,6 +260,7 @@ function getMemes(amount){
         var meme = memePool[index];
         memes.push(meme);
         memePool.splice[index, 1];
+        count--;
     }
     return memes;
 }
