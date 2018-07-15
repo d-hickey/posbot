@@ -250,6 +250,35 @@ function acceptPayment(user, meme){
     }
 }
 
+function getMemes(amount){
+    var count = amount;
+    var memes = [];
+    while (count > 0){
+        var numMemes = memePool.length - 1;
+        var index = getRandomInt(0, numMemes);
+
+        var meme = memePool[index];
+        memes.push(meme);
+        memePool.splice[index, 1];
+    }
+    return memes;
+}
+
+function soccerWinners(){
+    var first = soccerPlaces.first;
+    var firstOwner = teamOwners[first];
+    var second = soccerPlaces.second;
+    var secondOwner = teamOwners[second];
+    var third = soccerPlaces.third;
+    var thirdOwner = teamOwners[third];
+    var fourth = soccerPlaces.fourth;
+    var fourthOwner = teamOwners[fourth];
+    var last = soccerPlaces.last;
+    var lastOwner = teamOwners[last];
+
+    return util.format("Winners:\nFirst: %s (%s)\nSecond: %s (%s)\nThird: %s (%s)\nFourth: %s (%s)\nLast: %s (%s)", first, firstOwner, second, secondOwner, third, thirdOwner, fourth, fourthOwner, last, lastOwner);
+}
+
 function soccer (args, user) {
     if (args.length === 0){
         return bad_input();
@@ -331,6 +360,47 @@ function soccer (args, user) {
             }
             else{
                 return util.format("No, %s lost the most, you didn't lose quite as good.", teamName);
+            }
+        }
+        if (args[0] === "payout"){
+            if (soccerPlaces.paid === false && soccerPlaces.remaining.length === 0){
+                var payout = {};
+
+                var first = teamOwners[soccerPlaces.first];
+                payout[first] = [];
+                var second = teamOwners[soccerPlaces.second];
+                payout[second] = [];
+                var third = teamOwners[soccerPlaces.third];
+                payout[third] = [];
+                var fourth = teamOwners[soccerPlaces.fourth];
+                payout[fourth] = [];
+                var last = teamOwners[soccerPlaces.last];
+                payout[last] = [];
+
+                var memeTotal = memePool.length;
+                var lastPrize = Math.floor(memeTotal * 0.08);
+                var fourthPrize = Math.floor(memeTotal * 0.12);
+                var thirdPrize = Math.floor(memeTotal * 0.15);
+                var secondPrize = Math.floor(memeTotal * 0.25);
+                var firstPrize = memeTotal - (secondPrize + thirdPrize + fourthPrize + lastPrize);
+
+                payout[first] = payout[first].concat(getMemes(firstPrize));
+                payout[second] = payout[second].concat(getMemes(secondPrize));
+                payout[third] = payout[third].concat(getMemes(thirdPrize));
+                payout[fourth] = payout[fourth].concat(getMemes(fourthPrize));
+                payout[last] = payout[last].concat(getMemes(lastPrize));
+
+                var winners = soccerWinners();
+
+                var keys = Object.keys(payout);
+
+                var payees = "";
+                for (var winner of keys){
+                    payees = util.format("%s%s: %s\n\n", payees, winner, payout[winner]);
+                }
+                soccerPlaces.paid = true;
+
+                return util.format("%s\n\nPayout:\n%s", winners, payees);
             }
         }
         if (args[0] === "prizes"){

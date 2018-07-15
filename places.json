@@ -1,8 +1,9 @@
 {
-	"1st" : "",
-	"2nd" : "",
-	"3rd" : "",
-	"4th" : "",
+	"first" : "",
+	"second" : "",
+	"third" : "Belgium",
+	"fourth" : "England",
 	"last" : "Panama",
-	"remaining" : ["Belgium", "Croatia", "England", "France"]
+	"paid" : false,
+	"remaining" : ["Croatia", "France"]
 }
