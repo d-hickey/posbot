@@ -259,7 +259,7 @@ function getMemes(amount){
 
         var meme = memePool[index];
         memes.push(meme);
-        memePool.splice[index, 1];
+        memePool.splice(index, 1);
         count--;
     }
     return memes;
@@ -397,7 +397,8 @@ function soccer (args, user) {
 
                 var payees = "";
                 for (var winner of keys){
-                    payees = util.format("%s%s: %s\n\n", payees, winner, payout[winner]);
+                    var memePayout = payout[winner].toString().replace(',', ' ');
+                    payees = util.format("%s%s: %s\n\n", payees, winner, memePayout);
                 }
                 soccerPlaces.paid = true;
 
