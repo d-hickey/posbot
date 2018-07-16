@@ -539,15 +539,16 @@ var players = {};
 var roles = [];
 var wolfChannel = "";
 var killVotes = {};
+var savedPlayers = [];
 
 var roles1 = ["woof"];
 var roles2 = ["villager", "woof"];
 var roles3 = ["villager", "villager", "woof"];
 var roles4 = ["seer", "villager", "villager", "woof"];
-var roles5 = ["seer", "villager", "villager", "villager", "woof"];
-var roles6 = ["seer", "villager", "villager", "villager", "woof", "woof"];
-var roles7 = ["seer", "villager", "villager", "villager", "villager", "woof", "woof"];
-var roles8 = ["seer", "villager", "villager", "villager", "villager", "woof", "woof", "woof"];
+var roles5 = ["seer", "doctor", "villager", "villager", "woof"];
+var roles6 = ["seer", "doctor", "villager", "villager", "woof", "woof"];
+var roles7 = ["seer", "doctor", "villager", "villager", "villager", "woof", "woof"];
+var roles8 = ["seer", "doctor", "villager", "villager", "villager", "villager", "woof", "woof"];
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
@@ -560,10 +561,13 @@ function resetWolves(){
     roles = [];
     wolfChannel = "";
     killVotes = {};
+    savedPlayers = [];
     logger.info("Werewolf game reset");
 }
 
 function resetVotes(){
+    killVotes = {};
+    savedPlayers = [];
     var keys = Object.keys(players);
 
     for (var player of keys){
@@ -602,6 +606,9 @@ function assignRoles(){
         }
         if (role === "seer"){
             roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
+        }
+        if (role === "doctor"){
+            roleMsg = roleMsg + "\nYears in education and training mean you can now cheat death itself. Use\"!save <name>\" to prevent any harm coming to somebody, or yourself.";
         }
         bot.sendMessage({
             to: player,
@@ -755,6 +762,56 @@ function seeRole(seer, subject){
     if (found === false){
         bot.sendMessage({
             to: seer,
+            message: util.format("Cannot find player %s", subject)
+        });
+    }
+}
+
+function savePlayer(doctor, patient){
+    var keys = Object.keys(players);
+    var found = false;
+
+    for (var player of keys){
+        var displayName = players[player].dname;
+        var name = displayName.toLowerCase();
+        var victim = patient.toLowerCase();
+        if ((name === victim || name.indexOf(victim) > -1) && players[player].alive === true){
+            found = true;
+            players[doctor].voted = true;
+            savedPlayers.push(player);
+
+            if (doctor == player){
+                bot.sendMessage({
+                    to: doctor,
+                    message: "You have chosen to save yourself. How deliciously selfish."
+                });
+            }
+            else{
+                bot.sendMessage({
+                    to: doctor,
+                    message: util.format("You will check up on %s tonight, make sure they aren't bleeding to death. Maybe you'll even get paid, does this town have socialised healthcare?", displayName)
+                });
+            }
+            
+            
+            if (night === 1 && nightVotesDone()){
+                killPlayer();
+            }
+            else if(night === 2 && nightVotesDone()){
+                //switch to day
+                night = 0;
+                resetVotes();
+                bot.sendMessage({
+                    to: wolfChannel,
+                    message: "It rained last night and the town now smells of wet fur. The Home Owners Association is worried about how this will affect resale values.\n" + 
+                    "The source must be dealt with, use \"!vote <name>\""
+                });
+            }
+        }
+    }
+    if (found === false){
+        bot.sendMessage({
+            to: doctor,
             message: util.format("Cannot find player %s", subject)
         });
     }
@@ -987,6 +1044,15 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     }
                 }
                 break;
+            case "save":
+                if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false && 
+                    players[userID].role === "doctor" && players[userID].alive === true){
+                    var subject = args[0];
+                    if (subject){
+                        savePlayer(userID, subject);
+                    }
+                }
+                break;
             case "ready":
                 if (game === 1 && start === 1 && userID in players){
                     readyVote(userID);
@@ -995,7 +1061,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "players":
                 if (game === 1){
                     bot.sendMessage({
-                        to: wolfChannel,
+                        to: channelID,
                         message: util.format("Players: %s", playerNames)
                     });
                 }
@@ -1003,7 +1069,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "votes":
                 if (game === 1 && start === 1 && night === 0){
                     bot.sendMessage({
-                        to: wolfChannel,
+                        to: channelID,
                         message: util.format("Votes: %s", killVotes)
                     });
                 }
