@@ -98,11 +98,11 @@ function send_markov (channelID) {
     });
 }
 
-function specific_markov (channelID, word) {
+function specific_markov (userID, channelID, word) {
     var limit = getRandomInt(2, 20);
     bot.sendMessage({
         to: channelID,
-        message: quotes.start(word).end(limit).process()
+        message: util.format("<@%s> %s", userID, quotes.start(word).end(limit).process())
     });
 }
 
@@ -617,6 +617,53 @@ function assignRoles(){
     }
 }
 
+function sendDayMessage(){
+    var keys = Object.keys(players);
+
+    var ats = "";
+    for (var player of keys){
+        if (players[player].alive === true){
+            ats = ats + util.format("<@%s> ", player);
+        }
+    }
+
+    bot.sendMessage({
+        to: wolfChannel,
+        message: ats
+    });
+}
+
+function sendNightMessages(){
+    var keys = Object.keys(players);
+
+    for (var player of keys){
+        if (players[player].alive === true){
+            var role = players[player].role;
+            var roleMsg = "It's night time, so I need you to ";
+            if (role === "woof"){
+                roleMsg = roleMsg + "use \"!kill <name>\" to select a player to kill. You could also just use \"!ready\" to not kill at all." +
+                        "\n Players: " + playerNames.toString();
+            }
+            if (role === "seer"){
+                roleMsg = roleMsg + "use \"!see <name>\" to select a player to spy on. You could also just use \"!ready\" to not view anyone." +
+                        "\n Players: " + playerNames.toString();
+            }
+            if (role === "doctor"){
+                roleMsg = roleMsg + "use \"!save <name>\" to select a player to heal, should any harm come to them. You could also just use \"!ready\" to abandon your duties." +
+                        "\n Players: " + playerNames.toString();
+            }
+            else {
+                roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
+            }
+            bot.sendMessage({
+                to: player,
+                message: roleMsg
+            });
+        }
+        
+    }
+}
+
 function killPlayer(){
     var keys = Object.keys(killVotes);
     var deathMsg = "";
@@ -670,17 +717,19 @@ function killPlayer(){
         resetWolves();
     }
     else{
-        if (night === 0){
-            night = 1;
-        }
-        else{
-            night = 0;
-        }
         resetVotes();
         bot.sendMessage({
             to: wolfChannel,
             message: util.format("%s\n%s", deathMsg, dayChangeMsg)
         });
+        if (night === 0){
+            night = 1;
+            sendNightMessages();
+        }
+        else{
+            night = 0;
+            sendDayMessage();
+        }
     }
 }
 
@@ -1093,7 +1142,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         }
         else{
             logger.info("attempting markov with word: " + word);
-            specific_markov(channelID, word);
+            specific_markov(userID, channelID, word);
         }
     }
     else if (userID != 348179384580177922) {
