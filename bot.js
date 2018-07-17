@@ -540,15 +540,16 @@ var roles = [];
 var wolfChannel = "";
 var killVotes = {};
 var savedPlayers = [];
+var loverPlayers = [];
 
 var roles1 = ["woof"];
 var roles2 = ["villager", "woof"];
 var roles3 = ["villager", "villager", "woof"];
 var roles4 = ["seer", "villager", "villager", "woof"];
 var roles5 = ["seer", "doctor", "villager", "villager", "woof"];
-var roles6 = ["seer", "doctor", "villager", "villager", "woof", "woof"];
-var roles7 = ["seer", "doctor", "villager", "villager", "villager", "woof", "woof"];
-var roles8 = ["seer", "doctor", "villager", "villager", "villager", "villager", "woof", "woof"];
+var roles6 = ["seer", "doctor", "cupid", "villager", "woof", "woof"];
+var roles7 = ["seer", "doctor", "cupid", "villager", "villager", "woof", "woof"];
+var roles8 = ["seer", "doctor", "cupid", "villager", "villager", "villager", "woof", "woof"];
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
@@ -562,6 +563,7 @@ function resetWolves(){
     wolfChannel = "";
     killVotes = {};
     savedPlayers = [];
+    loverPlayers = [];
     logger.info("Werewolf game reset");
 }
 
@@ -682,7 +684,7 @@ function killPlayer(){
                     victim = potential;
                 }
             }
-        }   
+        }
 
         players[victim].alive = false;
         var index = playerNames.indexOf(players[victim].dname);
@@ -692,6 +694,22 @@ function killPlayer(){
         killVotes = {};
 
         deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
+
+        // Handle surviving lover
+        if (loverPlayers.indexOf(victim) > -1){
+            var widow = loverPlayers[0];
+            if (widow === victim){
+                widow = loverPlayers[1];
+            }
+
+            players[widow].alive = false;
+            index = playerNames.indexOf(players[widow].dname);
+            if (index !== -1){
+                playerNames.splice(index, 1);
+            }
+
+            deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, players[widow].role);
+        }
     }
     else{
         deathMsg = "Nobody is dead. Strange, I'm fairly sure somebody should be dead. Anyway... ";
@@ -856,6 +874,7 @@ function savePlayer(doctor, patient){
                     "The source must be dealt with, use \"!vote <name>\""
                 });
             }
+            break;
         }
     }
     if (found === false){
@@ -863,6 +882,59 @@ function savePlayer(doctor, patient){
             to: doctor,
             message: util.format("Cannot find player %s", subject)
         });
+    }
+}
+
+function matchmake(cupid, loverOne, loverTwo){
+    var lovers = [];
+    lovers.push(loverOne);
+    lovers.push(loverTwo);
+
+    var loverNames = Object.keys(lovers);
+    var success = true;
+    for (var loverName of loverNames){
+        var keys = Object.keys(players);
+        var found = false;
+
+        for (var player of keys){
+            var displayName = players[player].dname;
+            var name = displayName.toLowerCase();
+            var lover = loverName.toLowerCase();
+            if ((name === lover || name.indexOf(lover) > -1) && players[player].alive === true){
+                found = true;
+                loverPlayers.push(player);
+                break;
+            }
+        }
+        if (found === false){
+            bot.sendMessage({
+                to: cupid,
+                message: util.format("Cannot find player %s", subject)
+            });
+            success = false;
+            break;
+        }
+    }
+    if (success === false){
+        loverPlayers = [];
+    }
+    else{
+        players[cupid].voted = true;
+        players[cupid].role = "villager";
+
+        bot.sendMessage({
+            to: cupid,
+            message: util.format("You have chosen %s and %s to be lovers. How scandalous, or not I don't know I'm just a robot.", players[loverPlayers[0]].dname, players[loverPlayers[1]].dname)
+        });
+
+        if (nightVotesDone()){
+            night = 0;
+            resetVotes();
+            bot.sendMessage({
+                to: wolfChannel,
+                message: "You are woken by Crazy Bill shouting that there are werewolves hiding among the townspeople. Now, there's nobody you can trust more than Crazy Bill. Sure he's crazy, crazy about the truth. Now do what bill says and use \"!vote <name>\" to murder one of your friends."
+            });
+        }
     }
 }
 
@@ -982,14 +1054,14 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 var subcount = subs.length;
                 var subno = getRandomInt(0, subcount-1);
                 var sub = subs[subno];
-                var rec = user;
+                var rec = util.format("<@%s>", userID);
                 if (args.length > 0){
                     rec = args.join(" ");
                 }
                 getRedditComment(sub, function(comm){
                     bot.sendMessage({
                         to: channelID,
-                        message: rec + ": " + comm
+                        message: rec + " " + comm
                     });
                 });
                 break;
