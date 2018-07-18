@@ -917,7 +917,7 @@ function savePlayer(doctor, patient){
     if (found === false){
         bot.sendMessage({
             to: doctor,
-            message: util.format("Cannot find player %s", subject)
+            message: util.format("Cannot find player %s", patient)
         });
     }
 }
@@ -937,7 +937,7 @@ function matchmake(cupid, loverOne, loverTwo){
             var displayName = players[player].dname;
             var name = displayName.toLowerCase();
             var lover = loverName.toLowerCase();
-            if ((name === lover || name.indexOf(lover) > -1) && players[player].alive === true){
+            if ((name === lover || name.indexOf(lover) > -1) && players[player].alive === true && loverPlayers.indexOf(player) === -1){
                 found = true;
                 loverPlayers.push(player);
                 break;
@@ -946,7 +946,7 @@ function matchmake(cupid, loverOne, loverTwo){
         if (found === false){
             bot.sendMessage({
                 to: cupid,
-                message: util.format("Cannot find player %s", subject)
+                message: util.format("Cannot find player %s", loverName)
             });
             success = false;
             break;
@@ -1252,6 +1252,16 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     var subject = args[0];
                     if (subject){
                         savePlayer(userID, subject);
+                    }
+                }
+                break;
+            case "matchmake":
+                if (game === 1 && start === 1 && night === 2 && userID in players && players[userID].voted === false && 
+                    players[userID].role === "cupid" && players[userID].alive === true){
+                    var loverOne = args[0];
+                    var loverTwo = args[1];
+                    if (loverOne && loverTwo){
+                        matchmake(userID, loverOne, loverTwo);
                     }
                 }
                 break;
