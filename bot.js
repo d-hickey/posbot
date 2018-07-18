@@ -531,7 +531,7 @@ bot.on("ready", function (evt) {
 });
 
 // werewolf vars
-var dayMessages = JSON.parse(fs.readFileSync('.json', 'utf8'));
+var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
 
 var game = 0;
 var start = 0;
