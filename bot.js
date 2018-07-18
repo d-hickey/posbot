@@ -531,6 +531,8 @@ bot.on("ready", function (evt) {
 });
 
 // werewolf vars
+var dayMessages = JSON.parse(fs.readFileSync('.json', 'utf8'));
+
 var game = 0;
 var start = 0;
 var night = 0;
@@ -604,13 +606,20 @@ function assignRoles(){
         var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
         if (role === "woof"){
             var wolves = getWolves();
-            roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies?\nThe wolves are: %s", wolves);
+            roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolves are: %s", wolves);
         }
         if (role === "seer"){
             roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
         }
         if (role === "doctor"){
             roleMsg = roleMsg + "\nYears in education and training mean you can now cheat death itself. Use\"!save <name>\" to prevent any harm coming to somebody, or yourself.";
+        }
+        if (role === "cupid"){
+            roleMsg = roleMsg + "use \"!matchmake <name> <name>\" to select to select two players to be the secret lovers." +
+                    "\n Players: " + playerNames.toString();
+        }
+        else{
+            roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
         }
         bot.sendMessage({
             to: player,
@@ -666,6 +675,19 @@ function sendNightMessages(){
     }
 }
 
+function switchToDay(){
+    night = 0;
+    resetVotes();
+
+    var index = getRandomInt(0, dayMessages.length-1);
+    var message = dayMessages[index];
+    bot.sendMessage({
+        to: wolfChannel,
+        message: message
+    });
+    sendDayMessage();
+}
+
 function killPlayer(){
     var keys = Object.keys(killVotes);
     var deathMsg = "";
@@ -674,10 +696,10 @@ function killPlayer(){
         var victim = keys[0];
 
         for (var potential of keys){
-            if (killVotes[potential] > killVotes[victim]){
+            if (killVotes[potential].length > killVotes[victim].length){
                 victim = potential;
             }
-            else if (killVotes[potential] === killVotes[victim]){
+            else if (killVotes[potential].length === killVotes[victim].length){
                 // random, replace with tiebreaker
                 var rand = getRandomInt(0, 1);
                 if (rand === 1){
@@ -685,30 +707,34 @@ function killPlayer(){
                 }
             }
         }
-
-        players[victim].alive = false;
-        var index = playerNames.indexOf(players[victim].dname);
-        if (index !== -1){
-            playerNames.splice(index, 1);
-        }  
-        killVotes = {};
-
-        deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
-
-        // Handle surviving lover
-        if (loverPlayers.indexOf(victim) > -1){
-            var widow = loverPlayers[0];
-            if (widow === victim){
-                widow = loverPlayers[1];
-            }
-
-            players[widow].alive = false;
-            index = playerNames.indexOf(players[widow].dname);
+        if (savedPlayers.indexOf(victim) > -1){
+            deathMsg = util.format("Everyone receives a message from %s. It contains a picture of them in a hospital bed and the tagline \"I lived bitch\".", players[victim].dname);
+        }
+        else{
+            players[victim].alive = false;
+            var index = playerNames.indexOf(players[victim].dname);
             if (index !== -1){
                 playerNames.splice(index, 1);
-            }
+            }  
+            killVotes = {};
 
-            deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, players[widow].role);
+            deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
+
+            // Handle surviving lover
+            if (loverPlayers.indexOf(victim) > -1){
+                var widow = loverPlayers[0];
+                if (widow === victim){
+                    widow = loverPlayers[1];
+                }
+
+                players[widow].alive = false;
+                index = playerNames.indexOf(players[widow].dname);
+                if (index !== -1){
+                    playerNames.splice(index, 1);
+                }
+
+                deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, players[widow].role);
+            }
         }
     }
     else{
@@ -734,6 +760,15 @@ function killPlayer(){
         });
         resetWolves();
     }
+    else if (playerNames.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s\nAll is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
+                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.\nGAME OVER", deathMsg,
+                players[loverPlayers[0]].dname, players[loverPlayers[0]].role, players[loverPlayers[1]].dname, players[loverPlayers[1]].role)
+        });
+        resetWolves();
+    }
     else{
         resetVotes();
         bot.sendMessage({
@@ -751,7 +786,14 @@ function killPlayer(){
     }
 }
 
-function victimVote(wolf, target){
+function victimVote(wolf, target, channel){
+    if (night === 0 && channel !== wolfChannel){
+        bot.sendMessage({
+            to: wolf,
+            message: "You can't hide your vote. You must \"!vote\" in public"
+        });
+        return;
+    }
     var keys = Object.keys(players);
     var found = false;
 
@@ -765,16 +807,22 @@ function victimVote(wolf, target){
         if ((name === victim || name.indexOf(victim) > -1) && players[player].alive === true){
             found = true;
             if (player in killVotes){
-                killVotes[player]++;
+                killVotes[player].push(wolf);
             }
             else{
-                killVotes[player] = 1;
+                killVotes[player] = [wolf];
             }
             players[wolf].voted = true;
             if (night === 1){
                 bot.sendMessage({
                     to: wolf,
                     message: util.format("You have voted to kill %s", displayName)
+                });
+            }
+            else{
+                bot.sendMessage({
+                    to: wolfChannel,
+                    message: util.format("Accept vote for %s", displayName)
                 });
             }
             
@@ -784,6 +832,7 @@ function victimVote(wolf, target){
             else if(night === 0 && dayVotesDone()){
                 killPlayer();
             }
+            break;
         }
     }
     if (found === false){
@@ -815,15 +864,9 @@ function seeRole(seer, subject){
                 killPlayer();
             }
             else if(night === 2 && nightVotesDone()){
-                //switch to day
-                night = 0;
-                resetVotes();
-                bot.sendMessage({
-                    to: wolfChannel,
-                    message: "It is a beautiful morning, but all is not right in this town. There were howls in the night and someone has pooped in your garden." +
-                    " There are wolves about and someone has gotta pay.\n Time to vote with \"!vote <name>\". Who is the wolf?"
-                });
+                switchToDay();
             }
+            break;
         }
     }
     if (found === false){
@@ -866,13 +909,7 @@ function savePlayer(doctor, patient){
             }
             else if(night === 2 && nightVotesDone()){
                 //switch to day
-                night = 0;
-                resetVotes();
-                bot.sendMessage({
-                    to: wolfChannel,
-                    message: "It rained last night and the town now smells of wet fur. The Home Owners Association is worried about how this will affect resale values.\n" + 
-                    "The source must be dealt with, use \"!vote <name>\""
-                });
+                switchToDay();
             }
             break;
         }
@@ -927,34 +964,78 @@ function matchmake(cupid, loverOne, loverTwo){
             message: util.format("You have chosen %s and %s to be lovers. How scandalous, or not I don't know I'm just a robot.", players[loverPlayers[0]].dname, players[loverPlayers[1]].dname)
         });
 
+        bot.sendMessage({
+            to: loverPlayers[0],
+            message: util.format("%s is your lover. Your parents would never approve. You must keep this blossoming romance a secret.", players[loverPlayers[1]].dname)
+        });
+
+        bot.sendMessage({
+            to: loverPlayers[1],
+            message: util.format("You never thought you would find love in this town. And yet here you are, dreaming of %s again. The others don't understand, you'd do anything for %s. You'd die for them, you'd kill for them.", players[loverPlayers[0]].dname, players[loverPlayers[0]].dname)
+        });
+
         if (nightVotesDone()){
-            night = 0;
-            resetVotes();
-            bot.sendMessage({
-                to: wolfChannel,
-                message: "You are woken by Crazy Bill shouting that there are werewolves hiding among the townspeople. Now, there's nobody you can trust more than Crazy Bill. Sure he's crazy, crazy about the truth. Now do what bill says and use \"!vote <name>\" to murder one of your friends."
-            });
+            switchToDay();
         }
     }
 }
 
-function readyVote(voter){
+function readyVote(voter, channel){
+    if (channel === wolfChannel){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: "We at Werewolf Inc would prefer if you used \"!ready\" from the privacy of your DM"
+        });
+    }
+
     players[voter].voted = true;
+    bot.sendMessage({
+        to: voter,
+        message: "Ready status acknowledged."
+    });
     
     if (nightVotesDone() || dayVotesDone()){
         if (night === 2){
-            night = 0;
-            resetVotes();
-            bot.sendMessage({
-                to: wolfChannel,
-                message: "Oh damn, it's day time y'all, time to \"!vote <name>\". Get them wuffles."
-            });
+            switchToDay();
         }
         else{
             killPlayer();
         }
     }
 
+}
+
+function unvote(voter, channel){
+    players[voter].voted = false;
+
+    var keys = Object.keys(killVotes);
+    for (var nominee of keys){
+        var index = killVotes[nominee].indexOf(voter);
+        if (index > -1){
+            killVotes[nominee].splice(index, 1);
+            if (killVotes[nominee].length === 0){
+                delete killVotes[nominee];
+            }
+        }
+    }
+}
+
+function printVotes(){
+    var votes = "";
+
+    var keys = Object.keys(killVotes);
+    for (var nominee of keys){
+        var num = killVotes[nominee].length;
+        var voters = "";
+        for (var i = 0; i < num; i++){
+            voters += players[killVotes[nominee][i]].dname + ", ";
+        }
+        voters = voters.slice(0, -2);
+
+        votes += util.format("%s: %s votes (%s)\n", players[nominee].dname, num, voters);
+    }
+    votes = votes.slice(0, -1);
+    return votes;
 }
 
 function prepFirstNight(){
@@ -1138,10 +1219,10 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "kill":
-                if (game === 1 && start === 1 && night === 1 && userID in players && players[userID].role === "woof" && players[userID].voted === false){
+                if (game === 1 && start === 1 && night === 1 && userID in players && players[userID].role === "woof" && players[userID].alive === true){
                     var target = args[0];
                     if (target){
-                        victimVote(userID, target);
+                        victimVote(userID, target, channelID);
                     }
                     else{
                         logger.info("target is undefined: " + target);
@@ -1149,10 +1230,10 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "vote":
-                if (game === 1 && start === 1 && night === 0 && userID in players && players[userID].voted === false){
+                if (game === 1 && start === 1 && night === 0 && userID in players && players[userID].alive === true){
                     var target = args[0];
                     if (target){
-                        victimVote(userID, target);
+                        victimVote(userID, target, channelID);
                     }
                 }
                 break;
@@ -1176,7 +1257,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "ready":
                 if (game === 1 && start === 1 && userID in players){
-                    readyVote(userID);
+                    readyVote(userID, channelID);
+                }
+                break;
+            case "unvote":
+                if (game === 1 && start === 1 && userID in players && players[userID].voted === true){
+                    unvote(userID, channelID);
                 }
                 break;
             case "players":
@@ -1191,7 +1277,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 1 && start === 1 && night === 0){
                     bot.sendMessage({
                         to: channelID,
-                        message: util.format("Votes: %s", killVotes)
+                        message: printVotes()
                     });
                 }
                 break;
