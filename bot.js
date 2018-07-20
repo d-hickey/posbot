@@ -817,6 +817,9 @@ function victimVote(wolf, target, channel){
         var name = displayName.toLowerCase();
         var victim = target.toLowerCase();
         if ((name === victim || name.indexOf(victim) > -1) && players[player].alive === true){
+            if (players[wolf].voted){
+                unvote(wolf);
+            }
             found = true;
             if (player in killVotes){
                 killVotes[player].push(wolf);
@@ -1006,7 +1009,7 @@ function readyVote(voter, channel){
 
 }
 
-function unvote(voter, channel){
+function unvote(voter){
     players[voter].voted = false;
 
     var keys = Object.keys(killVotes);
@@ -1273,7 +1276,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "unvote":
                 if (game === 1 && start === 1 && userID in players && players[userID].voted === true){
-                    unvote(userID, channelID);
+                    unvote(userID);
                 }
                 break;
             case "players":
