@@ -679,6 +679,18 @@ function switchToDay(){
     night = 0;
     resetVotes();
 
+    if (loverPlayers.length === 2){
+        bot.sendMessage({
+            to: loverPlayers[0],
+            message: util.format("%s is your lover. Your parents would never approve. You must keep this blossoming romance a secret.", players[loverPlayers[1]].dname)
+        });
+
+        bot.sendMessage({
+            to: loverPlayers[1],
+            message: util.format("You never thought you would find love in this town. And yet here you are, dreaming of %s again. The others don't understand, you'd do anything for %s. You'd die for them, you'd kill for them.", players[loverPlayers[0]].dname, players[loverPlayers[0]].dname)
+        });
+    }
+
     var index = getRandomInt(0, dayMessages.length-1);
     var message = dayMessages[index];
     bot.sendMessage({
@@ -961,16 +973,6 @@ function matchmake(cupid, loverOne, loverTwo){
         bot.sendMessage({
             to: cupid,
             message: util.format("You have chosen %s and %s to be lovers. How scandalous, or not I don't know I'm just a robot.", players[loverPlayers[0]].dname, players[loverPlayers[1]].dname)
-        });
-
-        bot.sendMessage({
-            to: loverPlayers[0],
-            message: util.format("%s is your lover. Your parents would never approve. You must keep this blossoming romance a secret.", players[loverPlayers[1]].dname)
-        });
-
-        bot.sendMessage({
-            to: loverPlayers[1],
-            message: util.format("You never thought you would find love in this town. And yet here you are, dreaming of %s again. The others don't understand, you'd do anything for %s. You'd die for them, you'd kill for them.", players[loverPlayers[0]].dname, players[loverPlayers[0]].dname)
         });
 
         if (nightVotesDone()){
