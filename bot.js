@@ -984,6 +984,23 @@ function matchmake(cupid, loverOne, loverTwo){
     }
 }
 
+function impatience(player){
+    var num = playerNames.length;
+    var threshold = Math.floor(num / 2);
+
+    var keys = Object.keys(killVotes);
+    for (var nominee of keys){
+        var votes = killVotes[nominee].length;
+        if (votes > threshold){
+            bot.sendMessage({
+                to: wolfChannel,
+                message: util.format("%s has had enough. They begin to walk away from the crowd gathered in the town square when suddenly then spin around, arm outstretched, hand in the form of a gun. They pull their forearm up simulating the kickback of the gun and they say \"pew pew\".", players[player].dname)
+            });
+            killPlayer();
+        }
+    }
+}
+
 function readyVote(voter, channel){
     if (channel === wolfChannel){
         bot.sendMessage({
@@ -1293,6 +1310,11 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                         to: channelID,
                         message: printVotes()
                     });
+                }
+                break;
+            case "impatience":
+                if (game === 1 && start === 1 && night === 0 && userID in players){
+
                 }
                 break;
             case "end":
