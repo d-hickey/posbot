@@ -927,9 +927,8 @@ function matchmake(cupid, loverOne, loverTwo){
     lovers.push(loverOne);
     lovers.push(loverTwo);
 
-    var loverNames = Object.keys(lovers);
     var success = true;
-    for (var loverName of loverNames){
+    for (var loverName of lovers){
         var keys = Object.keys(players);
         var found = false;
 
