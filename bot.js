@@ -532,6 +532,7 @@ bot.on("ready", function (evt) {
 
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
+var sequels = JSON.parse(fs.readFileSync('sequels.json', 'utf8'));
 
 var game = 0;
 var start = 0;
@@ -556,6 +557,20 @@ var roles8 = ["seer", "doctor", "cupid", "villager", "villager", "villager", "wo
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
 function resetWolves(){
+    var index = getRandomInt(0, sequels.length-1);
+    var sequel = sequels[index];
+    var cast = "";
+
+    var keys = Object.keys(players);
+    for (var player of keys){
+        cast += util.format("\n%s as the %s", players[player].dname, players[player].role);
+    }
+
+    bot.sendMessage({
+        to: wolfChannel,
+        message: util.format("THE END\n\nBut the Wuffles will return in Werewolf: %s\n\nCAST%s", sequel, cast)
+    });
+
     game = 0;
     start = 0;
     night = 0;
@@ -761,25 +776,35 @@ function killPlayer(){
     if (allWolvesDead()){       
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s\nCongrats Villagers, all the wolves are dead\nGAME OVER", deathMsg)
+            message: util.format("%s\nCongrats Villagers, all the wolves are dead", deathMsg)
         });
-        resetWolves();
+        setTimeout(resetWolves, 5000);
     }
     else if (allVillagersDead()){       
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s\nCongrats Wuffles, you've eaten them all\nGAME OVER", deathMsg)
+            message: util.format("%s\nCongrats Wuffles, you've eaten them all", deathMsg)
         });
-        resetWolves();
+        setTimeout(resetWolves, 5000);
     }
-    else if (playerNames.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
+    else if (loverPlayers.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
         bot.sendMessage({
             to: wolfChannel,
             message: util.format("%s\nAll is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
-                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.\nGAME OVER", deathMsg,
+                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.", deathMsg,
                 players[loverPlayers[0]].dname, players[loverPlayers[0]].role, players[loverPlayers[1]].dname, players[loverPlayers[1]].role)
         });
-        resetWolves();
+        setTimeout(resetWolves, 5000);
+    }
+    else if (playerNames.length === 2){
+        var lastWolf = getLastWolf();
+        var lastVillager = getLastVillager();
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s\nThe games are done now, the time for deception is over. A %s and a woof stand across from each other in the centre of town. %s readies their weapon, knowing it won't be enough. %s bares their fangs." + 
+                "They run at each other, freeze frame just as they meet. Cut to credits with _Hungry like the wolf_ playing.", deathMsg, lastVillager.role, lastVillager.dname, lastWolf.dname)
+        });
+        setTimeout(resetWolves, 5000);
     }
     else{
         resetVotes();
@@ -794,6 +819,26 @@ function killPlayer(){
         else{
             night = 0;
             sendDayMessage();
+        }
+    }
+}
+
+function getLastVillager(){
+    var keys = Object.keys(players);
+
+    for (var player of keys){
+        if (players[player].alive === true && players[player].role !== "woof"){
+            return players[player];
+        }
+    }
+}
+
+function getLastWolf(){
+    var keys = Object.keys(players);
+
+    for (var player of keys){
+        if (players[player].alive === true && players[player].role === "woof"){
+            return players[player];
         }
     }
 }
@@ -987,6 +1032,7 @@ function matchmake(cupid, loverOne, loverTwo){
 function impatience(player){
     var num = playerNames.length;
     var threshold = Math.floor(num / 2);
+    var success = false;
 
     var keys = Object.keys(killVotes);
     for (var nominee of keys){
@@ -997,7 +1043,16 @@ function impatience(player){
                 message: util.format("%s has had enough. They begin to walk away from the crowd gathered in the town square when suddenly then spin around, arm outstretched, hand in the form of a gun. They pull their forearm up simulating the kickback of the gun and they say \"pew pew\".", players[player].dname)
             });
             killPlayer();
+            success = true;
+            break;
         }
+    }
+
+    if (success === false){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s tries to rally the crowd but there's nobody can agree on where to direct their anger.", players[player].dname)
+        });
     }
 }
 
@@ -1044,18 +1099,37 @@ function unvote(voter){
 function printVotes(){
     var votes = "";
 
-    var keys = Object.keys(killVotes);
-    for (var nominee of keys){
-        var num = killVotes[nominee].length;
-        var voters = "";
-        for (var i = 0; i < num; i++){
-            voters += players[killVotes[nominee][i]].dname + ", ";
-        }
-        voters = voters.slice(0, -2);
+    if (night === 0){
+        var keys = Object.keys(killVotes);
+        for (var nominee of keys){
+            var num = killVotes[nominee].length;
+            var voters = "";
+            for (var i = 0; i < num; i++){
+                voters += players[killVotes[nominee][i]].dname + ", ";
+            }
+            voters = voters.slice(0, -2);
 
-        votes += util.format("%s: %s votes (%s)\n", players[nominee].dname, num, voters);
+            votes += util.format("%s: %s votes (%s)\n", players[nominee].dname, num, voters);
+        }
+        votes = votes.slice(0, -1);
     }
-    votes = votes.slice(0, -1);
+    else{
+        var ready = 0;
+        var total = 0;
+
+        var ids = Object.keys(players);
+        for (var player of ids){
+            if (players[player].alive){
+                total++;
+                if (players[player].voted){
+                    ready++;
+                }
+            }
+        }
+        votes = util.format("%s ready out of a possible %s", ready, total);
+    }
+
+    
     return votes;
 }
 
@@ -1229,13 +1303,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (game === 1 && start === 0 && playerNames.length > 2){
                     start = 1;
                     assignRoles();
-                    //prepFirstNight();
                     night = 2;
                     bot.sendMessage({
                         to: channelID,
                         message: util.format("The roles are assigned and night falls. No murdering tonight, simply check your role. Special villagers can do their thing though.\n" +
                             "Everyone has to use !ready in their DMs to advance to day, please refrain from revealing any info you might have until dawn\n" +
-                            "The player list is: %s", playerNames)
+                            "The player list is: %s\nThe roles are: %s", playerNames, rolesSet[playerNames.length-1])
                     });
                 }
                 break;
@@ -1305,7 +1378,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "votes":
-                if (game === 1 && start === 1 && night === 0){
+                if (game === 1 && start === 1){
                     bot.sendMessage({
                         to: channelID,
                         message: printVotes()
@@ -1314,7 +1387,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "impatience":
                 if (game === 1 && start === 1 && night === 0 && userID in players){
-
+                    impatience(userID);
                 }
                 break;
             case "end":
