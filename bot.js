@@ -1057,7 +1057,7 @@ function impatience(player){
 }
 
 function readyVote(voter, channel){
-    if (channel === wolfChannel){
+    if (channel === wolfChannel && night !== 0){
         bot.sendMessage({
             to: wolfChannel,
             message: "We at Werewolf Inc would prefer if you used \"!ready\" from the privacy of your DM"
