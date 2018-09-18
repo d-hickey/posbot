@@ -109,6 +109,14 @@ function specific_markov (userID, channelID, word) {
 // Ruby vars
 var rubyPatience = 0;
 
+// Determination
+var savepoints = JSON.parse(fs.readFileSync('determination.json', 'utf8'));
+
+function getSavepoint () {
+    var index = getRandomInt(0, savepoints.length-1);
+    return savepoints[index];
+}
+
 // Soccer vars
 var soccerLoaded = 0;
 var groupsLoaded = 0;
@@ -1262,6 +1270,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 bot.sendMessage({
                     to: channelID,
                     message: ruby
+                });
+                break;
+            case "savepoint":
+                bot.sendMessage({
+                    to: channelID,
+                    message: getSavepoint()
                 });
                 break;
             case "soccer":
