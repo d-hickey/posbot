@@ -111,9 +111,14 @@ var rubyPatience = 0;
 
 // Determination
 var savepoints = JSON.parse(fs.readFileSync('determination.json', 'utf8'));
+var overwrite = 29;
 
 function getSavepoint () {
     var index = getRandomInt(0, savepoints.length-1);
+    if (overwrite !== -1){
+        index = overwrite;
+        overwrite = -1;
+    }
     return savepoints[index];
 }
 
