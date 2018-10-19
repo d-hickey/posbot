@@ -135,7 +135,7 @@ bot.on("ready", function (evt) {
 });
 
 //Channel History
-var userMsgCount = {};
+var userMsgCount = JSON.parse(fs.readFileSync('messagecount.json', 'utf8'));
 
 function queryGlenneralHistory(){
 
@@ -210,6 +210,26 @@ function getPastMessages(beforeID, count){
             }
         }
     });
+}
+
+function getMessageTotal(){
+    var total = 0;
+    for (var key in userMsgCount){
+        total = total + userMsgCount[key];
+    }
+    return total;
+}
+
+function getMessageStats(user, name){
+    if (user in userMsgCount){
+        var count = userMsgCount[user];
+        var total = getMessageTotal();
+        var percent = (count / total) * 100;
+
+        var respMsg = util.format("Wow %s! You've posted %d messages in #glenneral. Out of a total of %d, that's about %d percent.", name, count, total, percent);
+        return respMsg;
+    }
+    return "Uh, you don't exist in #glenneral? Weird";
 }
 
 //setTimeout(queryGlenneralHistory, 5000);
@@ -952,6 +972,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 bot.sendMessage({
                     to: channelID,
                     message: getSavepoint()
+                });
+                break;
+            case "stats":
+                bot.sendMessage({
+                    to: channelID,
+                    message: getMessageStats(userid, user)
                 });
                 break;
             case "werewolf":
