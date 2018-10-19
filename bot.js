@@ -111,7 +111,7 @@ var rubyPatience = 0;
 
 // Determination
 var savepoints = JSON.parse(fs.readFileSync('determination.json', 'utf8'));
-var overwrite = 29;
+var overwrite = 14;
 
 function getSavepoint () {
     var index = getRandomInt(0, savepoints.length-1);
@@ -133,6 +133,72 @@ bot.on("ready", function (evt) {
     logger.info("Logged in as: ");
     logger.info(bot.username + " - (" + bot.id + ")");
 });
+
+//Channel History
+var userMsgCount = {};
+
+function queryGlenneralHistory(){
+
+    bot.getMessages({
+        channelID : 88601349020725248,
+        limit : 100
+    }, function (err, messageArray){
+        if (err){
+            logger.info(err);
+        }
+        else{
+            var lastID = 0;
+            for (var message of messageArray){
+                logger.info(message.content);
+                lastID = message.id;
+                var userid = message.author.id;
+                if (userid in userMsgCount){
+                    userMsgCount[userid]++;
+                }
+                else{
+                    userMsgCount[userid] = 1;
+                }
+            }
+            getPastMessages(lastID);
+
+            var msgJson = JSON.stringify(userMsgCount);  
+            fs.writeFileSync('messagecount.json', msgJson);
+        }
+    });
+    
+}
+
+function getPastMessages(beforeID){
+    bot.getMessages({
+        channelID : 88601349020725248,
+        before : beforeID,
+        limit : 100
+    }, function (err, messageArray){
+        if (err){
+            logger.info("got error, waiting for 10 seconds\n " + err);
+            setTimeout(getPastMessages(beforeID), 10000);
+        }
+        else{
+            var lastID = 0;
+            for (var message of messageArray){
+                //logger.info(message.content);
+                lastID = message.id;
+                var userid = message.author.id;
+                if (userid in userMsgCount){
+                    userMsgCount[userid]++;
+                }
+                else{
+                    userMsgCount[userid] = 1;
+                }
+                if (messageArray.length == 100){
+                    getPastMessages(lastID);
+                }
+            }
+        }
+    });
+}
+
+queryGlenneralHistory();
 
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
