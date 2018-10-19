@@ -140,18 +140,21 @@ var userMsgCount = {};
 function queryGlenneralHistory(){
 
     bot.getMessages({
-        channelID : 88601349020725248,
+        channelID : "88601349020725248",
         limit : 100
     }, function (err, messageArray){
         if (err){
             logger.info(err);
         }
         else{
+            logger.info("1 array size: " + messageArray.length);
             var lastID = 0;
             for (var message of messageArray){
-                logger.info(message.content);
+                logger.info("content: " + message.content);
+                if (message.content == null){ continue; }
                 lastID = message.id;
-                var userid = message.author.id;
+                var user = message.author;
+                var userid = user.id;
                 if (userid in userMsgCount){
                     userMsgCount[userid]++;
                 }
@@ -159,46 +162,57 @@ function queryGlenneralHistory(){
                     userMsgCount[userid] = 1;
                 }
             }
-            getPastMessages(lastID);
+            getPastMessages(lastID, 2);
 
             var msgJson = JSON.stringify(userMsgCount);  
             fs.writeFileSync('messagecount.json', msgJson);
+
+            logger.info("done outer history");
         }
     });
     
 }
 
-function getPastMessages(beforeID){
+function getPastMessages(beforeID, count){
     bot.getMessages({
-        channelID : 88601349020725248,
+        channelID : "88601349020725248",
         before : beforeID,
         limit : 100
     }, function (err, messageArray){
         if (err){
             logger.info("got error, waiting for 10 seconds\n " + err);
-            setTimeout(getPastMessages(beforeID), 10000);
+            setTimeout(getPastMessages(beforeID, count), 10000);
         }
         else{
             var lastID = 0;
+            logger.info(count + " array size: " + messageArray.length);
             for (var message of messageArray){
+                if (message.content == null){ continue; }
                 //logger.info(message.content);
                 lastID = message.id;
-                var userid = message.author.id;
+                var user = message.author;
+                var userid = user.id;
                 if (userid in userMsgCount){
                     userMsgCount[userid]++;
                 }
                 else{
                     userMsgCount[userid] = 1;
                 }
-                if (messageArray.length == 100){
-                    getPastMessages(lastID);
-                }
+            }
+
+            if (messageArray.length == 100){
+                getPastMessages(lastID, count + 1);
+            }
+            else{
+                var msgJson = JSON.stringify(userMsgCount);
+                fs.writeFileSync('messagecount.json', msgJson);
+                logger.info("done history " + count);
             }
         }
     });
 }
 
-queryGlenneralHistory();
+//setTimeout(queryGlenneralHistory, 5000);
 
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
