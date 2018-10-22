@@ -253,6 +253,7 @@ function getUserTotal(user){
             total = total + userMsgCount[chan][user];
         }
     }
+    return total;
 }
 
 function getMessageStats(channel, user, name){
