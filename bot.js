@@ -977,7 +977,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "stats":
                 bot.sendMessage({
                     to: channelID,
-                    message: getMessageStats(userid, user)
+                    message: getMessageStats(userID, user)
                 });
                 break;
             case "werewolf":
