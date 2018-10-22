@@ -280,22 +280,39 @@ function getTotalStats(user, name){
     return respMsg;
 }
 
-function getMember(userID) {
-    logger.info(JSON.stringify(bot.servers));
-    for (var serverKey in bot.servers){
-        logger.info("\n\n" + serverKey);
-        for (var memberID in bot.servers[serverKey].members){
-            logger.info(memberID);
-            if (memberID === userID){
-                logger.info("assigned user ob");
-                return bot.servers[serverKey].members[memberID];
+// Who Am I vars
+var whoYouAre = JSON.parse(fs.readFileSync('whoyouare.json', 'utf8'));
 
-            }
-            else{
-                logger.info(memberID  + " does not equal " + userID);
+function getMember(userID) {
+    for (var serverKey in bot.servers){
+        for (var memberID in bot.servers[serverKey].members){
+            if (memberID === userID){
+                logger.info("found member");
+                return bot.servers[serverKey].members[memberID];
             }
         }
     }
+}
+
+function whoAmI(name, user, id){
+    var outerIndex = getRandomInt(0,3);
+    var array = whoYouAre[outerIndex];
+    var index = getRandomInt(0, array.length-1);
+    var message = "";
+    
+    if (outerIndex === 0){
+        message = array[index];
+    }
+    else if (outerIndex === 1){
+        message = util.format(array[index], name);
+    }
+    else if (outerIndex === 2){
+        message = util.format(array[index], name, user);
+    }
+    else if (outerIndex === 3){
+        message = util.format(array[index], name, id);
+    }
+    return message;
 }
 
 // werewolf vars
@@ -1065,7 +1082,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 
                 bot.sendMessage({
                     to: channelID,
-                    message: util.format("You are %s, of course, or %s if we're being formal", member.nick, user)
+                    message: whoAmI(member.nick, user, userID);
                 });
                 break;
             case "werewolf":
