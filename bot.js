@@ -136,7 +136,7 @@ bot.on("ready", function (evt) {
 
 //Channel History
 var userMsgCount = JSON.parse(fs.readFileSync('messagecount.json', 'utf8'));
-var updateFile = false;
+var updateFile = true;
 
 function updateUserMsgCount(channel, user){
     if (channel in userMsgCount){
@@ -218,6 +218,11 @@ function getPastMessages(chanID, beforeID, count){
                 var msgJson = JSON.stringify(userMsgCount);
                 fs.writeFileSync('messagecount.json', msgJson);
                 logger.info("done history " + count);
+
+                bot.sendMessage({
+                    to: chanID,
+                    message: "Done counting this channel"
+                });
             }
         }
     });
@@ -225,25 +230,54 @@ function getPastMessages(chanID, beforeID, count){
 
 function getMessageTotal(){
     var total = 0;
-    for (var key in userMsgCount){
-        total = total + userMsgCount[key];
+    for (var chan in userMsgCount){
+        for (var user in userMsgCount[chan]){
+            total = total + userMsgCount[chan][user];
+        }
     }
     return total;
 }
 
-function getMessageStats(user, name){
-    if (user in userMsgCount){
-        var count = userMsgCount[user];
-        var total = getMessageTotal();
-        var percent = (count / total) * 100;
-
-        var respMsg = util.format("Wow %s! You've posted %d messages in #glenneral. Out of a total of %d, that's about %d percent.", name, count, total, percent);
-        return respMsg;
+function getChannelTotal(chan){
+    var total = 0;
+    for (var user in userMsgCount[chan]){
+        total = total + userMsgCount[chan][user];
     }
-    return "Uh, you don't exist in #glenneral? Weird";
+    return total;
 }
 
-//setTimeout(queryGlenneralHistory, 5000);
+function getUserTotal(user){
+    var total = 0;
+    for (var chan in userMsgCount){
+        if (user in userMsgCount[chan]){
+            total = total + userMsgCount[chan][user];
+        }
+    }
+}
+
+function getMessageStats(channel, user, name){
+    if (channel in userMsgCount){
+        if (user in userMsgCount[channel]){
+            var count = userMsgCount[channel][user];
+            var total = getChannelTotal(channel);
+            var percent = ((count / total) * 100).toFixed(2);
+
+            var respMsg = util.format("Wow %s! You've posted %d messages in this channel. Out of a total of %d, that's about %s percent.", name, count, total, percent);
+            return respMsg;
+        }
+        return "You've never posted here? Weird";
+    }
+    return "Channel hasn't been counted.";
+}
+
+function getTotalStats(user, name){
+    var count = getUserTotal(user);
+    var total = getMessageTotal();
+    var percent = ((count / total) * 100).toFixed(2);
+
+    var respMsg = util.format("Wow %s! You've posted %d messages in all (counted) channels. Out of a total of %d, that's about %s percent.", name, count, total, percent);
+    return respMsg;
+}
 
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
@@ -988,12 +1022,17 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "stats":
                 bot.sendMessage({
                     to: channelID,
-                    message: getMessageStats(userID, user)
+                    message: getMessageStats(channelID, userID, user)
                 });
                 break;
             case "countmessages":
                 if (userID === "88614328499961856"){
-                    queryChannelHistory(args[0]);
+                    if (args.length > 0){
+                        queryChannelHistory(args[0]);
+                    }
+                    else{
+                        queryChannelHistory(channelID);
+                    }
                 }
                 break;
             case "werewolf":
