@@ -136,11 +136,32 @@ bot.on("ready", function (evt) {
 
 //Channel History
 var userMsgCount = JSON.parse(fs.readFileSync('messagecount.json', 'utf8'));
+var updateFile = false;
 
-function queryGlenneralHistory(){
+function updateUserMsgCount(channel, user){
+    if (channel in userMsgCount){
+        if (user in userMsgCount[channel]){
+            userMsgCount[channel][user]++;
+        }
+        else{
+            userMsgCount[channel][user] = 1;
+        }
+    }
+    else{
+        userMsgCount[channel] = {};
+        userMsgCount[channel][user] = 1;
+    }
 
+    if (updateFile){
+        var msgJson = JSON.stringify(userMsgCount);
+        fs.writeFileSync('messagecount.json', msgJson);
+    }
+}
+
+function queryChannelHistory(chanID){
+    logger.info("getting message history for channel: " + chanID);
     bot.getMessages({
-        channelID : "88601349020725248",
+        channelID : chanID,
         limit : 100
     }, function (err, messageArray){
         if (err){
@@ -155,16 +176,11 @@ function queryGlenneralHistory(){
                 lastID = message.id;
                 var user = message.author;
                 var userid = user.id;
-                if (userid in userMsgCount){
-                    userMsgCount[userid]++;
-                }
-                else{
-                    userMsgCount[userid] = 1;
-                }
+                updateUserMsgCount(chanID, userid);
             }
-            getPastMessages(lastID, 2);
+            getPastMessages(chanID, lastID, 2);
 
-            var msgJson = JSON.stringify(userMsgCount);  
+            var msgJson = JSON.stringify(userMsgCount);
             fs.writeFileSync('messagecount.json', msgJson);
 
             logger.info("done outer history");
@@ -173,15 +189,15 @@ function queryGlenneralHistory(){
     
 }
 
-function getPastMessages(beforeID, count){
+function getPastMessages(chanID, beforeID, count){
     bot.getMessages({
-        channelID : "88601349020725248",
+        channelID : chanID,
         before : beforeID,
         limit : 100
     }, function (err, messageArray){
         if (err){
             logger.info("got error, waiting for 10 seconds\n " + err);
-            setTimeout(getPastMessages(beforeID, count), 10000);
+            setTimeout(getPastMessages(chanID, beforeID, count), 10000);
         }
         else{
             var lastID = 0;
@@ -192,16 +208,11 @@ function getPastMessages(beforeID, count){
                 lastID = message.id;
                 var user = message.author;
                 var userid = user.id;
-                if (userid in userMsgCount){
-                    userMsgCount[userid]++;
-                }
-                else{
-                    userMsgCount[userid] = 1;
-                }
+                updateUserMsgCount(chanID, userid);
             }
 
             if (messageArray.length == 100){
-                getPastMessages(lastID, count + 1);
+                getPastMessages(chanID, lastID, count + 1);
             }
             else{
                 var msgJson = JSON.stringify(userMsgCount);
@@ -980,6 +991,11 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: getMessageStats(userID, user)
                 });
                 break;
+            case "countmessages":
+                if (userID === "88614328499961856"){
+                    queryChannelHistory(channelID);
+                }
+                break;
             case "werewolf":
                 if (game === 0){
                     game = 1;
@@ -1156,4 +1172,5 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             message: "How he do that face?"
         });
     }
+    updateUserMsgCount(channelID, userID);
 });
