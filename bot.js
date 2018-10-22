@@ -1025,6 +1025,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: getMessageStats(channelID, userID, user)
                 });
                 break;
+            case "statstotal":
+                bot.sendMessage({
+                    to: channelID,
+                    message: getTotalStats(userID, user)
+                });
+                break;
             case "countmessages":
                 if (userID === "88614328499961856"){
                     if (args.length > 0){
