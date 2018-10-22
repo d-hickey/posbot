@@ -138,7 +138,7 @@ bot.on("ready", function (evt) {
 var userMsgCount = JSON.parse(fs.readFileSync('messagecount.json', 'utf8'));
 var updateFile = true;
 
-function updateUserMsgCount(channel, user){
+function updateUserMsgCount(channel, user, createNewChan=true){
     if (channel in userMsgCount){
         if (user in userMsgCount[channel]){
             userMsgCount[channel][user]++;
@@ -147,7 +147,7 @@ function updateUserMsgCount(channel, user){
             userMsgCount[channel][user] = 1;
         }
     }
-    else{
+    else if (createNewChan){
         userMsgCount[channel] = {};
         userMsgCount[channel][user] = 1;
     }
@@ -278,6 +278,24 @@ function getTotalStats(user, name){
 
     var respMsg = util.format("Wow %s! You've posted %d messages in all (counted) channels. Out of a total of %d, that's about %s percent.", name, count, total, percent);
     return respMsg;
+}
+
+function getMember(userID) {
+    logger.info(JSON.stringify(bot.servers));
+    for (var serverKey in bot.servers){
+        logger.info("\n\n" + serverKey);
+        for (var memberID in bot.servers[serverKey].members){
+            logger.info(memberID);
+            if (memberID === userID){
+                logger.info("assigned user ob");
+                return bot.servers[serverKey].members[memberID];
+
+            }
+            else{
+                logger.info(memberID  + " does not equal " + userID);
+            }
+        }
+    }
 }
 
 // werewolf vars
@@ -1042,6 +1060,14 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     }
                 }
                 break;
+            case "whoami":
+                var member = getMember(userID);
+                
+                bot.sendMessage({
+                    to: channelID,
+                    message: util.format("You are %s, of course, or %s if we're being formal", member.nick, user)
+                });
+                break;
             case "werewolf":
                 if (game === 0){
                     game = 1;
@@ -1218,5 +1244,5 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             message: "How he do that face?"
         });
     }
-    updateUserMsgCount(channelID, userID);
+    updateUserMsgCount(channelID, userID, false);
 });
