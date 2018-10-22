@@ -993,7 +993,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "countmessages":
                 if (userID === "88614328499961856"){
-                    queryChannelHistory(channelID);
+                    queryChannelHistory(args[0]);
                 }
                 break;
             case "werewolf":
