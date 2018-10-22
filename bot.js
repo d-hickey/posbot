@@ -1082,7 +1082,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 
                 bot.sendMessage({
                     to: channelID,
-                    message: whoAmI(member.nick, user, userID);
+                    message: whoAmI(member.nick, user, userID)
                 });
                 break;
             case "werewolf":
