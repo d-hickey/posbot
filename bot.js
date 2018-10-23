@@ -1250,7 +1250,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         if (askingForAdvice(messageContents)){
             bot.sendMessage({
                 to: channelID,
-                message: util.format("<@%s> That's a great question. I get asked about this topic a lot and it reminds me of a quote: ```BITCH, DON'T```-me", userID)
+                message: util.format("<@%s> That's a great question. I get asked about this topic a lot and it reminds me of a quote:\n\"BITCH, DON'T\"\n-me", userID)
             });
         }
         else{
