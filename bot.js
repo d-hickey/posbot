@@ -70,6 +70,7 @@ function getRedditComment(sub, callback){
 
 //Emma's Markov
 var bot_at = "<@348179384580177922>";
+//var bot_at = "<@503939825833869313>";
 var history = fs.readFileSync("chat.log", "utf8");
 var quotes = new MarkovChain(fs.readFileSync("chat.log", "utf8"));
 var messageCount = 0;
@@ -313,6 +314,38 @@ function whoAmI(name, user, id){
         message = util.format(array[index], name, id);
     }
     return message;
+}
+
+// Advice
+
+function askingForAdvice(message){
+    var lower = message.toLowerCase();
+
+    if (lower.indexOf("no good for me") > -1){
+        return true;
+    }
+
+    if (lower.indexOf("mess with my credit") > -1){
+        return true;
+    }
+
+    if (lower.indexOf("should i go over there") > -1){
+        return true;
+    }
+
+    if (lower.indexOf("should i text") > -1){
+        return true;
+    }
+
+    if (lower.indexOf("should i bail") > -1){
+        return true;
+    }
+
+    if (lower.indexOf("is this a bad idea") > -1){
+        return true;
+    }
+
+    return false;
 }
 
 // werewolf vars
@@ -1213,18 +1246,27 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         logger.info("I have been @");
         var messageContents = message.replace(bot_at, "");
         logger.info("@ with message contents: " + messageContents);
-        var messageParts = messageContents.split(" ");
-        var index = getRandomInt(0, messageParts.length - 1);
-        var word = messageParts[index];
-        if (!word.trim()){
-            send_markov(channelID);
+
+        if (askingForAdvice(messageContents)){
+            bot.sendMessage({
+                to: channelID,
+                message: util.format("<@%s> That's a great question. I get asked about this topic a lot and it reminds me of a quote: ```BITCH, DON'T```-me", userID)
+            });
         }
         else{
-            logger.info("attempting markov with word: " + word);
-            specific_markov(userID, channelID, word);
+            var messageParts = messageContents.split(" ");
+            var index = getRandomInt(0, messageParts.length - 1);
+            var word = messageParts[index];
+            if (!word.trim()){
+                send_markov(channelID);
+            }
+            else{
+                logger.info("attempting markov with word: " + word);
+                specific_markov(userID, channelID, word);
+            }
         }
     }
-    else if (userID != 348179384580177922) {
+    else if (userID != 348179384580177922 && channelID != 348180091680849922) {
         history = history.concat(message + "\n");
         fs.writeFile("chat.log", history, function(err) {
             if (err){
