@@ -348,6 +348,39 @@ function askingForAdvice(message){
     return false;
 }
 
+// rank vars and methods
+var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
+
+function RankUp(userID){
+    if (userID in ranks){
+        ranks[userID].rank++;
+        if (ranks[userID].rank >= ranks.ranks.length){
+            ranks[userID].rank = 0;
+            ranks[userID].prestige++;
+            var resetRank = ranks.ranks[0];
+            return util.format("<@%s> Wow you leveled up past the highest rank. I guess that means you prestige? You are now %s (Prestige %d).", userID, resetRank, ranks[userID].prestige);
+        }
+    }
+    else{
+        ranks[userID].rank = 0;
+        ranks[userID].prestige = 0;
+    }
+
+    var newRank = ranks.ranks[ranks[userID].rank];
+    var prestige = ranks[userID].prestige;
+    var prestigeString = "";
+    if (prestige > 0){
+        prestigeString = util.format(" (Prestige %d)", prestige);
+    }
+
+    return util.format("<@%s> Congratulations! You have leveled up! You are now %s%s.", userID, newRank, prestigeString);
+}
+
+function WriteRanks(){
+    var rankJson = JSON.stringify(ranks);
+    fs.writeFileSync('ranks.json', rankJson);
+}
+
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
 var sequels = JSON.parse(fs.readFileSync('sequels.json', 'utf8'));
@@ -1118,6 +1151,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: whoAmI(member.nick, user, userID)
                 });
                 break;
+            case "whoapos":
+                bot.sendMessage({
+                    to: channelID,
+                    message: "I'm posbot, the positivity botitivity"
+                });
+                break;
             case "werewolf":
                 if (game === 0){
                     game = 1;
@@ -1304,4 +1343,14 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         });
     }
     updateUserMsgCount(channelID, userID, false);
+
+    var rankChance = getRandomInt(1, 100);
+    if (userID != 348179384580177922 && rankChance === 69){
+        var rankMessage = RankUp(userID);
+        bot.sendMessage({
+            to: channelID,
+            message: rankMessage
+        });
+        WriteRanks();
+    }
 });
