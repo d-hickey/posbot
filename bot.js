@@ -353,6 +353,8 @@ var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
 var progress = {};
 
 function RankUp(userID){
+    progress[userID] = 0;
+
     if (userID in ranks){
         ranks[userID].rank++;
         if (ranks[userID].rank >= ranks.ranks.length){
