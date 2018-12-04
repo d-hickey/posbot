@@ -350,6 +350,7 @@ function askingForAdvice(message){
 
 // rank vars and methods
 var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
+var progress = {};
 
 function RankUp(userID){
     if (userID in ranks){
@@ -358,7 +359,7 @@ function RankUp(userID){
             ranks[userID].rank = 0;
             ranks[userID].prestige++;
             var resetRank = ranks.ranks[0];
-            return util.format("<@%s> Wow you leveled up past the highest rank. I guess that means you prestige? You are now %s (Prestige %d).", userID, resetRank, ranks[userID].prestige);
+            return util.format("<@%s> Wow you leveled up past the highest rank. I guess that means you prestige? You are now **%s (Prestige %d)**.", userID, resetRank, ranks[userID].prestige);
         }
     }
     else{
@@ -368,13 +369,32 @@ function RankUp(userID){
     }
 
     var newRank = ranks.ranks[ranks[userID].rank];
+    if (userID == 88634159299321856 && newRank === "A Weeb"){
+        newRank = "~~A Weeb~~ Not A Weeb";
+    }
     var prestige = ranks[userID].prestige;
     var prestigeString = "";
     if (prestige > 0){
         prestigeString = util.format(" (Prestige %d)", prestige);
     }
 
-    return util.format("<@%s> Congratulations! You have leveled up! You are now %s%s.", userID, newRank, prestigeString);
+    return util.format("Congratulations <@%s>! You have leveled up! You are now **%s%s**.", userID, newRank, prestigeString);
+}
+
+function GetRank(userID){
+    if (userID in ranks){
+        var userRank = ranks.ranks[ranks[userID].rank];
+        if (userID == 88634159299321856 && userRank === "A Weeb"){
+            userRank = "~~A Weeb~~ Not A Weeb";
+        }
+        var prestige = ranks[userID].prestige;
+        var prestigeString = "";
+        if (prestige > 0){
+            prestigeString = util.format(" (Prestige %d)", prestige);
+        }
+
+        return util.format("We're all very proud of you <@%s>. You are **%s%s**.", userID, newRank, prestigeString);
+    }
 }
 
 function WriteRanks(){
@@ -1158,6 +1178,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: "I'm posbot, the positivity botitivity"
                 });
                 break;
+            case "rank":
+                bot.sendMessage({
+                    to: channelID,
+                    message: GetRank(userID)
+                });
+                break;
             case "werewolf":
                 if (game === 0){
                     game = 1;
@@ -1346,17 +1372,21 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     updateUserMsgCount(channelID, userID, false);
 
     if (userID != 348179384580177922){
-        var rankChance = getRandomInt(1, 70);
-        if (rankChance === 69){
+        if (userID in progress){
+            progress[userID]++;
+        }
+        else{
+            progress[userID] = 1;
+        }
+
+        var rankChance = getRandomInt(1, progress[userID]);
+        if (rankChance > 69){
             var rankMessage = RankUp(userID);
             bot.sendMessage({
                 to: channelID,
                 message: rankMessage
             });
             WriteRanks();
-        }
-        else{
-            logger.info("rankChance = " + rankChance);
         }
     }
 });
