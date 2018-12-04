@@ -395,6 +395,9 @@ function GetRank(userID){
 
         return util.format("We're all very proud of you <@%s>. You are **%s%s**.", userID, userRank, prestigeString);
     }
+    else{
+        return util.format("Oh... <@%s>. You don't have a rank yet. Oh.", userID);
+    }
 }
 
 function WriteRanks(){
