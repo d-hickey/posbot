@@ -393,7 +393,7 @@ function GetRank(userID){
             prestigeString = util.format(" (Prestige %d)", prestige);
         }
 
-        return util.format("We're all very proud of you <@%s>. You are **%s%s**.", userID, newRank, prestigeString);
+        return util.format("We're all very proud of you <@%s>. You are **%s%s**.", userID, userRank, prestigeString);
     }
 }
 
