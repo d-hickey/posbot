@@ -362,6 +362,7 @@ function RankUp(userID){
         }
     }
     else{
+        ranks[userID] = {};
         ranks[userID].rank = 0;
         ranks[userID].prestige = 0;
     }
@@ -1344,13 +1345,18 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     }
     updateUserMsgCount(channelID, userID, false);
 
-    var rankChance = getRandomInt(1, 100);
-    if (userID != 348179384580177922 && rankChance === 69){
-        var rankMessage = RankUp(userID);
-        bot.sendMessage({
-            to: channelID,
-            message: rankMessage
-        });
-        WriteRanks();
+    if (userID != 348179384580177922){
+        var rankChance = getRandomInt(1, 70);
+        if (rankChance === 69){
+            var rankMessage = RankUp(userID);
+            bot.sendMessage({
+                to: channelID,
+                message: rankMessage
+            });
+            WriteRanks();
+        }
+        else{
+            logger.info("rankChance = " + rankChance);
+        }
     }
 });
