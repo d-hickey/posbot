@@ -419,7 +419,7 @@ function MichaelTransaction(userID, payment){
     }
 
     if (userID in ranks){
-        if ("paid" in ranks[userID]){
+        if ("paid" in ranks[userID] && ranks[userID].paid){
             return "New so-called 'Gambling Laws' require us to have a mandatory cooldown of microtransaction purchases for users. Please try again later.";
         }
 
@@ -1229,7 +1229,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 if (args[0]){
                     bot.sendMessage({
                         to: channelID,
-                        message: MichaelTransaction(userID, args[0]);
+                        message: MichaelTransaction(userID, args[0])
                     });
                 }
                 break;
