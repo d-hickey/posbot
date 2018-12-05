@@ -413,6 +413,13 @@ function SetProgress(userID, prog){
     progress[userID] = prog;
 }
 
+function GetRank(userID){
+    if (userID in ranks){
+        return ranks[userID].rank;
+    }
+    return 0;
+}
+
 function MichaelTransaction(userID, payment){
     if (!payment.startsWith("http")){
         return util.format("C'mon now, <@%s>! You're gonna try to pay me with this?! For Michael Transactions? Grow up!.", userID);
@@ -1436,7 +1443,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         }
 
         var rankChance = getRandomInt(1, progress[userID]);
-        if (rankChance > 69){
+        if (rankChance > (69 + (GetRank(userID) * 5))){
             var rankMessage = RankUp(userID);
             bot.sendMessage({
                 to: channelID,
