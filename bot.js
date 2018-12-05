@@ -355,8 +355,9 @@ var progress = {};
 function RankUp(userID){
     progress[userID] = 0;
 
-    if (userID in ranks){
+    if (userID in ranks && ranks[userID].rank !== -1){
         ranks[userID].rank++;
+        ranks[userID].paid = false;
         if (ranks[userID].rank >= ranks.ranks.length){
             ranks[userID].rank = 0;
             ranks[userID].prestige++;
@@ -368,6 +369,7 @@ function RankUp(userID){
         ranks[userID] = {};
         ranks[userID].rank = 0;
         ranks[userID].prestige = 0;
+        ranks[userID].paid = false;
     }
 
     var newRank = ranks.ranks[ranks[userID].rank];
@@ -405,6 +407,40 @@ function GetRank(userID){
 function WriteRanks(){
     var rankJson = JSON.stringify(ranks);
     fs.writeFileSync('ranks.json', rankJson);
+}
+
+function SetProgress(userID, prog){
+    progress[userID] = prog;
+}
+
+function MichaelTransaction(userID, payment){
+    if (!payment.startsWith("http")){
+        return util.format("C'mon now, <@%s>! You're gonna try to pay me with this?! For Michael Transactions? Grow up!.", userID);
+    }
+
+    if (userID in ranks){
+        if ("paid" in ranks[userID]){
+            return "New so-called 'Gambling Laws' require us to have a mandatory cooldown of microtransaction purchases for users. Please try again later.";
+        }
+
+        ranks[userID].paid = true;
+    }
+    else{
+        ranks[userID] = {};
+        ranks[userID].rank = -1;
+        ranks[userID].prestige = 0;
+        ranks[userID].paid = true;
+    }
+    var prog_earned = getRandomInt(10, 100);
+
+    if (userID in progress){
+        progress[userID] = progress[userID] + prog_earned;
+    }
+    else{
+        progress[userID] = prog_earned;
+    }
+
+    return util.format("Too much of a grind for ya, <@%s>? I'll give you about %d Pos Progress Points:tm: for that.", userID, prog_earned);
 }
 
 // werewolf vars
@@ -1188,6 +1224,18 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: GetRank(userID)
                 });
+                break;
+            case "buy-microtransaction":
+                if (args[0]){
+                    MichaelTransaction(userID, args[0]);
+                }
+                break;
+            case "setprogress":
+                if (userID === "88614328499961856"){
+                    if (args[0] && args[1]){
+                        SetProgress(args[0], parseInt(args[1]));
+                    }
+                }
                 break;
             case "werewolf":
                 if (game === 0){
