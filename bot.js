@@ -1227,7 +1227,10 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "buy-microtransaction":
                 if (args[0]){
-                    MichaelTransaction(userID, args[0]);
+                    bot.sendMessage({
+                        to: channelID,
+                        message: MichaelTransaction(userID, args[0]);
+                    });
                 }
                 break;
             case "setprogress":
