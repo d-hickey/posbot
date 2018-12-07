@@ -1466,13 +1466,17 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         }
 
         var rankChance = getRandomInt(1, progress[userID]);
-        if (rankChance > (69 + (GetRank(userID) * 5))){
+        var progressTarget = GetProgressTarget(userID);
+        if (rankChance > progressTarget){
             var rankMessage = RankUp(userID);
             bot.sendMessage({
                 to: channelID,
                 message: rankMessage
             });
             WriteRanks();
+        }
+        else{
+            //logger.info(util.format("%d is not > %d", rankChance, progressTarget))
         }
         WriteXP();
     }
