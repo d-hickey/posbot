@@ -350,7 +350,7 @@ function askingForAdvice(message){
 
 // rank vars and methods
 var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
-var progress = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
+var progress = JSON.parse(fs.readFileSync('xp.json', 'utf8'));
 
 function RankUp(userID){
     progress[userID] = 0;
@@ -468,6 +468,7 @@ function MichaelTransaction(userID, payment){
     else{
         progress[userID] = prog_earned;
     }
+    WriteRanks();
 
     return util.format("Too much of a grind for ya, <@%s>? I'll give you about %d Pos Progress Points:tm: for that.", userID, prog_earned);
 }
