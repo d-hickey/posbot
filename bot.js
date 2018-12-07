@@ -350,7 +350,7 @@ function askingForAdvice(message){
 
 // rank vars and methods
 var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
-var progress = {};
+var progress = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
 
 function RankUp(userID){
     progress[userID] = 0;
@@ -409,15 +409,37 @@ function WriteRanks(){
     fs.writeFileSync('ranks.json', rankJson);
 }
 
+function WriteXP(){
+    var xpJson = JSON.stringify(progress);
+    fs.writeFileSync('xp.json', xpJson);
+}
+
 function SetProgress(userID, prog){
     progress[userID] = prog;
 }
 
-function GetRank(userID){
+function GetRankIndex(userID){
     if (userID in ranks){
         return ranks[userID].rank;
     }
     return 0;
+}
+
+function GetPrestige(userID){
+    if (userID in ranks){
+        return ranks[userID].prestige;
+    }
+    return 0;
+}
+
+function GetProgressTarget(userID){
+    var base = 69;
+    if (userID in ranks){
+        base = base + (GetRankIndex(userID) * 5);
+        base = base + (GetPrestige(userID) * 20);
+    }
+
+    return base;
 }
 
 function MichaelTransaction(userID, payment){
@@ -1451,5 +1473,6 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             });
             WriteRanks();
         }
+        WriteXP();
     }
 });
