@@ -348,7 +348,7 @@ function askingForAdvice(message){
     return false;
 }
 
-// rank vars and methods
+// Rank vars and methods
 var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
 var progress = JSON.parse(fs.readFileSync('xp.json', 'utf8'));
 
@@ -385,6 +385,28 @@ function RankUp(userID){
     return util.format("Congratulations <@%s>! You have leveled up! You are now **%s%s**.", userID, newRank, prestigeString);
 }
 
+function TotalBar(userID){
+    var max = ranks.ranks.length;
+    var meter = GetRankIndex(userID)
+
+    var remain = max - meter;
+    return util.format("`Rank Total Progress [%s%s]`", "=".repeat(max), " ".repeat(remain));
+}
+
+function ProgressBar(userID){
+    var max = ranks.ranks.length;
+    var target = GetProgressTarget(userID);
+    var prog = progress[userID];
+
+    var meter = Math.floor((target / max) * prog);
+    if (meter > max){
+        var over = meter - max;
+        return util.format("`Next Level Progress [%s]%s`", "=".repeat(max), "=".repeat(over));
+    }
+    var remain = max - meter;
+    return util.format("`Next Level Progress [%s%s]`", "=".repeat(meter), " ".repeat(remain));
+}
+
 function GetRank(userID){
     if (userID in ranks){
         var userRank = ranks.ranks[ranks[userID].rank];
@@ -397,7 +419,8 @@ function GetRank(userID){
             prestigeString = util.format(" (Prestige %d)", prestige);
         }
 
-        return util.format("We're all very proud of you <@%s>. You are **%s%s**.", userID, userRank, prestigeString);
+
+        return util.format("We're all very proud of you <@%s>. You are **%s%s**.\n%s\n%s\n`Michael on cooldown: %s`", userID, userRank, prestigeString, ProgressBar(userID), TotalBar(userID), ranks[userID].paid.toString());
     }
     else{
         return util.format("Oh... <@%s>. You don't have a rank yet. Oh.", userID);
