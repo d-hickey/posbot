@@ -387,7 +387,7 @@ function RankUp(userID){
 
 function TotalBar(userID){
     var max = ranks.ranks.length;
-    var meter = GetRankIndex(userID)
+    var meter = GetRankIndex(userID);
 
     var remain = max - meter;
     return util.format("`Rank Total Progress [%s%s]`", "=".repeat(meter), " ".repeat(remain));
