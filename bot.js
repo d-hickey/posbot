@@ -398,7 +398,7 @@ function ProgressBar(userID){
     var target = GetProgressTarget(userID);
     var prog = progress[userID];
 
-    var meter = Math.floor((target / max) * prog);
+    var meter = Math.floor((max / target) * prog);
     if (meter > max){
         var over = meter - max;
         return util.format("`Next Level Progress [%s]%s`", "=".repeat(max), "=".repeat(over));
