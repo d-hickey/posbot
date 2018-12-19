@@ -496,6 +496,21 @@ function MichaelTransaction(userID, payment){
     return util.format("Too much of a grind for ya, <@%s>? I'll give you about %d Pos Progress Points:tm: for that.", userID, prog_earned);
 }
 
+// Birthdays
+var birthdays = JSON.parse(fs.readFileSync('bdays.json', 'utf8'));
+var baby = "";
+
+function IsBirthday(){
+    var today = new Date().toString();
+    for (var bday in birthdays){
+        if (today.indexOf(bday) > -1 && birthdays[bday] != baby){
+            baby = birthdays[bday];
+            return true;
+        }
+    }
+    return false;
+}
+
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
 var sequels = JSON.parse(fs.readFileSync('sequels.json', 'utf8'));
@@ -1453,7 +1468,15 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         var chance = getRandomInt(1, timeSinceLast);
         if (chance > 30){
             logger.info("its been too long, time to pipe up");
-            send_markov(channelID);
+            if (IsBirthday()){
+                bot.sendMessage({
+                    to: channelID,
+                    message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊", baby)
+                });
+            }
+            else{
+                send_markov(channelID);
+            }
             timeSinceLast = 1;
         }
 
