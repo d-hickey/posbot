@@ -68,6 +68,23 @@ function getRedditComment(sub, callback){
     });
 }
 
+// Get Gift
+function getImgurImage(callback){
+    var url = "http://www.imgur.com/random";
+
+    request(url, function(error, response, body){
+        //console.log("error:", error); // Print the error if one occurred
+        //console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
+        //console.log("body:", body); // Print the HTML for the Google homepage.
+
+        var regex = /https?:\/\/i.imgur.com\/[a-zA-Z0-9]+\.[a-zA-Z]+/g;
+        var images = body.match(regex);
+        var image = images[0];
+
+        return callback(image);
+    });
+}
+
 //Emma's Markov
 var bot_at = "<@348179384580177922>";
 //var bot_at = "<@503939825833869313>";
@@ -1457,6 +1474,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         }
     }
     else if (userID != 348179384580177922 && channelID != 348180091680849922) {
+        // Update chat log
         history = history.concat(message + "\n");
         fs.writeFile("chat.log", history, function(err) {
             if (err){
@@ -1464,14 +1482,17 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             }
         });
 
+        // Check markov trigger
         timeSinceLast++;
         var chance = getRandomInt(1, timeSinceLast);
         if (chance > 30){
             logger.info("its been too long, time to pipe up");
             if (IsBirthday()){
-                bot.sendMessage({
-                    to: channelID,
-                    message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊", baby)
+                getImgurImage(function(image){
+                    bot.sendMessage({
+                        to: channelID,
+                        message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere's your gift %s", baby, image)
+                    });
                 });
             }
             else{
@@ -1480,6 +1501,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             timeSinceLast = 1;
         }
 
+        // Update markov object
         if (messageCount > 100){
             messageCount = 0;
             quotes = new MarkovChain(history);
