@@ -36,7 +36,7 @@ function PrintHelp(channelID){
     bot.sendMessage({
         to: channelID,
         message: help
-    })
+    });
 }
 
 // Random Function
@@ -592,6 +592,19 @@ function MichaelTransaction(userID, payment){
     WriteRanks();
 
     return util.format("Too much of a grind for ya, <@%s>? I'll give you about %d Pos Progress Points:tm: for that.", userID, prog_earned);
+}
+
+// Magic 8 ball
+function predict(userID, channelID){
+    var responses = ["It is certain.", "It is decidedly so.", "Without a doubt.", "Yes - definitely.", "You may rely on it.", "As I see it, yes.",
+                     "Most likely.", "Outlook good.", "Yes.", "Signs point to yes.", "Reply hazy, try again.", "Ask again later.", "Better not tell you now.",
+                     "Cannot predict now.", "Concentrate and ask again.", "Don't count on it.", "My reply is no.", "My sources say no.", "Outlook not so good.",
+                     "Very doubtful."];
+    var index = getRandomInt(0, responses.length - 1);
+    bot.sendMessage({
+        to: channelID,
+        message: util.format("<@%s> %s", userID, responses[index])
+    });
 }
 
 // werewolf vars
@@ -1257,6 +1270,10 @@ function allVillagersDead(){
 }
 
 bot.on("message", function (user, userID, channelID, message, evt) {
+    if (userID == 348179384580177922){
+        return;
+    }
+
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == "!") {
@@ -1396,6 +1413,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "newgift":
                 regift(userID, channelID);
+                break;
+            case "8ball":
+                predict(userID, channelID);
                 break;
             case "werewolf":
                 if (game === 0){
