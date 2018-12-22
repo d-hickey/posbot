@@ -738,7 +738,7 @@ function RemoveTask(userID, channelID, index){
         return;
     }
 
-    tasks[userID].splice(i);
+    tasks[userID].splice(i, 1);
     WriteTasks();
 
     bot.sendMessage({
