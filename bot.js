@@ -13,6 +13,32 @@ logger.add(logger.transports.Console, {
 });
 logger.level = "debug";
 
+// Help
+function PrintHelp(channelID){
+    var help = "!ping - ping posbot\n" +
+               "!help - show this message\n" +
+               "!notail - Flower, river, rainbow which are you?\n" +
+               "!compliment [complimentee] - Get a compliment sourced from some of the nicest subreddits\n" +
+               "!markov or @posbot - Get a markov generated response\n" +
+               "!roll dice - Rolls the specified dice and returns result\n" +
+               "!heyruby - Say hello to ruby\n" +
+               "!savepoint - Need some determination? This is the command for you\n" +
+               "!stats - Displays your message stats for the current text channel\n" +
+               "!statstotal - Displays your message stats for the all text channels\n" +
+               "!whoami - Find out who you are\n" +
+               "!rank - Displays your current Pos Level\n" +
+               "!buy-microtransaction link - Exchange a link for progress\n" +
+               "!werewolf - Start a game of werewolf. Other werewolf commands should be explained as part of the game";
+    if (IsXmas()){
+        help = help + "\n\n!newgift - Not happy with your xmas gift? Use this to get a new one";
+    }
+
+    bot.sendMessage({
+        to: channelID,
+        message: help
+    })
+}
+
 // Random Function
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
@@ -83,6 +109,61 @@ function getImgurImage(callback){
 
         return callback(image);
     });
+}
+
+function regift(userID, channelID){
+    if (!(userID in xmasGifts)){
+        return;
+    }
+
+    if ("regifted" in xmasGifts){
+        if (xmasGifts.regifted.indexOf(userID) > -1){
+            bot.sendMessage({
+                to: channelID,
+                message: util.format("<@%s> Listen here, bucko. I've already gotten you two thoughtful gifts. Maybe you should be a little more grateful.", userID)
+            });
+            return;
+        }
+        xmasGifts.regifted.push(userID);
+    }
+    else{
+        xmasGifts.regifted = [];
+        xmasGifts.regifted.push(userID);
+    }
+    getImgurImage(function(image){
+        xmasGifts[userID] = image;
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> Ok... I put a lot of work into that gift... JK. Here's your real gift. %s That I always intended to give you.", userID, image)
+        });
+    });
+}
+
+// Xmas
+var xmasGifts = {};
+
+function IsXmas(){
+    var today = new Date().toString();
+    if (today.indexOf("Dec 25") > -1){
+        return true;
+    }
+    xmasGifts = {};
+    return false;
+}
+
+// Birthdays
+var birthdays = JSON.parse(fs.readFileSync('bdays.json', 'utf8'));
+var baby = "";
+
+function IsBirthday(){
+    var today = new Date().toString();
+    for (var bday in birthdays){
+        if (today.indexOf(bday) > -1 && birthdays[bday] != baby){
+            baby = birthdays[bday];
+            return true;
+        }
+    }
+    return false;
 }
 
 //Emma's Markov
@@ -193,8 +274,8 @@ function queryChannelHistory(chanID){
                 if (message.content == null){ continue; }
                 lastID = message.id;
                 var user = message.author;
-                var userid = user.id;
-                updateUserMsgCount(chanID, userid);
+                var userID = user.id;
+                updateUserMsgCount(chanID, userID);
             }
             getPastMessages(chanID, lastID, 2);
 
@@ -225,8 +306,8 @@ function getPastMessages(chanID, beforeID, count){
                 //logger.info(message.content);
                 lastID = message.id;
                 var user = message.author;
-                var userid = user.id;
-                updateUserMsgCount(chanID, userid);
+                var userID = user.id;
+                updateUserMsgCount(chanID, userID);
             }
 
             if (messageArray.length == 100){
@@ -513,21 +594,6 @@ function MichaelTransaction(userID, payment){
     return util.format("Too much of a grind for ya, <@%s>? I'll give you about %d Pos Progress Points:tm: for that.", userID, prog_earned);
 }
 
-// Birthdays
-var birthdays = JSON.parse(fs.readFileSync('bdays.json', 'utf8'));
-var baby = "";
-
-function IsBirthday(){
-    var today = new Date().toString();
-    for (var bday in birthdays){
-        if (today.indexOf(bday) > -1 && birthdays[bday] != baby){
-            baby = birthdays[bday];
-            return true;
-        }
-    }
-    return false;
-}
-
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
 var sequels = JSON.parse(fs.readFileSync('sequels.json', 'utf8'));
@@ -608,11 +674,11 @@ function assignRoles(){
     var keys = Object.keys(players);
     roles = rolesSet[keys.length-1].slice(0);
 
-    for (var player of keys){
+    for (var key of keys){
         var index = getRandomInt(0, roles.length-1);
-        var role = roles[index];
+        var newRole = roles[index];
         roles.splice(index, 1);
-        players[player].role = role;
+        players[key].role = newRole;
     }
     for (var player of keys){
         var role = players[player].role;
@@ -1207,6 +1273,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: "Pong!"
                 });
                 break;
+            case "help":
+                PrintHelp(channelID);
+                break;
             case "notail":
                 var noun = "flower";
                 var choice = getRandomInt(1, 3);
@@ -1325,6 +1394,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     }
                 }
                 break;
+            case "newgift":
+                regift(userID, channelID);
+                break;
             case "werewolf":
                 if (game === 0){
                     game = 1;
@@ -1377,9 +1449,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "vote":
                 if (game === 1 && start === 1 && night === 0 && userID in players && players[userID].alive === true){
-                    var target = args[0];
-                    if (target){
-                        victimVote(userID, target, channelID);
+                    var votee = args[0];
+                    if (votee){
+                        victimVote(userID, votee, channelID);
                     }
                 }
                 break;
@@ -1395,9 +1467,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "save":
                 if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false && 
                     players[userID].role === "doctor" && players[userID].alive === true){
-                    var subject = args[0];
-                    if (subject){
-                        savePlayer(userID, subject);
+                    var patient = args[0];
+                    if (patient){
+                        savePlayer(userID, patient);
                     }
                 }
                 break;
@@ -1481,6 +1553,19 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 throw err;
             }
         });
+
+        // Check xmas
+        if (IsXmas()){
+            if (!(userID in xmasGifts)){
+                getImgurImage(function(image){
+                    xmasGifts[userID] = image;
+                    bot.sendMessage({
+                        to: channelID,
+                        message: util.format("Hey <@%s>! Merry Xmas 🎄\nI saw this and thought of you %s", userID, image)
+                    });
+                });
+            }
+        }
 
         // Check markov trigger
         timeSinceLast++;
