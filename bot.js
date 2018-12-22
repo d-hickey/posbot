@@ -28,7 +28,10 @@ function PrintHelp(channelID){
                "!whoami - Find out who you are\n" +
                "!rank - Displays your current Pos Level\n" +
                "!buy-microtransaction link - Exchange a link for progress\n" +
+               "!8ball - gives a magic 8 ball response\n" +
+               "!remindme time message - sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
                "!werewolf - Start a game of werewolf. Other werewolf commands should be explained as part of the game";
+               
     if (IsXmas()){
         help = help + "\n\n!newgift - Not happy with your xmas gift? Use this to get a new one";
     }
@@ -604,6 +607,39 @@ function predict(userID, channelID){
     bot.sendMessage({
         to: channelID,
         message: util.format("<@%s> %s", userID, responses[index])
+    });
+}
+
+// Reminder
+function SetReminder(userID, channelID, time, message){
+    var remindMsg = message;
+    var timer = time;
+
+    if (isNaN(timer) || timer < 1 || timer > 240){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> Please enter a number between 1 and 240", userID)
+        });
+    }
+
+    if (remindMsg === ""){
+        remindMsg = "I am reminding you of something you didn't specify";
+    }
+
+    timer = timer * 60000;
+
+    setTimeout(DoTheReminding, timer, userID, channelID, remindMsg);
+
+    bot.sendMessage({
+        to:channelID,
+        message: util.format("Reminder set for %d minutes", time)
+    });
+}
+
+function DoTheReminding(userID, channelID, message){
+    bot.sendMessage({
+        to: channelID,
+        message: util.format("<@%s> %s", userID, message)
     });
 }
 
@@ -1416,6 +1452,20 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "8ball":
                 predict(userID, channelID);
+                break;
+            case "remindme":
+                var time = 1;
+                if (args.length > 0){
+                    time = parseInt(args[0]);
+                    args = args.splice(1);
+                }
+
+                var reminder = "";
+                if (args.length > 0){
+                    reminder = args.join(" ");
+                }
+                SetReminder(userID, channelID, time, reminder);
+
                 break;
             case "werewolf":
                 if (game === 0){
