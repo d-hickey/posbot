@@ -15,8 +15,8 @@ logger.level = "debug";
 
 // Help
 function PrintHelp(channelID){
-    var help = "!ping - ping posbot\n" +
-               "!help - show this message\n" +
+    var help = "!ping - Ping posbot\n" +
+               "!help - Show this message\n" +
                "!notail - Flower, river, rainbow which are you?\n" +
                "!compliment [complimentee] - Get a compliment sourced from some of the nicest subreddits\n" +
                "!markov or @posbot - Get a markov generated response\n" +
@@ -28,8 +28,11 @@ function PrintHelp(channelID){
                "!whoami - Find out who you are\n" +
                "!rank - Displays your current Pos Level\n" +
                "!buy-microtransaction link - Exchange a link for progress\n" +
-               "!8ball - gives a magic 8 ball response\n" +
-               "!remindme time message - sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
+               "!8ball - Gives a magic 8 ball response\n" +
+               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
+               "!todo task - Adds a task to your todo list\n" +
+               "!tasks - Shows the tasks on your todo list\n" +
+               "!removetask index - Removes the task at the given position from your todo list (0 indexed)\n" +
                "!werewolf - Start a game of werewolf. Other werewolf commands should be explained as part of the game";
                
     if (IsXmas()){
@@ -640,6 +643,107 @@ function DoTheReminding(userID, channelID, message){
     bot.sendMessage({
         to: channelID,
         message: util.format("<@%s> %s", userID, message)
+    });
+}
+
+// To Do list
+var tasks = JSON.parse(fs.readFileSync('todo.json', 'utf8'));
+
+function WriteTasks(){
+    var taskJson = JSON.stringify(tasks);
+    fs.writeFileSync('todo.json', taskJson);
+}
+
+function AddTask(userID, channelID, task){
+    if (!(userID in tasks)){
+        tasks[userID] = [];
+    }
+
+    if (!task || task === ""){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> My child, you must actually enter something you want to do.", userID)
+        });
+        return;
+    }
+
+    if (tasks[userID].length > 9){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> Maybe you should clear some of the items already on your list.", userID)
+        });
+        return;
+    }
+
+    tasks[userID].push(task);
+    WriteTasks();
+
+    bot.sendMessage({
+        to: channelID,
+        message: util.format("<@%s> Item added to your list.", userID)
+    });
+}
+
+function ShowTasks(userID, channelID){
+    if (!(userID in tasks)){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> You don't have a to do list!", userID)
+        });
+        return;
+    }
+
+    if (task[userID].length === 0){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> You have no items on your list!", userID)
+        });
+        return;
+    }
+
+    var tasklist = "";
+    for (var i = 0; i < tasks[userID].length; i++){
+        tasklist = tasklist + util.format("%d. %s\n", i, tasks[userID][i]);
+    }
+
+    bot.sendMessage({
+        to: channelID,
+        message: util.format("<@%s> Here's your to do list:\n%sI believe you can do each one!", userID, tasklist)
+    });
+}
+
+function RemoveTask(userID, channelID, index){
+    if (!(userID in tasks)){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> You don't have a to do list!", userID)
+        });
+        return;
+    }
+
+    var i = parseInt(index);
+    if (isNaN(i)){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> %s is not a number, dummy!", userID, index)
+        });
+        return;
+    }
+
+    if (i < 0 || i > tasks[userID].length-1){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> You don't have a task with index %s. Please try again, but do better.", userID, index)
+        });
+        return;
+    }
+
+    tasks[userID].splice(i);
+    WriteTasks();
+
+    bot.sendMessage({
+        to: channelID,
+        message: util.format("<@%s> Removed entry %s from your list.", userID, index)
     });
 }
 
@@ -1465,7 +1569,21 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     reminder = args.join(" ");
                 }
                 SetReminder(userID, channelID, time, reminder);
-
+                break;
+            case "todo":
+                var task = "";
+                if (args.length > 0){
+                    task = args.join(" ");
+                }
+                AddTask(userID, channelID, task);
+                break;
+            case "tasks":
+                ShowTasks(userID, channelID);
+                break;
+            case "removetask":
+                if (args[0]){
+                    RemoveTask(userID, channelID, args[0]);
+                }
                 break;
             case "werewolf":
                 if (game === 0){
