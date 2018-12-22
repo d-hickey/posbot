@@ -693,7 +693,7 @@ function ShowTasks(userID, channelID){
         return;
     }
 
-    if (task[userID].length === 0){
+    if (tasks[userID].length === 0){
         bot.sendMessage({
             to: channelID,
             message: util.format("<@%s> You have no items on your list!", userID)
