@@ -28,6 +28,7 @@ function PrintHelp(channelID){
                "!whoami - Find out who you are\n" +
                "!rank - Displays your current Pos Level\n" +
                "!buy-microtransaction link - Exchange a link for progress\n" +
+               "!leaderboard - shows the rank leaderboard\n" +
                "!8ball - Gives a magic 8 ball response\n" +
                "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
                "!todo task - Adds a task to your todo list\n" +
@@ -216,7 +217,7 @@ var rubyPatience = 0;
 
 // Determination
 var savepoints = JSON.parse(fs.readFileSync('determination.json', 'utf8'));
-var overwrite = 14;
+var overwrite = 28;
 
 function getSavepoint () {
     var index = getRandomInt(0, savepoints.length-1);
@@ -392,7 +393,7 @@ function getMember(userID) {
     for (var serverKey in bot.servers){
         for (var memberID in bot.servers[serverKey].members){
             if (memberID === userID){
-                logger.info("found member");
+                //logger.info("found member");
                 return bot.servers[serverKey].members[memberID];
             }
         }
@@ -559,11 +560,20 @@ function GetPrestige(userID){
     return 0;
 }
 
+function GetRankValue(userID){
+    var rank = GetRankIndex(userID);
+    var pres = GetPrestige(userID);
+
+    var max = ranks.ranks.length;
+
+    return (pres * max) + rank;
+}
+
 function GetProgressTarget(userID){
     var base = 69;
     if (userID in ranks){
         base = base + (GetRankIndex(userID) * 5);
-        base = base + (GetPrestige(userID) * 20);
+        base = base + (GetPrestige(userID) * 40);
     }
 
     return base;
@@ -598,6 +608,35 @@ function MichaelTransaction(userID, payment){
     WriteRanks();
 
     return util.format("Too much of a grind for ya, <@%s>? I'll give you about %d Pos Progress Points:tm: for that.", userID, prog_earned);
+}
+
+function Leaderboard(channelID){
+    var leaderboard = {};
+    for (var userID in ranks){
+        var rankVal = GetRankValue(userID);
+        var member = getMember(userID);
+        if (!(rankVal in leaderboard)){
+            leaderboard[rankVal] = [];
+        }
+        leaderboard[rankVal].push(member.nick);
+    }
+
+    var output = "Leaderboard\n```";
+    var position = 1;
+    var keys = Object.keys(leaderboard);
+    keys.sort((a, b) => b - a);
+    for (var key in keys){
+        for (var nick of leaderboard[key]){
+            output = output + util.format("%d. %s\n", position, nick);
+            position++;
+        }
+    }
+    output = output + "```";
+
+    bot.sendMessage({
+        to: channelID,
+        message: output
+    });
 }
 
 // Magic 8 ball
@@ -1544,6 +1583,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                         message: MichaelTransaction(userID, args[0])
                     });
                 }
+                break;
+            case "leaderboard":
+                Leaderboard(channelID);
                 break;
             case "setprogress":
                 if (userID === "88614328499961856"){
