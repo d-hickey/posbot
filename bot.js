@@ -398,6 +398,10 @@ function getMember(userID) {
             }
         }
     }
+
+    var fakemember = {};
+    fakemember.nick = "Undefined User";
+    return fakemember;
 }
 
 function whoAmI(name, user, id){
