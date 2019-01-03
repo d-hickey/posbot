@@ -617,6 +617,9 @@ function MichaelTransaction(userID, payment){
 function Leaderboard(channelID){
     var leaderboard = {};
     for (var userID in ranks){
+        if (userID === "ranks"){
+            continue;
+        }
         var rankVal = GetRankValue(userID);
         var member = getMember(userID);
         if (!(rankVal in leaderboard)){
@@ -629,7 +632,8 @@ function Leaderboard(channelID){
     var position = 1;
     var keys = Object.keys(leaderboard);
     keys.sort((a, b) => b - a);
-    for (var key in keys){
+
+    for (var key of keys){
         for (var nick of leaderboard[key]){
             output = output + util.format("%d. %s\n", position, nick);
             position++;
