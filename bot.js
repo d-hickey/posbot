@@ -623,6 +623,7 @@ function SetReminder(userID, channelID, time, message){
             to: channelID,
             message: util.format("<@%s> Please enter a number between 1 and 240", userID)
         });
+        return;
     }
 
     if (remindMsg === ""){
