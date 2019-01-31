@@ -24,12 +24,13 @@ function PrintHelp(channelID){
                "!heyruby - Say hello to ruby\n" +
                "!savepoint - Need some determination? This is the command for you\n" +
                "!stats - Displays your message stats for the current text channel\n" +
-               "!statstotal - Displays your message stats for the all text channels\n" +
-               "!whoami - Find out who you are\n" +
-               "!rank - Displays your current Pos Level\n" +
+               "!statstotal - Displays your message stats for the all text channels\n";
+    if (!stopRank){
+        help = help + "!rank - Displays your current Pos Level\n" +
                "!buy-microtransaction link - Exchange a link for progress\n" +
-               "!leaderboard - shows the rank leaderboard\n" +
-               "!8ball - Gives a magic 8 ball response\n" +
+               "!leaderboard - shows the rank leaderboard\n";
+    }
+    help = help + "!8ball - Gives a magic 8 ball response\n" +
                "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
                "!todo task - Adds a task to your todo list\n" +
                "!tasks - Shows the tasks on your todo list\n" +
@@ -461,6 +462,10 @@ function askingForAdvice(message){
 var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
 var progress = JSON.parse(fs.readFileSync('xp.json', 'utf8'));
 
+var stopRank = ranks.stop;
+var rankQuestionAsked = ranks.asked;
+var theChooserID = "";
+
 function RankUp(userID){
     progress[userID] = 0;
 
@@ -471,7 +476,17 @@ function RankUp(userID){
             ranks[userID].rank = 0;
             ranks[userID].prestige++;
             var resetRank = ranks.ranks[0];
-            return util.format("<@%s> Wow you leveled up past the highest rank. I guess that means you prestige? You are now **%s (Prestige %d)**.", userID, resetRank, ranks[userID].prestige);
+            if (ranks[userID].prestige == 3 && !rankQuestionAsked){
+                resetRank = ranks.odd_ranks[0];
+            }
+            if (ranks[userID].prestige == 4 && !rankQuestionAsked){
+                rankQuestionAsked = true;
+                theChooserID = userID;
+                return util.format("<@%s> Let's be honest for a moment here. This has gone on long enough. Who am I to decide your rank. It's time for an end, don't you agree? !yes or !no", userID);
+            }
+            else{
+                return util.format("<@%s> Wow you leveled up past the highest rank. I guess that means you prestige? You are now **%s (Prestige %d)**.", userID, resetRank, ranks[userID].prestige);
+            }
         }
     }
     else{
@@ -482,12 +497,15 @@ function RankUp(userID){
     }
 
     var newRank = ranks.ranks[ranks[userID].rank];
+    if (ranks[userID].prestige == 3 && !rankQuestionAsked){
+        newRank = ranks.odd_ranks[ranks[userID].rank];
+    }
     if (userID == 88634159299321856 && newRank === "A Weeb"){
         newRank = "~~A Weeb~~ Not A Weeb";
     }
     var prestige = ranks[userID].prestige;
     var prestigeString = "";
-    if (prestige > 0){
+    if (prestige > 0 && !(prestige == 3 && ranks[userID].rank > 4)){
         prestigeString = util.format(" (Prestige %d)", prestige);
     }
 
@@ -519,15 +537,17 @@ function ProgressBar(userID){
 function GetRank(userID){
     if (userID in ranks){
         var userRank = ranks.ranks[ranks[userID].rank];
+        if (ranks[userID].prestige == 3 && !rankQuestionAsked){
+            userRank = ranks.odd_ranks[ranks[userID].rank];
+        }
         if (userID == 88634159299321856 && userRank === "A Weeb"){
             userRank = "~~A Weeb~~ Not A Weeb";
         }
         var prestige = ranks[userID].prestige;
         var prestigeString = "";
-        if (prestige > 0){
+        if (prestige > 0 && !(prestige == 3 && ranks[userID].rank > 4)){
             prestigeString = util.format(" (Prestige %d)", prestige);
         }
-
 
         return util.format("We're all very proud of you <@%s>. You are **%s%s**.\n%s\n%s\n`Michael on cooldown: %s`", userID, userRank, prestigeString, ProgressBar(userID), TotalBar(userID), ranks[userID].paid.toString());
     }
@@ -537,6 +557,8 @@ function GetRank(userID){
 }
 
 function WriteRanks(){
+    ranks.stop = stopRank;
+    ranks.asked = rankQuestionAsked;
     var rankJson = JSON.stringify(ranks);
     fs.writeFileSync('ranks.json', rankJson);
 }
@@ -1461,10 +1483,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     if (userID == 348179384580177922){
         return;
     }
+    var command = false;
 
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == "!") {
+        command = true;
         var args = message.substring(1).split(" ");
         var cmd = args[0];
 
@@ -1579,12 +1603,18 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 });
                 break;
             case "rank":
+                if (stopRank){
+                    break;
+                }
                 bot.sendMessage({
                     to: channelID,
                     message: GetRank(userID)
                 });
                 break;
             case "buy-microtransaction":
+                if (stopRank){
+                    break;
+                }
                 if (args[0]){
                     bot.sendMessage({
                         to: channelID,
@@ -1600,6 +1630,27 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     if (args[0] && args[1]){
                         SetProgress(args[0], parseInt(args[1]));
                     }
+                }
+                break;
+            case "yes":
+                if (rankQuestionAsked && userID == theChooserID){
+                    stopRank = true;
+                    theChooserID = "";
+                    WriteRanks();
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "Good Choice. Deleting all rank data."
+                    });
+                }
+                break;
+            case "no":
+                if (rankQuestionAsked && userID == theChooserID){
+                    stopRank = false;
+                    theChooserID = "";
+                    bot.sendMessage({
+                        to: channelID,
+                        message: "Then we shall continue."
+                    });
                 }
                 break;
             case "newgift":
@@ -1760,7 +1811,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             // Just add any case commands if you want to..
         }
     }
-    else if (userID != 348179384580177922 && message.indexOf(bot_at) > -1){
+    else if (message.indexOf(bot_at) > -1){
         logger.info("I have been @");
         var messageContents = message.replace(bot_at, "");
         logger.info("@ with message contents: " + messageContents);
@@ -1784,7 +1835,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             }
         }
     }
-    else if (userID != 348179384580177922 && channelID != 348180091680849922) {
+    else if (channelID != 348180091680849922) {
         // Update chat log
         history = history.concat(message + "\n");
         fs.writeFile("chat.log", history, function(err) {
@@ -1849,7 +1900,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     }
     updateUserMsgCount(channelID, userID, false);
 
-    if (userID != 348179384580177922){
+    if (!stopRank){
         if (userID in progress){
             progress[userID]++;
         }
