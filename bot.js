@@ -639,7 +639,7 @@ function MichaelTransaction(userID, payment){
 function Leaderboard(channelID){
     var leaderboard = {};
     for (var userID in ranks){
-        if (userID === "ranks"){
+        if (userID === "ranks" || userID === "odd_ranks"){
             continue;
         }
         var rankVal = GetRankValue(userID);
