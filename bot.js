@@ -15,11 +15,40 @@ logger.level = "debug";
 
 // Help
 function PrintHelp(channelID){
+    var help = "!helpall - Show a complete command list\n" +
+               "!compliment [complimentee] - Get a compliment sourced from some of the nicest subreddits\n" +
+               "@posbot - Get a markov generated response\n" +
+               "!quote messageID - Formats a quote of the message with the given ID (turn on dev mode to copy message IDs)\n" +
+               "!roll dice - Rolls the specified dice and returns result\n" +
+               "!savepoint - Need some determination? This is the command for you\n" +
+               "!stats - Displays your message stats for the current text channel\n";
+    if (!stopRank){
+        help = help + "!rank - Displays your current Pos Level\n" +
+               "!buy-microtransaction link - Exchange a link for progress\n";
+    }
+    help = help + "!8ball - Gives a magic 8 ball response\n" +
+               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
+               "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
+               "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n";
+               
+    if (IsXmas()){
+        help = help + "\n\n!newgift - Not happy with your xmas gift? Use this to get a new one";
+    }
+
+    bot.sendMessage({
+        to: channelID,
+        message: help
+    });
+}
+
+function PrintHelpAll(channelID){
     var help = "!ping - Ping posbot\n" +
-               "!help - Show this message\n" +
+               "!help - Show a shorter help message\n" +
+               "!helpall - Show this message\n" +
                "!notail - Flower, river, rainbow which are you?\n" +
                "!compliment [complimentee] - Get a compliment sourced from some of the nicest subreddits\n" +
                "!markov or @posbot - Get a markov generated response\n" +
+               "!quote messageID - Formats a quote of the message with the given ID (turn on dev mode to copy message IDs)\n" +
                "!roll dice - Rolls the specified dice and returns result\n" +
                "!heyruby - Say hello to ruby\n" +
                "!savepoint - Need some determination? This is the command for you\n" +
@@ -32,8 +61,8 @@ function PrintHelp(channelID){
     }
     help = help + "!8ball - Gives a magic 8 ball response\n" +
                "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
-               "!todo task - Adds a task to your todo list\n" +
-               "!tasks | !todo - Shows the tasks on your todo list\n" +
+               "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
+               "!tasks - Shows the tasks on your todo list\n" +
                "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
                "!werewolf - Start a game of werewolf. Other werewolf commands should be explained as part of the game";
                
@@ -820,6 +849,60 @@ function RemoveTask(userID, channelID, indices){
     ShowTasks(userID, channelID);
 }
 
+// Quote
+function Quote(channelID, messageID, commandID){
+
+    bot.getMessage({
+        channelID : channelID,
+        messageID : messageID
+    }, function (err, message){
+        var quote = "";
+        if (err){
+            quote = "`No quote found` ~ posbot";
+        }
+        else{
+            var member = getMember(message.author.id);
+            quote = util.format("`%s` ~ %s", message.content, member.nick);
+        }
+
+        bot.sendMessage({
+            to: channelID,
+            message: quote
+        });
+
+        if (commandID !== -1){
+            bot.deleteMessage({
+                channelID : channelID,
+                messageID : commandID
+            }, function(err){
+                if (err){
+                    logger.info(JSON.stringify(err));
+                    logger.info(util.format("channel id = %s, message id = %s", channelID, commandID));
+                }
+            });
+        }
+    });
+}
+
+function GetMessageIDFromContent(channelID, content, callback){
+    bot.getMessages({
+        channelID : channelID,
+        limit : 10
+    }, function (err, messageArray){
+        if (err){
+            logger.info(err);
+        }
+        else{
+            for (var message of messageArray){
+                if (message.content == content){
+                    return callback(message.id);
+                }
+            }
+        }
+        return callback(-1);
+    });
+}
+
 // werewolf vars
 var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
 var sequels = JSON.parse(fs.readFileSync('sequels.json', 'utf8'));
@@ -1506,6 +1589,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "help":
                 PrintHelp(channelID);
                 break;
+            case "helpall":
+                PrintHelpAll(channelID);
+                break;
             case "notail":
                 var noun = "flower";
                 var choice = getRandomInt(1, 3);
@@ -1690,6 +1776,13 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "removetask":
                 if (args.length > 0){
                     RemoveTask(userID, channelID, args);
+                }
+                break;
+            case "quote":
+                if (args[0]){
+                    GetMessageIDFromContent(channelID, message, function(id){
+                        Quote(channelID, args[0], id);
+                    });
                 }
                 break;
             case "werewolf":
