@@ -29,7 +29,8 @@ function PrintHelp(channelID){
     help = help + "!8ball - Gives a magic 8 ball response\n" +
                "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
                "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
-               "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n";
+               "!todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
+               "!squadgoals and !squaddone - Same as to do commands but for the whole squad\n";
                
     if (IsXmas()){
         help = help + "\n\n!newgift - Not happy with your xmas gift? Use this to get a new one";
@@ -64,6 +65,8 @@ function PrintHelpAll(channelID){
                "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
                "!tasks - Shows the tasks on your todo list\n" +
                "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
+               "!squadgoals [task] - Shows squad goals or adds a goal to the todo list\n" +
+               "!squaddone indices - Removes the goal at the given positions from the squad todo list (0 indexed)\n" +
                "!werewolf - Start a game of werewolf. Other werewolf commands should be explained as part of the game";
                
     if (IsXmas()){
@@ -754,6 +757,11 @@ function WriteTasks(){
 }
 
 function AddTask(userID, channelID, task){
+    var userAt = util.format("<@%s>", userID);
+    if (userID === "squad"){
+        userAt = "Squad!";
+    }
+
     if (!(userID in tasks)){
         tasks[userID] = [];
     }
@@ -761,7 +769,7 @@ function AddTask(userID, channelID, task){
     if (!task || task === ""){
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> My child, you must actually enter something you want to do.", userID)
+            message: util.format("%s My child, you must actually enter something you want to do.", userAt)
         });
         return;
     }
@@ -769,7 +777,7 @@ function AddTask(userID, channelID, task){
     if (tasks[userID].length > 9){
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> Maybe you should clear some of the items already on your list.", userID)
+            message: util.format("%s Maybe you should clear some of the items already on your list.", userAt)
         });
         return;
     }
@@ -777,17 +785,19 @@ function AddTask(userID, channelID, task){
     tasks[userID].push(task);
     WriteTasks();
 
-    bot.sendMessage({
-        to: channelID,
-        message: util.format("<@%s> Item added to your list.", userID)
-    });
+    ShowTasks(userID, channelID);
 }
 
 function ShowTasks(userID, channelID){
+    var userAt = util.format("<@%s>", userID);
+    if (userID === "squad"){
+        userAt = "Squad!";
+    }
+
     if (!(userID in tasks)){
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> You don't have a to do list!", userID)
+            message: util.format("%s You don't have a to do list!", userAt)
         });
         return;
     }
@@ -795,7 +805,7 @@ function ShowTasks(userID, channelID){
     if (tasks[userID].length === 0){
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> You have no items on your list!", userID)
+            message: util.format("%s You have no items on your list!", userAt)
         });
         return;
     }
@@ -807,7 +817,7 @@ function ShowTasks(userID, channelID){
 
     bot.sendMessage({
         to: channelID,
-        message: util.format("<@%s> Here's your to do list:\n%sI believe you can do each one!", userID, tasklist)
+        message: util.format("%s Here's your to do list:\n%sI believe you can do each one!", userAt, tasklist)
     });
 }
 
@@ -1760,9 +1770,8 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 SetReminder(userID, channelID, time, reminder);
                 break;
             case "todo":
-                var task = "";
                 if (args.length > 0){
-                    task = args.join(" ");
+                    var task = args.join(" ");
                     AddTask(userID, channelID, task);
                 }
                 else{
@@ -1776,6 +1785,20 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "removetask":
                 if (args.length > 0){
                     RemoveTask(userID, channelID, args);
+                }
+                break;
+            case "squadgoals":
+                if (args.length > 0){
+                    var goal = args.join(" ");
+                    AddTask("squad", channelID, goal);
+                }
+                else{
+                    ShowTasks("squad", channelID);
+                }
+                break;
+            case "squaddone":
+                if (args.length > 0){
+                    RemoveTask("squad", channelID, args);
                 }
                 break;
             case "quote":
