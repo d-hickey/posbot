@@ -792,6 +792,7 @@ function RemoveTask(userID, channelID, indices){
     }
 
     indices = indices.sort();
+    indices = indices.reverse();
 
     for (var index of indices){
         var i = parseInt(index);
