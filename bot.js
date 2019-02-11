@@ -33,8 +33,8 @@ function PrintHelp(channelID){
     help = help + "!8ball - Gives a magic 8 ball response\n" +
                "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
                "!todo task - Adds a task to your todo list\n" +
-               "!tasks - Shows the tasks on your todo list\n" +
-               "!removetask index - Removes the task at the given position from your todo list (0 indexed)\n" +
+               "!tasks | !todo - Shows the tasks on your todo list\n" +
+               "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
                "!werewolf - Start a game of werewolf. Other werewolf commands should be explained as part of the game";
                
     if (IsXmas()){
@@ -782,7 +782,7 @@ function ShowTasks(userID, channelID){
     });
 }
 
-function RemoveTask(userID, channelID, index){
+function RemoveTask(userID, channelID, indices){
     if (!(userID in tasks)){
         bot.sendMessage({
             to: channelID,
@@ -791,30 +791,32 @@ function RemoveTask(userID, channelID, index){
         return;
     }
 
-    var i = parseInt(index);
-    if (isNaN(i)){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("<@%s> %s is not a number, dummy!", userID, index)
-        });
-        return;
+    indices = indices.sort();
+
+    for (var index of indices){
+        var i = parseInt(index);
+        if (isNaN(i)){
+            bot.sendMessage({
+                to: channelID,
+                message: util.format("<@%s> %s is not a number, dummy!", userID, index)
+            });
+            return;
+        }
+
+        if (i < 0 || i > tasks[userID].length-1){
+            bot.sendMessage({
+                to: channelID,
+                message: util.format("<@%s> You don't have a task with index %s. Please try again, but do better.", userID, index)
+            });
+            return;
+        }
+
+        tasks[userID].splice(i, 1);
     }
 
-    if (i < 0 || i > tasks[userID].length-1){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("<@%s> You don't have a task with index %s. Please try again, but do better.", userID, index)
-        });
-        return;
-    }
-
-    tasks[userID].splice(i, 1);
     WriteTasks();
 
-    bot.sendMessage({
-        to: channelID,
-        message: util.format("<@%s> Removed entry %s from your list.", userID, index)
-    });
+    ShowTasks(userID, channelID);
 }
 
 // werewolf vars
@@ -1483,12 +1485,10 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     if (userID == 348179384580177922){
         return;
     }
-    var command = false;
 
     // Our bot needs to know if it will execute a command
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == "!") {
-        command = true;
         var args = message.substring(1).split(" ");
         var cmd = args[0];
 
@@ -1676,15 +1676,19 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 var task = "";
                 if (args.length > 0){
                     task = args.join(" ");
+                    AddTask(userID, channelID, task);
                 }
-                AddTask(userID, channelID, task);
+                else{
+                    ShowTasks(userID, channelID);
+                }
                 break;
             case "tasks":
                 ShowTasks(userID, channelID);
                 break;
+            case "todone": // Fallthrough
             case "removetask":
-                if (args[0]){
-                    RemoveTask(userID, channelID, args[0]);
+                if (args.length > 0){
+                    RemoveTask(userID, channelID, args);
                 }
                 break;
             case "werewolf":
@@ -1810,8 +1814,10 @@ bot.on("message", function (user, userID, channelID, message, evt) {
 
             // Just add any case commands if you want to..
         }
+        // Don't do any message stats on ! commands
+        return;
     }
-    else if (message.indexOf(bot_at) > -1){
+    if (message.indexOf(bot_at) > -1){
         logger.info("I have been @");
         var messageContents = message.replace(bot_at, "");
         logger.info("@ with message contents: " + messageContents);
