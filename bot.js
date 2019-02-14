@@ -866,20 +866,23 @@ function Quote(channelID, messageID, commandID, quoterID){
         channelID : channelID,
         messageID : messageID
     }, function (err, message){
-        var quote = "";
+        var quote = {color: 6826080};
         if (err){
-            quote = "`No quote found` ~ posbot";
+            quote.description = "No quote found";
+            quote.author = {name: "posbot"};
         }
         else{
             var member = getMember(message.author.id);
-            var date = Date.parse(message.timestamp);
             var quoter = getMember(quoterID);
-            quote = util.format("`%s` ~ %s at %s (Quoted by %s)", message.content, member.nick, date.toISOString().replace(/T/, ' ').replace(/\..+/, ''), quoter.nick);
+            quote.description = message.content;
+            quote.author = {name: member.nick};
+            quote.timestamp = message.timestamp;
+            quote.footer = {text: util.format("Quoted by %s", quoter.nick)};
         }
 
         bot.sendMessage({
             to: channelID,
-            message: quote
+            embed: quote
         });
 
         if (commandID !== -1){
