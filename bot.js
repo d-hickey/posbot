@@ -860,7 +860,7 @@ function RemoveTask(userID, channelID, indices){
 }
 
 // Quote
-function Quote(channelID, messageID, commandID){
+function Quote(channelID, messageID, commandID, quoterID){
 
     bot.getMessage({
         channelID : channelID,
@@ -872,7 +872,9 @@ function Quote(channelID, messageID, commandID){
         }
         else{
             var member = getMember(message.author.id);
-            quote = util.format("`%s` ~ %s", message.content, member.nick);
+            var date = Date.parse(message.timestamp);
+            var quoter = getMember(quoterID);
+            quote = util.format("`%s` ~ %s at %s (Quoted by %s)", message.content, member.nick, date.toISOString().replace(/T/, ' ').replace(/\..+/, ''), quoter.nick);
         }
 
         bot.sendMessage({
@@ -1804,7 +1806,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "quote":
                 if (args[0]){
                     GetMessageIDFromContent(channelID, message, function(id){
-                        Quote(channelID, args[0], id);
+                        Quote(channelID, args[0], id, userID);
                     });
                 }
                 break;
