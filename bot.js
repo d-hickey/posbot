@@ -490,6 +490,47 @@ function askingForAdvice(message){
     return false;
 }
 
+// Inspiration quotes (inspo)
+var inspoQuotes = JSON.parse(fs.readFileSync('inspo.json', 'utf8'));
+var alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+var fonts = [120432, 120380, 120328, 120276, 120224, 120172, 120016, 119912, 119808];
+
+function Inspo(channelID, userID){
+    var fontIndex = getRandomInt(0, fonts.length-1);
+    var inspoIndex = getRandomInt(0, inspoQuotes.length-1);
+
+    var inspiration = convert(fonts[fontIndex], inspoQuotes[inspoIndex]);
+
+    var output = util.format("<@%s> %s", userID, inspiration);
+
+    bot.sendMessage({
+        to: channelID,
+        message: output
+    });
+}
+
+function convert(font, string) {
+    var converted = [];
+    // Break string into substrings
+    var arr = string.split('');
+    // Search alpha for indexes
+    arr.forEach(element => {
+        let i = alphabet.indexOf(element);
+        if (i == -1) {
+            // Return as is
+            converted.push(element);
+        } else {
+            // Get relevant character from unicode var + index
+            let unicode = font + i;
+            // Return as HTML code
+            converted.push(String.fromCodePoint(unicode));
+        }
+
+    });
+    fancy = converted.join('');
+    return fancy;
+}
+
 // Rank vars and methods
 var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
 var progress = JSON.parse(fs.readFileSync('xp.json', 'utf8'));
@@ -671,7 +712,7 @@ function MichaelTransaction(userID, payment){
 function Leaderboard(channelID){
     var leaderboard = {};
     for (var userID in ranks){
-        if (userID === "ranks" || userID === "odd_ranks"){
+        if (userID === "ranks" || userID === "odd_ranks" || userID === "stop" || userID === "asked"){
             continue;
         }
         var rankVal = GetRankValue(userID);
@@ -1648,7 +1689,6 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: diceReturn
                 });
-
                 break;
             case "heyruby":
                 var ruby = "woof";
@@ -1703,6 +1743,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     to: channelID,
                     message: "I'm posbot, the positivity botitivity"
                 });
+                break;
+            case "inspo":
+                Inspo(channelID, userID);
                 break;
             case "rank":
                 if (stopRank){
