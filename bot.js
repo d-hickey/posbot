@@ -53,6 +53,7 @@ function PrintHelpAll(channelID){
                "!quote messageID - Formats a quote of the message with the given ID (turn on dev mode to copy message IDs)\n" +
                "!roll dice - Rolls the specified dice and returns result\n" +
                "!heyruby - Say hello to ruby\n" +
+               "!inspo - Get an inspirational message in a fancy font\n" +
                "!savepoint - Need some determination? This is the command for you\n" +
                "!stats - Displays your message stats for the current text channel\n" +
                "!statstotal - Displays your message stats for the all text channels\n";
@@ -86,31 +87,30 @@ function getRandomInt(min, max) {
 }
 
 // Dice Roll
-function diceRoll(args) {
-    if (args[0].substring(0,1) === "d"){
-        var dice = args[0];
-        dicenumber = dice.substring(1);
-        if (dicenumber !== Number.isNaN && +dicenumber > 1){
-            return getRandomInt(1, +dicenumber);
-        }
+function isPositiveNumber(num){
+    if (num && num !== Number.isNaN && +num > 0){
+        return true;
     }
-    return "Invalid Dice";
+    return false;
 }
 
-// This should probably just be a dictionary
-function cardinalToOrdinal(num){
-    switch (num){
-        case 1:
-            return "1st";
-        case 2:
-            return "2nd";
-        case 3:
-            return "3rd";
-        case 4:
-            return "4th";
-        default:
-            return "";
+function diceRoll(args) {
+    var dice = args[0];
+    if (dice.indexOf("d") > -1){
+        var diceParts = dice.split("d");
+        var amount = diceParts[0];
+        var dicenumber = diceParts[1];
+
+        if (isPositiveNumber(amount) && isPositiveNumber(dicenumber)){
+            var total = 0;
+            for (var i = 0; i < +amount; i++){
+                total = total + getRandomInt(1, +dicenumber);
+            }
+            return total;
+        }
     }
+
+    return "Invalid Dice";
 }
 
 // Reddit Functions
@@ -859,7 +859,7 @@ function ShowTasks(userID, channelID){
 
     bot.sendMessage({
         to: channelID,
-        message: util.format("%s Here's your to do list:\n%sI believe you can do each one!", userAt, tasklist)
+        message: util.format("%s I believe you can do every item on this list:\n```%s```", userAt, tasklist)
     });
 }
 
