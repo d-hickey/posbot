@@ -1,11 +1,19 @@
+// Standard
+var fs = require("fs");
+var util = require("util");
+
+// Third Party
 var Discord = require("discord.io");
 var logger = require("winston");
-var auth = require("./auth.json");
-var util = require("util");
-var request = require("request");
 var MarkovChain = require("markovchain");
-var fs = require("fs");
-var werewolf = require("./werewolf");
+var request = require("request");
+
+// Local
+var auth = require("./auth.json");
+var randomInt = require("./randomint");
+var ranks = require("./ranks/ranks");
+var todo = require("./todo/todo");
+var werewolf = require("./werewolf/werewolf");
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -81,11 +89,6 @@ function PrintHelpAll(channelID){
     });
 }
 
-// Random Function
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
 // Dice Roll
 function isPositiveNumber(num){
     if (num && num !== Number.isNaN && +num > 0){
@@ -101,10 +104,14 @@ function diceRoll(args) {
         var amount = diceParts[0];
         var dicenumber = diceParts[1];
 
+        if (amount === ""){
+            amount = "1";
+        }
+
         if (isPositiveNumber(amount) && isPositiveNumber(dicenumber)){
             var total = 0;
             for (var i = 0; i < +amount; i++){
-                total = total + getRandomInt(1, +dicenumber);
+                total = total + randomInt.Get(1, +dicenumber);
             }
             return total;
         }
@@ -127,7 +134,7 @@ function getRedditComment(sub, callback){
         //console.log("body:", body); // Print the HTML for the Google homepage.
 
         var redditResponse = JSON.parse(body);
-        var post = getRandomInt(0, 49);
+        var post = randomInt.Get(0, 49);
 
         comment = redditResponse.data.children[post].data.body;
         logger.info(comment);
@@ -228,7 +235,7 @@ function load_history (file) {
 
 function send_markov (channelID) {
     logger.info("attempting markov chain");
-    var limit = getRandomInt(1, 25);
+    var limit = randomInt.Get(1, 25);
     bot.sendMessage({
         to: channelID,
         message: quotes.start( function(wordList) {
@@ -239,7 +246,7 @@ function send_markov (channelID) {
 }
 
 function specific_markov (userID, channelID, word) {
-    var limit = getRandomInt(2, 20);
+    var limit = randomInt.Get(2, 20);
     bot.sendMessage({
         to: channelID,
         message: util.format("<@%s> %s", userID, quotes.start(word).end(limit).process())
@@ -254,7 +261,7 @@ var savepoints = JSON.parse(fs.readFileSync('determination.json', 'utf8'));
 var overwrite = 28;
 
 function getSavepoint () {
-    var index = getRandomInt(0, savepoints.length-1);
+    var index = randomInt.Get(0, savepoints.length-1);
     if (overwrite !== -1){
         index = overwrite;
         overwrite = -1;
@@ -439,9 +446,9 @@ function getMember(userID) {
 }
 
 function whoAmI(name, user, id){
-    var outerIndex = getRandomInt(0,3);
+    var outerIndex = randomInt.Get(0,3);
     var array = whoYouAre[outerIndex];
-    var index = getRandomInt(0, array.length-1);
+    var index = randomInt.Get(0, array.length-1);
     var message = "";
     
     if (outerIndex === 0){
@@ -460,7 +467,6 @@ function whoAmI(name, user, id){
 }
 
 // Advice
-
 function askingForAdvice(message){
     var lower = message.toLowerCase();
 
@@ -497,8 +503,8 @@ var alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
 var fonts = [120432, 120380, 120328, 120276, 120224, 120172, 120016, 119912, 119808];
 
 function Inspo(channelID, userID){
-    var fontIndex = getRandomInt(0, fonts.length-1);
-    var inspoIndex = getRandomInt(0, inspoQuotes.length-1);
+    var fontIndex = randomInt.Get(0, fonts.length-1);
+    var inspoIndex = randomInt.Get(0, inspoQuotes.length-1);
 
     var inspiration = convert(fonts[fontIndex], inspoQuotes[inspoIndex]);
 
@@ -532,224 +538,13 @@ function convert(font, string) {
     return fancy;
 }
 
-// Rank vars and methods
-var ranks = JSON.parse(fs.readFileSync('ranks.json', 'utf8'));
-var progress = JSON.parse(fs.readFileSync('xp.json', 'utf8'));
-
-var stopRank = ranks.stop;
-var rankQuestionAsked = ranks.asked;
-var theChooserID = "";
-
-function RankUp(userID){
-    progress[userID] = 0;
-
-    if (userID in ranks && ranks[userID].rank !== -1){
-        ranks[userID].rank++;
-        ranks[userID].paid = false;
-        if (ranks[userID].rank >= ranks.ranks.length){
-            ranks[userID].rank = 0;
-            ranks[userID].prestige++;
-            var resetRank = ranks.ranks[0];
-            if (ranks[userID].prestige == 3 && !rankQuestionAsked){
-                resetRank = ranks.odd_ranks[0];
-            }
-            if (ranks[userID].prestige == 4 && !rankQuestionAsked){
-                rankQuestionAsked = true;
-                theChooserID = userID;
-                return util.format("<@%s> Let's be honest for a moment here. This has gone on long enough. Who am I to decide your rank. It's time for an end, don't you agree? !yes or !no", userID);
-            }
-            else{
-                return util.format("<@%s> Wow you leveled up past the highest rank. I guess that means you prestige? You are now **%s (Prestige %d)**.", userID, resetRank, ranks[userID].prestige);
-            }
-        }
-    }
-    else{
-        ranks[userID] = {};
-        ranks[userID].rank = 0;
-        ranks[userID].prestige = 0;
-        ranks[userID].paid = false;
-    }
-
-    var newRank = ranks.ranks[ranks[userID].rank];
-    if (ranks[userID].prestige == 3 && !rankQuestionAsked){
-        newRank = ranks.odd_ranks[ranks[userID].rank];
-    }
-    if (userID == 88634159299321856 && newRank === "A Weeb"){
-        newRank = "~~A Weeb~~ Not A Weeb";
-    }
-    var prestige = ranks[userID].prestige;
-    var prestigeString = "";
-    if (prestige > 0 && !(prestige == 3 && ranks[userID].rank > 4)){
-        prestigeString = util.format(" (Prestige %d)", prestige);
-    }
-
-    return util.format("Congratulations <@%s>! You have leveled up! You are now **%s%s**.", userID, newRank, prestigeString);
-}
-
-function TotalBar(userID){
-    var max = ranks.ranks.length;
-    var meter = GetRankIndex(userID) + 1;
-
-    var remain = max - meter;
-    return util.format("`Rank Total Progress [%s%s]`", "=".repeat(meter), " ".repeat(remain));
-}
-
-function ProgressBar(userID){
-    var max = ranks.ranks.length;
-    var target = GetProgressTarget(userID);
-    var prog = progress[userID];
-
-    var meter = Math.floor((max / target) * prog);
-    if (meter > max){
-        var over = meter - max;
-        return util.format("`Next Level Progress [%s]%s`", "=".repeat(max), "=".repeat(over));
-    }
-    var remain = max - meter;
-    return util.format("`Next Level Progress [%s%s]`", "=".repeat(meter), " ".repeat(remain));
-}
-
-function GetRank(userID){
-    if (userID in ranks){
-        var userRank = ranks.ranks[ranks[userID].rank];
-        if (ranks[userID].prestige == 3 && !rankQuestionAsked){
-            userRank = ranks.odd_ranks[ranks[userID].rank];
-        }
-        if (userID == 88634159299321856 && userRank === "A Weeb"){
-            userRank = "~~A Weeb~~ Not A Weeb";
-        }
-        var prestige = ranks[userID].prestige;
-        var prestigeString = "";
-        if (prestige > 0 && !(prestige == 3 && ranks[userID].rank > 4)){
-            prestigeString = util.format(" (Prestige %d)", prestige);
-        }
-
-        return util.format("We're all very proud of you <@%s>. You are **%s%s**.\n%s\n%s\n`Michael on cooldown: %s`", userID, userRank, prestigeString, ProgressBar(userID), TotalBar(userID), ranks[userID].paid.toString());
-    }
-    else{
-        return util.format("Oh... <@%s>. You don't have a rank yet. Oh.", userID);
-    }
-}
-
-function WriteRanks(){
-    ranks.stop = stopRank;
-    ranks.asked = rankQuestionAsked;
-    var rankJson = JSON.stringify(ranks);
-    fs.writeFileSync('ranks.json', rankJson);
-}
-
-function WriteXP(){
-    var xpJson = JSON.stringify(progress);
-    fs.writeFileSync('xp.json', xpJson);
-}
-
-function SetProgress(userID, prog){
-    progress[userID] = prog;
-}
-
-function GetRankIndex(userID){
-    if (userID in ranks){
-        return ranks[userID].rank;
-    }
-    return 0;
-}
-
-function GetPrestige(userID){
-    if (userID in ranks){
-        return ranks[userID].prestige;
-    }
-    return 0;
-}
-
-function GetRankValue(userID){
-    var rank = GetRankIndex(userID);
-    var pres = GetPrestige(userID);
-
-    var max = ranks.ranks.length;
-
-    return (pres * max) + rank;
-}
-
-function GetProgressTarget(userID){
-    var base = 69;
-    if (userID in ranks){
-        base = base + (GetRankIndex(userID) * 5);
-        base = base + (GetPrestige(userID) * 40);
-    }
-
-    return base;
-}
-
-function MichaelTransaction(userID, payment){
-    if (!payment.startsWith("http")){
-        return util.format("C'mon now, <@%s>! You're gonna try to pay me with this?! For Michael Transactions? Grow up!.", userID);
-    }
-
-    if (userID in ranks){
-        if ("paid" in ranks[userID] && ranks[userID].paid){
-            return "New so-called 'Gambling Laws' require us to have a mandatory cooldown of microtransaction purchases for users. Please try again later.";
-        }
-
-        ranks[userID].paid = true;
-    }
-    else{
-        ranks[userID] = {};
-        ranks[userID].rank = -1;
-        ranks[userID].prestige = 0;
-        ranks[userID].paid = true;
-    }
-    var prog_earned = getRandomInt(10, 100);
-
-    if (userID in progress){
-        progress[userID] = progress[userID] + prog_earned;
-    }
-    else{
-        progress[userID] = prog_earned;
-    }
-    WriteRanks();
-
-    return util.format("Too much of a grind for ya, <@%s>? I'll give you about %d Pos Progress Points:tm: for that.", userID, prog_earned);
-}
-
-function Leaderboard(channelID){
-    var leaderboard = {};
-    for (var userID in ranks){
-        if (userID === "ranks" || userID === "odd_ranks" || userID === "stop" || userID === "asked"){
-            continue;
-        }
-        var rankVal = GetRankValue(userID);
-        var member = getMember(userID);
-        if (!(rankVal in leaderboard)){
-            leaderboard[rankVal] = [];
-        }
-        leaderboard[rankVal].push(member.nick);
-    }
-
-    var output = "Leaderboard\n```";
-    var position = 1;
-    var keys = Object.keys(leaderboard);
-    keys.sort((a, b) => b - a);
-
-    for (var key of keys){
-        for (var nick of leaderboard[key]){
-            output = output + util.format("%d. %s\n", position, nick);
-            position++;
-        }
-    }
-    output = output + "```";
-
-    bot.sendMessage({
-        to: channelID,
-        message: output
-    });
-}
-
 // Magic 8 ball
 function predict(userID, channelID){
     var responses = ["It is certain.", "It is decidedly so.", "Without a doubt.", "Yes - definitely.", "You may rely on it.", "As I see it, yes.",
                      "Most likely.", "Outlook good.", "Yes.", "Signs point to yes.", "Reply hazy, try again.", "Ask again later.", "Better not tell you now.",
                      "Cannot predict now.", "Concentrate and ask again.", "Don't count on it.", "My reply is no.", "My sources say no.", "Outlook not so good.",
                      "Very doubtful."];
-    var index = getRandomInt(0, responses.length - 1);
+    var index = randomInt.Get(0, responses.length - 1);
     bot.sendMessage({
         to: channelID,
         message: util.format("<@%s> %s", userID, responses[index])
@@ -788,117 +583,6 @@ function DoTheReminding(userID, channelID, message){
         to: channelID,
         message: util.format("<@%s> %s", userID, message)
     });
-}
-
-// To Do list
-var tasks = JSON.parse(fs.readFileSync('todo.json', 'utf8'));
-
-function WriteTasks(){
-    var taskJson = JSON.stringify(tasks);
-    fs.writeFileSync('todo.json', taskJson);
-}
-
-function AddTask(userID, channelID, task){
-    var userAt = util.format("<@%s>", userID);
-    if (userID === "squad"){
-        userAt = "Squad!";
-    }
-
-    if (!(userID in tasks)){
-        tasks[userID] = [];
-    }
-
-    if (!task || task === ""){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("%s My child, you must actually enter something you want to do.", userAt)
-        });
-        return;
-    }
-
-    if (tasks[userID].length > 9){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("%s Maybe you should clear some of the items already on your list.", userAt)
-        });
-        return;
-    }
-
-    tasks[userID].push(task);
-    WriteTasks();
-
-    ShowTasks(userID, channelID);
-}
-
-function ShowTasks(userID, channelID){
-    var userAt = util.format("<@%s>", userID);
-    if (userID === "squad"){
-        userAt = "Squad!";
-    }
-
-    if (!(userID in tasks)){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("%s You don't have a to do list!", userAt)
-        });
-        return;
-    }
-
-    if (tasks[userID].length === 0){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("%s You have no items on your list!", userAt)
-        });
-        return;
-    }
-
-    var tasklist = "";
-    for (var i = 0; i < tasks[userID].length; i++){
-        tasklist = tasklist + util.format("%d. %s\n", i, tasks[userID][i]);
-    }
-
-    bot.sendMessage({
-        to: channelID,
-        message: util.format("%s I believe you can do every item on this list:\n```%s```", userAt, tasklist)
-    });
-}
-
-function RemoveTask(userID, channelID, indices){
-    if (!(userID in tasks)){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("<@%s> You don't have a to do list!", userID)
-        });
-        return;
-    }
-
-    indices = indices.sort();
-    indices = indices.reverse();
-
-    for (var index of indices){
-        var i = parseInt(index);
-        if (isNaN(i)){
-            bot.sendMessage({
-                to: channelID,
-                message: util.format("<@%s> %s is not a number, dummy!", userID, index)
-            });
-            return;
-        }
-
-        if (i < 0 || i > tasks[userID].length-1){
-            bot.sendMessage({
-                to: channelID,
-                message: util.format("<@%s> You don't have a task with index %s. Please try again, but do better.", userID, index)
-            });
-            return;
-        }
-
-        tasks[userID].splice(i, 1);
-    }
-
-    WriteTasks();
-
-    ShowTasks(userID, channelID);
 }
 
 // Quote
@@ -989,7 +673,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "notail":
                 var noun = "flower";
-                var choice = getRandomInt(1, 3);
+                var choice = randomInt.Get(1, 3);
                 if (choice === 1){
                     noun = "flower";
                 }
@@ -1006,7 +690,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "compliment":
                 var subcount = subs.length;
-                var subno = getRandomInt(0, subcount-1);
+                var subno = randomInt.Get(0, subcount-1);
                 var sub = subs[subno];
                 var rec = util.format("<@%s>", userID);
                 if (args.length > 0){
@@ -1022,6 +706,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "markov":
                 send_markov(channelID);
                 break;
+            case "r": // Fallthrough
             case "roll":
                 var diceReturn = diceRoll(args);
                 bot.sendMessage({
@@ -1086,57 +771,6 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "inspo":
                 Inspo(channelID, userID);
                 break;
-            case "rank":
-                if (stopRank){
-                    break;
-                }
-                bot.sendMessage({
-                    to: channelID,
-                    message: GetRank(userID)
-                });
-                break;
-            case "buy-microtransaction":
-                if (stopRank){
-                    break;
-                }
-                if (args[0]){
-                    bot.sendMessage({
-                        to: channelID,
-                        message: MichaelTransaction(userID, args[0])
-                    });
-                }
-                break;
-            case "leaderboard":
-                Leaderboard(channelID);
-                break;
-            case "setprogress":
-                if (userID === "88614328499961856"){
-                    if (args[0] && args[1]){
-                        SetProgress(args[0], parseInt(args[1]));
-                    }
-                }
-                break;
-            case "yes":
-                if (rankQuestionAsked && userID == theChooserID){
-                    stopRank = true;
-                    theChooserID = "";
-                    WriteRanks();
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "Good Choice. Deleting all rank data."
-                    });
-                }
-                break;
-            case "no":
-                if (rankQuestionAsked && userID == theChooserID){
-                    stopRank = false;
-                    theChooserID = "";
-                    bot.sendMessage({
-                        to: channelID,
-                        message: "Then we shall continue."
-                    });
-                }
-                break;
             case "newgift":
                 regift(userID, channelID);
                 break;
@@ -1156,38 +790,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 SetReminder(userID, channelID, time, reminder);
                 break;
-            case "todo":
-                if (args.length > 0){
-                    var task = args.join(" ");
-                    AddTask(userID, channelID, task);
-                }
-                else{
-                    ShowTasks(userID, channelID);
-                }
-                break;
-            case "tasks":
-                ShowTasks(userID, channelID);
-                break;
-            case "todone": // Fallthrough
-            case "removetask":
-                if (args.length > 0){
-                    RemoveTask(userID, channelID, args);
-                }
-                break;
-            case "squadgoals":
-                if (args.length > 0){
-                    var goal = args.join(" ");
-                    AddTask("squad", channelID, goal);
-                }
-                else{
-                    ShowTasks("squad", channelID);
-                }
-                break;
-            case "squaddone":
-                if (args.length > 0){
-                    RemoveTask("squad", channelID, args);
-                }
-                break;
+            case "q": // Fallthrough
             case "quote":
                 if (args[0]){
                     GetMessageIDFromContent(channelID, message, function(id){
@@ -1196,8 +799,13 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             default:
-                // No other cases matched, check werewolf
-                werewolf.Werewolf(user, userID, channelID, cmd, args, bot);
+                // No other cases matched, check other modules
+                // Ranks
+                ranks.Commands(bot, userID, channelID, cmd, args);
+                // To Do List
+                todo.Commands(bot, userID, channelID, cmd, args);
+                // Werewolf
+                werewolf.Commands(bot, user, userID, channelID, cmd, args);
                 break;
         }
 
@@ -1217,7 +825,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         }
         else{
             var messageParts = messageContents.split(" ");
-            var index = getRandomInt(0, messageParts.length - 1);
+            var index = randomInt.Get(0, messageParts.length - 1);
             var word = messageParts[index];
             if (!word.trim()){
                 send_markov(channelID);
@@ -1252,7 +860,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
 
         // Check markov trigger
         timeSinceLast++;
-        var chance = getRandomInt(1, timeSinceLast);
+        var chance = randomInt.Get(1, timeSinceLast);
         if (chance > 30){
             logger.info("its been too long, time to pipe up");
             if (IsBirthday()){
@@ -1291,29 +899,8 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             message: "How he do that face?"
         });
     }
+
     updateUserMsgCount(channelID, userID, false);
 
-    if (!stopRank){
-        if (userID in progress){
-            progress[userID]++;
-        }
-        else{
-            progress[userID] = 1;
-        }
-
-        var rankChance = getRandomInt(1, progress[userID]);
-        var progressTarget = GetProgressTarget(userID);
-        if (rankChance > progressTarget){
-            var rankMessage = RankUp(userID);
-            bot.sendMessage({
-                to: channelID,
-                message: rankMessage
-            });
-            WriteRanks();
-        }
-        else{
-            //logger.info(util.format("%d is not > %d", rankChance, progressTarget))
-        }
-        WriteXP();
-    }
+    ranks.Update(bot, userID, channelID)
 });

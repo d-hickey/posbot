@@ -1,18 +1,16 @@
 var fs = require("fs");
-var logger = require("winston");
 var util = require("util");
+
+var logger = require("winston");
+
+var randomInt = require("../randomint")
 
 // Discord client
 var bot;
 
-// Random Function
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-}
-
 // werewolf vars
-var dayMessages = JSON.parse(fs.readFileSync('daymessages.json', 'utf8'));
-var sequels = JSON.parse(fs.readFileSync('sequels.json', 'utf8'));
+var dayMessages = JSON.parse(fs.readFileSync('./werewolf/daymessages.json', 'utf8'));
+var sequels = JSON.parse(fs.readFileSync('./werewolf/sequels.json', 'utf8'));
 
 var game = 0;
 var start = 0;
@@ -37,7 +35,7 @@ var roles8 = ["seer", "doctor", "cupid", "villager", "villager", "villager", "wo
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
 function resetWolves(){
-    var index = getRandomInt(0, sequels.length-1);
+    var index = randomInt.Get(0, sequels.length-1);
     var sequel = sequels[index];
     var cast = "";
 
@@ -91,7 +89,7 @@ function assignRoles(){
     roles = rolesSet[keys.length-1].slice(0);
 
     for (var key of keys){
-        var index = getRandomInt(0, roles.length-1);
+        var index = randomInt.Get(0, roles.length-1);
         var newRole = roles[index];
         roles.splice(index, 1);
         players[key].role = newRole;
@@ -186,7 +184,7 @@ function switchToDay(){
         });
     }
 
-    var index = getRandomInt(0, dayMessages.length-1);
+    var index = randomInt.Get(0, dayMessages.length-1);
     var message = dayMessages[index];
     bot.sendMessage({
         to: wolfChannel,
@@ -208,7 +206,7 @@ function killPlayer(){
             }
             else if (killVotes[potential].length === killVotes[victim].length){
                 // random, replace with tiebreaker
-                var rand = getRandomInt(0, 1);
+                var rand = randomInt.Get(0, 1);
                 if (rand === 1){
                     victim = potential;
                 }
@@ -671,7 +669,7 @@ function allVillagersDead(){
     return true;
 }
 
-function Werewolf(user, userID, channelID, cmd, args, client){
+function Werewolf(client, user, userID, channelID, cmd, args){
     bot = client;
 
     switch(cmd){
@@ -798,4 +796,4 @@ function Werewolf(user, userID, channelID, cmd, args, client){
     }
 }
 
-exports.Werewolf = Werewolf;
+exports.Commands = Werewolf;
