@@ -7,11 +7,13 @@ var Discord = require("discord.io");
 var logger = require("winston");
 var MarkovChain = require("markovchain");
 var request = require("request");
+var schedule = require("node-schedule");
 
 // Local
 var auth = require("./auth.json");
 var randomInt = require("./randomint");
 var ranks = require("./ranks/ranks");
+var remind = require("./remind/remind");
 var todo = require("./todo/todo");
 var werewolf = require("./werewolf/werewolf");
 
@@ -279,6 +281,11 @@ bot.on("ready", function (evt) {
     logger.info("Connected");
     logger.info("Logged in as: ");
     logger.info(bot.username + " - (" + bot.id + ")");
+});
+
+// Noon scheduler
+var scheduler = schedule.scheduleJob("0 12 * * *", function(){
+    remind.CheckDailyReminders();
 });
 
 //Channel History
@@ -551,40 +558,6 @@ function predict(userID, channelID){
     });
 }
 
-// Reminder
-function SetReminder(userID, channelID, time, message){
-    var remindMsg = message;
-    var timer = time;
-
-    if (isNaN(timer) || timer < 1 || timer > 240){
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("<@%s> Please enter a number between 1 and 240", userID)
-        });
-        return;
-    }
-
-    if (remindMsg === ""){
-        remindMsg = "I am reminding you of something you didn't specify";
-    }
-
-    timer = timer * 60000;
-
-    setTimeout(DoTheReminding, timer, userID, channelID, remindMsg);
-
-    bot.sendMessage({
-        to:channelID,
-        message: util.format("Reminder set for %d minutes", time)
-    });
-}
-
-function DoTheReminding(userID, channelID, message){
-    bot.sendMessage({
-        to: channelID,
-        message: util.format("<@%s> %s", userID, message)
-    });
-}
-
 // Quote
 function Quote(channelID, messageID, commandID, quoterID){
 
@@ -777,19 +750,6 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "8ball":
                 predict(userID, channelID);
                 break;
-            case "remindme":
-                var time = 1;
-                if (args.length > 0){
-                    time = parseInt(args[0]);
-                    args = args.splice(1);
-                }
-
-                var reminder = "";
-                if (args.length > 0){
-                    reminder = args.join(" ");
-                }
-                SetReminder(userID, channelID, time, reminder);
-                break;
             case "q": // Fallthrough
             case "quote":
                 if (args[0]){
@@ -804,6 +764,8 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 ranks.Commands(bot, userID, channelID, cmd, args);
                 // To Do List
                 todo.Commands(bot, userID, channelID, cmd, args);
+                // Reminders
+                remind.Commands(bot, userID, channelID, cmd, args);
                 // Werewolf
                 werewolf.Commands(bot, user, userID, channelID, cmd, args);
                 break;
