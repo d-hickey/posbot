@@ -300,5 +300,6 @@ function Commands(client, userID, channelID, cmd, args){
     }
 }
 
+exports.Stop = stopRank;
 exports.Update = Update;
 exports.Commands = Commands;

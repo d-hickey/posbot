@@ -35,7 +35,7 @@ function PrintHelp(channelID){
                "!roll dice - Rolls the specified dice and returns result\n" +
                "!savepoint - Need some determination? This is the command for you\n" +
                "!stats - Displays your message stats for the current text channel\n";
-    if (!stopRank){
+    if (!ranks.Stop){
         help = help + "!rank - Displays your current Pos Level\n" +
                "!buy-microtransaction link - Exchange a link for progress\n";
     }
@@ -69,7 +69,7 @@ function PrintHelpAll(channelID){
                "!savepoint - Need some determination? This is the command for you\n" +
                "!stats - Displays your message stats for the current text channel\n" +
                "!statstotal - Displays your message stats for the all text channels\n";
-    if (!stopRank){
+    if (!ranks.Stop){
         help = help + "!rank - Displays your current Pos Level\n" +
                "!buy-microtransaction link - Exchange a link for progress\n" +
                "!leaderboard - shows the rank leaderboard\n";
