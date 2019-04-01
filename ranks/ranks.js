@@ -247,20 +247,18 @@ function Update(client, userID, channelID){
 function Commands(client, userID, channelID, cmd, args){
     bot = client;
 
+    if (stopRank){
+        return;
+    }
+
     switch(cmd){
         case "rank":
-            if (stopRank){
-                break;
-            }
             bot.sendMessage({
                 to: channelID,
                 message: GetRank(userID)
             });
             break;
         case "buy-microtransaction":
-            if (stopRank){
-                break;
-            }
             if (args[0]){
                 bot.sendMessage({
                     to: channelID,
