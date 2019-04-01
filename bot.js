@@ -11,10 +11,12 @@ var schedule = require("node-schedule");
 
 // Local
 var auth = require("./auth.json");
+var quote = require("./quote/quote");
 var randomInt = require("./randomint");
 var ranks = require("./ranks/ranks");
 var remind = require("./remind/remind");
 var todo = require("./todo/todo");
+var userInfo = require("./user");
 var werewolf = require("./werewolf/werewolf");
 
 // Configure logger settings
@@ -437,21 +439,6 @@ function getTotalStats(user, name){
 // Who Am I vars
 var whoYouAre = JSON.parse(fs.readFileSync('whoyouare.json', 'utf8'));
 
-function getMember(userID) {
-    for (var serverKey in bot.servers){
-        for (var memberID in bot.servers[serverKey].members){
-            if (memberID === userID){
-                //logger.info("found member");
-                return bot.servers[serverKey].members[memberID];
-            }
-        }
-    }
-
-    var fakemember = {};
-    fakemember.nick = "Undefined User";
-    return fakemember;
-}
-
 function whoAmI(name, user, id){
     var outerIndex = randomInt.Get(0,3);
     var array = whoYouAre[outerIndex];
@@ -555,65 +542,6 @@ function predict(userID, channelID){
     bot.sendMessage({
         to: channelID,
         message: util.format("<@%s> %s", userID, responses[index])
-    });
-}
-
-// Quote
-function Quote(channelID, messageID, commandID, quoterID){
-
-    bot.getMessage({
-        channelID : channelID,
-        messageID : messageID
-    }, function (err, message){
-        var quote = {color: 6826080};
-        if (err){
-            quote.description = "No quote found";
-            quote.author = {name: "posbot"};
-        }
-        else{
-            var member = getMember(message.author.id);
-            var quoter = getMember(quoterID);
-            quote.description = message.content;
-            quote.author = {name: member.nick};
-            quote.timestamp = message.timestamp;
-            quote.footer = {text: util.format("Quoted by %s", quoter.nick)};
-        }
-
-        bot.sendMessage({
-            to: channelID,
-            embed: quote
-        });
-
-        if (commandID !== -1){
-            bot.deleteMessage({
-                channelID : channelID,
-                messageID : commandID
-            }, function(err){
-                if (err){
-                    logger.info(JSON.stringify(err));
-                    logger.info(util.format("channel id = %s, message id = %s", channelID, commandID));
-                }
-            });
-        }
-    });
-}
-
-function GetMessageIDFromContent(channelID, content, callback){
-    bot.getMessages({
-        channelID : channelID,
-        limit : 10
-    }, function (err, messageArray){
-        if (err){
-            logger.info(err);
-        }
-        else{
-            for (var message of messageArray){
-                if (message.content == content){
-                    return callback(message.id);
-                }
-            }
-        }
-        return callback(-1);
     });
 }
 
@@ -728,7 +656,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 }
                 break;
             case "whoami":
-                var member = getMember(userID);
+                var member = userInfo.GetMember(bot, userID);
                 
                 bot.sendMessage({
                     to: channelID,
@@ -750,18 +678,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "8ball":
                 predict(userID, channelID);
                 break;
-            case "q": // Fallthrough
-            case "quote":
-                if (args[0]){
-                    GetMessageIDFromContent(channelID, message, function(id){
-                        Quote(channelID, args[0], id, userID);
-                    });
-                }
-                break;
             default:
                 // No other cases matched, check other modules
                 // Ranks
                 ranks.Commands(bot, userID, channelID, cmd, args);
+                // Quote
+                quote.Commands(bot, userID, channelID, message, cmd, args);
                 // To Do List
                 todo.Commands(bot, userID, channelID, cmd, args);
                 // Reminders
