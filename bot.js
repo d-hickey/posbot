@@ -262,7 +262,7 @@ var rubyPatience = 0;
 
 // Determination
 var savepoints = JSON.parse(fs.readFileSync('determination.json', 'utf8'));
-var overwrite = 28;
+var overwrite = -1;
 
 function getSavepoint () {
     var index = randomInt.Get(0, savepoints.length-1);
@@ -627,6 +627,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: ruby
                 });
                 break;
+            case "determination": // Fallthrough
             case "savepoint":
                 bot.sendMessage({
                     to: channelID,
@@ -786,5 +787,5 @@ bot.on("message", function (user, userID, channelID, message, evt) {
 
     updateUserMsgCount(channelID, userID, false);
 
-    ranks.Update(bot, userID, channelID)
+    ranks.Update(bot, userID, channelID);
 });
