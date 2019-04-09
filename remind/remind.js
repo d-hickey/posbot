@@ -119,6 +119,7 @@ function Commands(client, userID, channelID, cmd, args){
             }
             SetReminder(userID, channelID, time, reminder);
             break;
+        case "remindmedays": // Fallthrough
         case "reminddays":
             var days = 1;
             if (args.length > 0){

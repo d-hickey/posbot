@@ -40,7 +40,7 @@ function PrintHelp(channelID){
                "!buy-microtransaction link - Exchange a link for progress\n";
     }
     help = help + "!8ball - Gives a magic 8 ball response\n" +
-               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
+               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 600\n" +
                "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
                "!todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
                "!squadgoals and !squaddone - Same as to do commands but for the whole squad\n";
@@ -75,7 +75,8 @@ function PrintHelpAll(channelID){
                "!leaderboard - shows the rank leaderboard\n";
     }
     help = help + "!8ball - Gives a magic 8 ball response\n" +
-               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 240\n" +
+               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 600\n" +
+               "!reminddays days message - Sets a reminder (triggers at noon) for a number of days in the future."
                "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
                "!tasks - Shows the tasks on your todo list\n" +
                "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
@@ -566,6 +567,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: "Pong!"
                 });
                 break;
+            case "halp": // Fallthrough
             case "help":
                 PrintHelp(channelID);
                 break;
