@@ -15,6 +15,7 @@ var quote = require("./quote/quote");
 var randomInt = require("./randomint");
 var ranks = require("./ranks/ranks");
 var remind = require("./remind/remind");
+var rpg = require("./rpg/rpg");
 var todo = require("./todo/todo");
 var userInfo = require("./user");
 var werewolf = require("./werewolf/werewolf");
@@ -628,6 +629,8 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 todo.Commands(bot, userID, channelID, cmd, args);
                 // Reminders
                 remind.Commands(bot, userID, channelID, cmd, args);
+                // RPG
+                rpg.Commands(bot, userID, channelID, cmd, args);
                 // Werewolf
                 werewolf.Commands(bot, user, userID, channelID, cmd, args);
                 break;
