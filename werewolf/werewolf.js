@@ -3,7 +3,7 @@ var util = require("util");
 
 var logger = require("winston");
 
-var randomInt = require("../randomint")
+var randomInt = require("../randomint");
 
 // Discord client
 var bot;

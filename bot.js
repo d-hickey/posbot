@@ -5,12 +5,12 @@ var util = require("util");
 // Third Party
 var Discord = require("discord.io");
 var logger = require("winston");
-var MarkovChain = require("markovchain");
 var request = require("request");
 var schedule = require("node-schedule");
 
 // Local
 var auth = require("./auth.json");
+var markov = require("./markov/markov");
 var quote = require("./quote/quote");
 var randomInt = require("./randomint");
 var ranks = require("./ranks/ranks");
@@ -76,7 +76,7 @@ function PrintHelpAll(channelID){
     }
     help = help + "!8ball - Gives a magic 8 ball response\n" +
                "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 600\n" +
-               "!reminddays days message - Sets a reminder (triggers at noon) for a number of days in the future."
+               "!reminddays days message - Sets a reminder (triggers at noon) for a number of days in the future.\n" + 
                "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
                "!tasks - Shows the tasks on your todo list\n" +
                "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
@@ -208,54 +208,15 @@ function IsXmas(){
 var birthdays = JSON.parse(fs.readFileSync('bdays.json', 'utf8'));
 var baby = "";
 
-function IsBirthday(){
+function IsBirthday(userID){
     var today = new Date().toString();
     for (var bday in birthdays){
-        if (today.indexOf(bday) > -1 && birthdays[bday] != baby){
+        if (today.indexOf(bday) > -1 && birthdays[bday] == userID && birthdays[bday] != baby){
             baby = birthdays[bday];
             return true;
         }
     }
     return false;
-}
-
-//Emma's Markov
-var bot_at = "<@348179384580177922>";
-//var bot_at = "<@503939825833869313>";
-var history = fs.readFileSync("chat.log", "utf8");
-var quotes = new MarkovChain(fs.readFileSync("chat.log", "utf8"));
-var messageCount = 0;
-var timeSinceLast = 10;
-
-function load_history (file) {
-    var lineReader = require("readline").createInterface({
-        input: require("fs").createReadStream(file)
-    });
-
-    lineReader.on("line", function (line) {
-        history = history.concat(line, "\n");
-    });
-    quotes = new MarkovChain(history);
-}
-
-function send_markov (channelID) {
-    logger.info("attempting markov chain");
-    var limit = randomInt.Get(1, 25);
-    bot.sendMessage({
-        to: channelID,
-        message: quotes.start( function(wordList) {
-            var tmpList = Object.keys(wordList);
-            return tmpList[~~(Math.random()*tmpList.length)];
-        }).end(limit).process()
-    });
-}
-
-function specific_markov (userID, channelID, word) {
-    var limit = randomInt.Get(2, 20);
-    bot.sendMessage({
-        to: channelID,
-        message: util.format("<@%s> %s", userID, quotes.start(word).end(limit).process())
-    });
 }
 
 // Ruby vars
@@ -461,37 +422,6 @@ function whoAmI(name, user, id){
     return message;
 }
 
-// Advice
-function askingForAdvice(message){
-    var lower = message.toLowerCase();
-
-    if (lower.indexOf("no good for me") > -1){
-        return true;
-    }
-
-    if (lower.indexOf("mess with my credit") > -1){
-        return true;
-    }
-
-    if (lower.indexOf("should i go over there") > -1){
-        return true;
-    }
-
-    if (lower.indexOf("should i text") > -1){
-        return true;
-    }
-
-    if (lower.indexOf("should i bail") > -1){
-        return true;
-    }
-
-    if (lower.indexOf("is this a bad idea") > -1){
-        return true;
-    }
-
-    return false;
-}
-
 // Inspiration quotes (inspo)
 var inspoQuotes = JSON.parse(fs.readFileSync('inspo.json', 'utf8'));
 var alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
@@ -607,7 +537,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 });
                 break;
             case "markov":
-                send_markov(channelID);
+                markov.Send(channelID);
                 break;
             case "r": // Fallthrough
             case "roll":
@@ -699,81 +629,34 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         // Don't do any message stats on ! commands
         return;
     }
-    if (message.indexOf(bot_at) > -1){
-        logger.info("I have been @");
-        var messageContents = message.replace(bot_at, "");
-        logger.info("@ with message contents: " + messageContents);
 
-        if (askingForAdvice(messageContents)){
-            bot.sendMessage({
-                to: channelID,
-                message: util.format("<@%s> That's a great question. I get asked about this topic a lot and it reminds me of a quote:\n\"BITCH, DON'T\"\n-me", userID)
+    // Check xmas
+    if (IsXmas()){
+        if (!(userID in xmasGifts)){
+            getImgurImage(function(image){
+                xmasGifts[userID] = image;
+                bot.sendMessage({
+                    to: channelID,
+                    message: util.format("Hey <@%s>! Merry Xmas 🎄\nI saw this and thought of you %s", userID, image)
+                });
             });
         }
-        else{
-            var messageParts = messageContents.split(" ");
-            var index = randomInt.Get(0, messageParts.length - 1);
-            var word = messageParts[index];
-            if (!word.trim()){
-                send_markov(channelID);
-            }
-            else{
-                logger.info("attempting markov with word: " + word);
-                specific_markov(userID, channelID, word);
-            }
-        }
     }
-    else if (channelID != 348180091680849922) {
-        // Update chat log
-        history = history.concat(message + "\n");
-        fs.writeFile("chat.log", history, function(err) {
-            if (err){
-                throw err;
-            }
+
+    // Check Birthdays
+    if (IsBirthday(userID)){
+        getImgurImage(function(image){
+            bot.sendMessage({
+                to: channelID,
+                message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere's your gift %s", baby, image)
+            });
         });
-
-        // Check xmas
-        if (IsXmas()){
-            if (!(userID in xmasGifts)){
-                getImgurImage(function(image){
-                    xmasGifts[userID] = image;
-                    bot.sendMessage({
-                        to: channelID,
-                        message: util.format("Hey <@%s>! Merry Xmas 🎄\nI saw this and thought of you %s", userID, image)
-                    });
-                });
-            }
-        }
-
-        // Check markov trigger
-        timeSinceLast++;
-        var chance = randomInt.Get(1, timeSinceLast);
-        if (chance > 30){
-            logger.info("its been too long, time to pipe up");
-            if (IsBirthday()){
-                getImgurImage(function(image){
-                    bot.sendMessage({
-                        to: channelID,
-                        message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere's your gift %s", baby, image)
-                    });
-                });
-            }
-            else{
-                send_markov(channelID);
-            }
-            timeSinceLast = 1;
-        }
-
-        // Update markov object
-        if (messageCount > 100){
-            messageCount = 0;
-            quotes = new MarkovChain(history);
-            logger.info("updated markov history");
-        }
-        else{
-            messageCount++;
-        }
     }
+
+    // Check markov triggers and update history
+    markov.Update(bot, userID, channelID, message);
+
+    // Extra message contents responses
     if (message.indexOf("🙃") > -1){
         bot.sendMessage({
             to: channelID,
@@ -787,7 +670,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         });
     }
 
+    // Update user message stats
     updateUserMsgCount(channelID, userID, false);
 
+    // Update ranks data
     ranks.Update(bot, userID, channelID);
 });
