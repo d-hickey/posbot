@@ -21,8 +21,11 @@ function NameGen(){
 
     var titleIndex = randomInt.Get(0, genParts.title.length-1);
     var title = genParts.title[titleIndex];
+    if (title != ""){
+        title = util.format(" \"%s\"", title);
+    }
 
-    return util.format("%s%s \"%s\"", first, last, title);
+    return util.format("%s%s%s", first, last, title);
 }
 
 function RaceGen(){
@@ -35,18 +38,39 @@ function ClassGen(){
     return genParts.class[classIndex];
 }
 
+function StoryGen(){
+    var bornIndex = randomInt.Get(0, genParts.born.length-1);
+    var born = genParts.born[bornIndex];
+
+    var parentsIndex = randomInt.Get(0, genParts.parents.length-1);
+    var parents = genParts.parents[parentsIndex];
+
+    var backgroundIndex = randomInt.Get(0, genParts.background.length-1);
+    var background = genParts.background[backgroundIndex];
+
+    var reasonIndex = randomInt.Get(0, genParts.reason.length-1);
+    var reason = genParts.reason[reasonIndex];
+
+    var destinyIndex = randomInt.Get(0, genParts.destiny.length-1);
+    var destiny = genParts.destiny[destinyIndex];
+
+    return util.format("You were born %s. Your parents were %s. You spent years %s but %s. Now you %s.", 
+                        born, parents, background, reason, destiny);
+}
+
 function CreateCharacter(userID){
     var char = {};
     char.name = NameGen();
     char.race = RaceGen();
     char.class = ClassGen();
+    char.story = StoryGen();
 
     chars[userID] = char;
 }
 
 function CharacterString(userID){
     var char = chars[userID];
-    return util.format("You are %s, %s %s", char.name, char.race, char.class);
+    return util.format("You are %s, %s %s\n%s", char.name, char.race, char.class, char.story);
 }
 
 function Commands(client, userID, channelID, cmd, args){
