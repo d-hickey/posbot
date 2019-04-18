@@ -87,6 +87,19 @@ function asking_for_advice(message){
     return false;
 }
 
+function chance_message(){
+    var potential = 0;
+    var target = config.chance;
+    if (timeSinceLast > target){
+        potential = timeSinceLast - target;
+    }
+
+    var probability = (potential / timeSinceLast) * 100;
+
+    return util.format("There has been %d messages since last pos markov. The current target is %d. This gives a markov probability of %d / %d which is %d\%",
+        timeSinceLast, target, potential, timeSinceLast, probability);
+}
+
 function entry(client, userID, channelID, message){
     bot = client;
 
@@ -136,5 +149,6 @@ function entry(client, userID, channelID, message){
     }
 }
 
+exports.Chance = chance_message;
 exports.Send = send_markov;
 exports.Update = entry;

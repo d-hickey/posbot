@@ -62,6 +62,7 @@ function PrintHelpAll(channelID){
                "!notail - Flower, river, rainbow which are you?\n" +
                "!compliment [complimentee] - Get a compliment sourced from some of the nicest subreddits\n" +
                "!markov or @posbot - Get a markov generated response\n" +
+               "!markov-chance - See the current trigger chance for a markov message\n" +
                "!quote messageID - Formats a quote of the message with the given ID (turn on dev mode to copy message IDs)\n" +
                "!roll dice - Rolls the specified dice and returns result\n" +
                "!heyruby - Say hello to ruby\n" +
@@ -477,7 +478,7 @@ function predict(userID, channelID){
 }
 
 bot.on("message", function (user, userID, channelID, message, evt) {
-    if (userID == 348179384580177922){
+    if (userID == bot.id){
         return;
     }
 
@@ -538,6 +539,12 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "markov":
                 markov.Send(channelID);
+                break;
+            case "markov-chance":
+                bot.sendMessage({
+                    to: channelID,
+                    message: markov.Chance()
+                });
                 break;
             case "r": // Fallthrough
             case "roll":
