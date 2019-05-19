@@ -250,8 +250,13 @@ bot.on("ready", function (evt) {
 });
 
 // Noon scheduler
-var scheduler = schedule.scheduleJob("0 12 * * *", function(){
+var noonScheduler = schedule.scheduleJob("0 12 * * *", function(){
     remind.CheckDailyReminders();
+});
+
+// Minute scheduler
+var minScheduler = schedule.scheduleJob("* * * * *", function(){
+    remind.CheckMinuteReminders();
 });
 
 //Channel History

@@ -6,6 +6,16 @@ var util = require("util");
 var bot;
 
 // Reminders list
+/*
+{
+    <Date>: {
+        "type": "day" or "min",
+        "remindee": <userID>,
+        "channel": <channelID>,
+        "message": "reminder message"
+    },
+}
+*/
 var reminders = JSON.parse(fs.readFileSync('./remind/reminders.json', 'utf8'));
 
 function WriteReminders(){
@@ -14,30 +24,59 @@ function WriteReminders(){
 }
 
 // Reminder
-function SetReminder(userID, channelID, time, message){
+function SetReminder(userID, channelID, mins, message){
     var remindMsg = message;
-    var timer = time;
 
-    if (isNaN(timer) || timer < 1 || timer > 600){
+    if (isNaN(mins) || mins < 1){
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> Please enter a number between 1 and 600", userID)
+            message: util.format("<@%s> Please enter a number of minutes", userID)
+        });
+        return;
+    }
+
+    if (mins > 10080){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("<@%s> Use !reminddays for reminders this far away", userID)
         });
         return;
     }
 
     if (remindMsg === ""){
-        remindMsg = "I am reminding you of something you didn't specify";
+        remindMsg = "I am reminding you of something! You didn't specify what.";
     }
 
-    timer = timer * 60000;
-
-    setTimeout(DoTheReminding, timer, userID, channelID, remindMsg);
+    if (mins > 30){
+        SetLongReminder(userID, channelID, mins, remindMsg)
+    }
+    else{
+        SetShortReminder(userID, channelID, mins, remindMsg)
+    }
 
     bot.sendMessage({
         to:channelID,
-        message: util.format("Reminder set for %d minutes", time)
+        message: util.format("Reminder set for %d minutes", mins)
     });
+}
+
+function SetShortReminder(userID, channelID, mins, message){
+    timer = mins * 60000;
+
+    setTimeout(DoTheReminding, timer, userID, channelID, message)
+}
+
+function SetLongReminder(userID, channelID, mins, message){
+    var now = new Date();
+    var future = new Date(now.setTime(now.getTime() + mins * 60000));
+
+    reminders[future] = {};
+    reminders[future].type = "min";
+    reminders[future].remindee = userID;
+    reminders[future].channel = channelID;
+    reminders[future].message = message;
+
+    WriteReminders();
 }
 
 function SetDaysReminder(userID, channelID, days, message){
@@ -54,7 +93,7 @@ function SetDaysReminder(userID, channelID, days, message){
     if (days > 3650){
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> That's a very long time away, maybe focus on the present?", userID)
+            message: util.format("<@%s> That's a very long time away! Maybe focus on the present?", userID)
         });
         return;
     }
@@ -67,6 +106,7 @@ function SetDaysReminder(userID, channelID, days, message){
     var future = new Date(now.setTime(now.getTime() + days * 86400000));
 
     reminders[future] = {};
+    reminders[future].type = "day";
     reminders[future].remindee = userID;
     reminders[future].channel = channelID;
     reminders[future].message = remindMsg;
@@ -89,12 +129,28 @@ function DoTheReminding(userID, channelID, message){
 function IsToday(dateString){
     var date = new Date(dateString);
     var today = new Date();
-    return date.getDate() == today.getDate() && date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear();
+    return date.getDate() >= today.getDate() && date.getMonth() >= today.getMonth() && date.getFullYear() >= today.getFullYear();
+}
+
+function IsNow(dateString){
+    var date = new Date(dateString);
+    var now = new Date();
+    return date.getTime() >= now.getTime();
 }
 
 function CheckDailyReminders(){
     for (var date in reminders){
         if (IsToday(date)){
+            DoTheReminding(reminders[date].remindee, reminders[date].channel, reminders[date].message);
+            delete reminders[date];
+            WriteReminders();
+        }
+    }
+}
+
+function CheckMinuteReminders(){
+    for (var date in reminders){
+        if (IsNow(date)){
             DoTheReminding(reminders[date].remindee, reminders[date].channel, reminders[date].message);
             delete reminders[date];
             WriteReminders();
@@ -138,3 +194,4 @@ function Commands(client, userID, channelID, cmd, args){
 
 exports.Commands = Commands;
 exports.CheckDailyReminders = CheckDailyReminders;
+exports.CheckMinuteReminders = CheckMinuteReminders;
