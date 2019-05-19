@@ -135,7 +135,7 @@ function IsToday(dateString){
 function IsNow(dateString){
     var date = new Date(dateString);
     var now = new Date();
-    return date.getTime() >= now.getTime();
+    return now.getTime() >= date.getTime();
 }
 
 function CheckDailyReminders(client){
