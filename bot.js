@@ -251,12 +251,12 @@ bot.on("ready", function (evt) {
 
 // Noon scheduler
 var noonScheduler = schedule.scheduleJob("0 12 * * *", function(){
-    remind.CheckDailyReminders();
+    remind.CheckDailyReminders(bot);
 });
 
 // Minute scheduler
 var minScheduler = schedule.scheduleJob("* * * * *", function(){
-    remind.CheckMinuteReminders();
+    remind.CheckMinuteReminders(bot);
 });
 
 //Channel History

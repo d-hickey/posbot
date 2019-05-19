@@ -138,8 +138,13 @@ function IsNow(dateString){
     return date.getTime() >= now.getTime();
 }
 
-function CheckDailyReminders(){
+function CheckDailyReminders(client){
+    bot = client;
     for (var date in reminders){
+        if ("type" in reminders[date] && reminders[date].type !== "day"){
+            continue
+        }
+
         if (IsToday(date)){
             DoTheReminding(reminders[date].remindee, reminders[date].channel, reminders[date].message);
             delete reminders[date];
@@ -148,8 +153,13 @@ function CheckDailyReminders(){
     }
 }
 
-function CheckMinuteReminders(){
+function CheckMinuteReminders(client){
+    bot = client;
     for (var date in reminders){
+        if (!("type" in reminders[date]) || reminders[date].type !== "min"){
+            continue;
+        }
+
         if (IsNow(date)){
             DoTheReminding(reminders[date].remindee, reminders[date].channel, reminders[date].message);
             delete reminders[date];
