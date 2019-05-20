@@ -126,10 +126,17 @@ function DoTheReminding(userID, channelID, message){
     });
 }
 
+function IsPast(dateString){
+    var date = new Date(dateString);
+    var today = new Date();
+    return (today.getFullYear() > date.getFullYear()) || (today.getFullYear() === date.getFullYear() && today.getMonth() > date.getMonth()) || 
+           (today.getFullYear() === date.getFullYear() && today.getMonth() === date.getMonth() && today.getDate() > date.getDate());
+}
+
 function IsToday(dateString){
     var date = new Date(dateString);
     var today = new Date();
-    return date.getDate() >= today.getDate() && date.getMonth() >= today.getMonth() && date.getFullYear() >= today.getFullYear();
+    return date.getDate() === today.getDate() && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
 }
 
 function IsNow(dateString){
@@ -147,6 +154,11 @@ function CheckDailyReminders(client){
 
         if (IsToday(date)){
             DoTheReminding(reminders[date].remindee, reminders[date].channel, reminders[date].message);
+            delete reminders[date];
+            WriteReminders();
+        }
+        else if (IsPast(date)){
+            DoTheReminding(reminders[date].remindee, reminders[date].channel, "Whoops, we kind of missed this one:\n" + reminders[date].message);
             delete reminders[date];
             WriteReminders();
         }
@@ -172,6 +184,7 @@ function Commands(client, userID, channelID, cmd, args){
     bot = client;
 
     switch (cmd){
+        case "remind": // Fallthrough
         case "remindme":
             var time = 1;
             if (args.length > 0){
@@ -186,7 +199,9 @@ function Commands(client, userID, channelID, cmd, args){
             SetReminder(userID, channelID, time, reminder);
             break;
         case "remindmedays": // Fallthrough
-        case "reminddays":
+        case "remindmeday": // Fallthrough
+        case "reminddays": // Fallthrough
+        case "remindday":
             var days = 1;
             if (args.length > 0){
                 days = parseInt(args[0]);
