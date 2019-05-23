@@ -10,6 +10,7 @@ var schedule = require("node-schedule");
 
 // Local
 var auth = require("./auth.json");
+var help = require("./help/help");
 var markov = require("./markov/markov");
 var quote = require("./quote/quote");
 var randomInt = require("./randomint");
@@ -26,75 +27,6 @@ logger.add(logger.transports.Console, {
     colorize: true
 });
 logger.level = "debug";
-
-// Help
-function PrintHelp(channelID){
-    var help = "!helpall - Show a complete command list\n" +
-               "!compliment [complimentee] - Get a compliment sourced from some of the nicest subreddits\n" +
-               "@posbot - Get a markov generated response\n" +
-               "!quote messageID - Formats a quote of the message with the given ID (turn on dev mode to copy message IDs)\n" +
-               "!roll dice - Rolls the specified dice and returns result\n" +
-               "!savepoint - Need some determination? This is the command for you\n" +
-               "!stats - Displays your message stats for the current text channel\n";
-    if (!ranks.Stop){
-        help = help + "!rank - Displays your current Pos Level\n" +
-               "!buy-microtransaction link - Exchange a link for progress\n";
-    }
-    help = help + "!8ball - Gives a magic 8 ball response\n" +
-               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 600\n" +
-               "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
-               "!todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
-               "!squadgoals and !squaddone - Same as to do commands but for the whole squad\n";
-               
-    if (IsXmas()){
-        help = help + "\n\n!newgift - Not happy with your xmas gift? Use this to get a new one";
-    }
-
-    bot.sendMessage({
-        to: channelID,
-        message: help
-    });
-}
-
-function PrintHelpAll(channelID){
-    var help = "!ping - Ping posbot\n" +
-               "!help - Show a shorter help message\n" +
-               "!helpall - Show this message\n" +
-               "!notail - Flower, river, rainbow which are you?\n" +
-               "!compliment [complimentee] - Get a compliment sourced from some of the nicest subreddits\n" +
-               "!markov or @posbot - Get a markov generated response\n" +
-               "!markov-chance - See the current trigger chance for a markov message\n" +
-               "!quote messageID - Formats a quote of the message with the given ID (turn on dev mode to copy message IDs)\n" +
-               "!roll dice - Rolls the specified dice and returns result\n" +
-               "!heyruby - Say hello to ruby\n" +
-               "!inspo - Get an inspirational message in a fancy font\n" +
-               "!savepoint - Need some determination? This is the command for you\n" +
-               "!stats - Displays your message stats for the current text channel\n" +
-               "!statstotal - Displays your message stats for the all text channels\n";
-    if (!ranks.Stop){
-        help = help + "!rank - Displays your current Pos Level\n" +
-               "!buy-microtransaction link - Exchange a link for progress\n" +
-               "!leaderboard - shows the rank leaderboard\n";
-    }
-    help = help + "!8ball - Gives a magic 8 ball response\n" +
-               "!remindme time message - Sets a reminder, time should be specified in minutes and be between 1 and 600\n" +
-               "!reminddays days message - Sets a reminder (triggers at noon) for a number of days in the future.\n" + 
-               "!todo [task] - Shows your tasks or adds a task to your todo list\n" +
-               "!tasks - Shows the tasks on your todo list\n" +
-               "!removetask | !todone indices - Removes the task at the given positions from your todo list (0 indexed)\n" +
-               "!squadgoals [task] - Shows squad goals or adds a goal to the todo list\n" +
-               "!squaddone indices - Removes the goal at the given positions from the squad todo list (0 indexed)\n" +
-               "!werewolf - Start a game of werewolf. Other werewolf commands should be explained as part of the game";
-               
-    if (IsXmas()){
-        help = help + "\n\n!newgift - Not happy with your xmas gift? Use this to get a new one";
-    }
-
-    bot.sendMessage({
-        to: channelID,
-        message: help
-    });
-}
 
 // Dice Roll
 function isPositiveNumber(num){
@@ -505,13 +437,6 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: "Pong!"
                 });
                 break;
-            case "halp": // Fallthrough
-            case "help":
-                PrintHelp(channelID);
-                break;
-            case "helpall":
-                PrintHelpAll(channelID);
-                break;
             case "notail":
                 var noun = "flower";
                 var choice = randomInt.Get(1, 3);
@@ -627,6 +552,8 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             default:
                 // No other cases matched, check other modules
+                // Help
+                help.Commands(bot, userID, channelID, cmd, args);
                 // Ranks
                 ranks.Commands(bot, userID, channelID, cmd, args);
                 // Quote
