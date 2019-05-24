@@ -486,16 +486,36 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                     message: diceReturn
                 });
                 break;
-            case "heyruby":
+            case "heypatch": // Fallthrough
+            case "heyruby": // Fallthrough
+            case "heysammy": // Fallthrough
+            case "heytess":  // Fallthrough
+            case "heyyoshi": // Fallthrough
+            case "heydoggo": // Fallthrough
+            case "heydog":
                 var ruby = "woof";
                 rubyPatience = rubyPatience + 1;
+                if (rubyPatience > 1){
+                    ruby = "bork";
+                }
                 if (rubyPatience > 2){
-                    ruby = "woof, bitch";
+                    ruby = "woof woof woof";
                     rubyPatience = 0;
                 }
                 bot.sendMessage({
                     to: channelID,
                     message: ruby
+                });
+                break;
+            case "heychips":
+                var chip = "meow";
+                rubyPatience = rubyPatience + 1;
+                if (rubyPatience > 2){
+                    chip = "_bonks head on leg_"
+                }
+                bot.sendMessage({
+                    to: channelID,
+                    message: chip
                 });
                 break;
             case "determination": // Fallthrough
