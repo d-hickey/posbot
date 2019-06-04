@@ -34,6 +34,8 @@ var roles8 = ["seer", "doctor", "cupid", "villager", "villager", "villager", "wo
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
+var randomRoles = ["seer", "doctor", "cupid", "villager", "woof"];
+
 function resetWolves(){
     var index = randomInt.Get(0, sequels.length-1);
     var sequel = sequels[index];
@@ -92,6 +94,48 @@ function assignRoles(){
         var index = randomInt.Get(0, roles.length-1);
         var newRole = roles[index];
         roles.splice(index, 1);
+        players[key].role = newRole;
+    }
+    for (var player of keys){
+        var role = players[player].role;
+        var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
+        if (role === "woof"){
+            var wolves = getWolves();
+            roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolves are: %s", wolves);
+        }
+        if (role === "seer"){
+            roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
+        }
+        if (role === "doctor"){
+            roleMsg = roleMsg + "\nYears in education and training mean you can now cheat death itself. Use\"!save <name>\" to prevent any harm coming to somebody, or yourself.";
+        }
+        if (role === "cupid"){
+            roleMsg = roleMsg + "use \"!matchmake <name> <name>\" to select to select two players to be the secret lovers." +
+                    "\n Players: " + playerNames.toString();
+        }
+        else{
+            roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
+        }
+        bot.sendMessage({
+            to: player,
+            message: roleMsg
+        });
+    }
+}
+
+function assignRandomRoles(){
+    var keys = Object.keys(players);
+    roles = randomRoles.slice(0);
+
+    for (var key of keys){
+        var index = randomInt.Get(0, roles.length-1);
+        var newRole = roles[index];
+
+        // Can't have multiple cupids
+        if (newRole === "cupid"){
+            roles.splice(index, 1);
+        }
+        
         players[key].role = newRole;
     }
     for (var player of keys){
@@ -246,7 +290,7 @@ function killPlayer(){
         deathMsg = "Nobody is dead. Strange, I'm fairly sure somebody should be dead. Anyway... ";
     }
 
-    var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote.\nThe player list is: %s", playerNames);
+    var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote. (or use \"!ready\" to pass)\nThe player list is: %s", playerNames);
     if (night === 0){
         dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames);
     }
@@ -498,7 +542,7 @@ function matchmake(cupid, loverOne, loverTwo){
 
         bot.sendMessage({
             to: cupid,
-            message: util.format("You have chosen %s and %s to be lovers. How scandalous, or not I don't know I'm just a robot.", players[loverPlayers[0]].dname, players[loverPlayers[1]].dname)
+            message: util.format("You have chosen %s and %s to be lovers. How scandalous! Or not? I don't know I'm just a robot.", players[loverPlayers[0]].dname, players[loverPlayers[1]].dname)
         });
 
         if (nightVotesDone()){
@@ -673,6 +717,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
     bot = client;
 
     switch(cmd){
+        case "play": // Fallthrough
         case "werewolf":
             if (game === 0){
                 game = 1;
@@ -698,6 +743,18 @@ function Werewolf(client, user, userID, channelID, cmd, args){
                     message: util.format("Players: %s", playerNames)
                 });
             }
+            else if (game === 0){
+                game = 1;
+                wolfChannel = channelID;
+
+                playerNames.push(user);
+                players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false };
+
+                bot.sendMessage({
+                    to: channelID,
+                    message: util.format("Werewolf game started, use !join to join or !start to start\nPlayers: %s", playerNames)
+                });
+            }
             break;
         case "start":
             if (game === 1 && start === 0 && playerNames.length > 2){
@@ -709,6 +766,20 @@ function Werewolf(client, user, userID, channelID, cmd, args){
                     message: util.format("The roles are assigned and night falls. No murdering tonight, simply check your role. Special villagers can do their thing though.\n" +
                         "Everyone has to use !ready in their DMs to advance to day, please refrain from revealing any info you might have until dawn\n" +
                         "The player list is: %s\nThe roles are: %s", playerNames, rolesSet[playerNames.length-1])
+                });
+            }
+            break;
+        case "random": // Fallthrough
+        case "start-random":
+            if (game === 1 && start === 0 && playerNames.length > 1){
+                start = 1;
+                assignRandomRoles();
+                night = 2;
+                bot.sendMessage({
+                    to: channelID,
+                    message: util.format("The roles have been randomised, maybe everyone is a woof, maybe there's two cupids, look in your DMs to find out!\n" +
+                        "Everyone has to use !ready in their DMs to advance to day, please refrain from revealing any info you might have until dawn\n" +
+                        "The player list is: %s\nThe roles are: UNKNOWN", playerNames)
                 });
             }
             break;
