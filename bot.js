@@ -341,7 +341,10 @@ function getTotalStats(user, name){
 var whoYouAre = JSON.parse(fs.readFileSync('whoyouare.json', 'utf8'));
 
 function whoAmI(name, user, id){
-    var outerIndex = randomInt.Get(0,3);
+    var outerIndex = randomInt.Get(0,7);
+    if (outerIndex > 3){
+        outerIndex = 1;
+    }
     var array = whoYouAre[outerIndex];
     var index = randomInt.Get(0, array.length-1);
     var message = "";

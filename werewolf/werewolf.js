@@ -582,15 +582,23 @@ function readyVote(voter, channel){
     if (channel === wolfChannel && night !== 0){
         bot.sendMessage({
             to: wolfChannel,
-            message: "We at Werewolf Inc would prefer if you used \"!ready\" from the privacy of your DM"
+            message: "Acknowledged, but we at Werewolf Inc would prefer if you used \"!ready\" from the privacy of your DM"
         });
     }
-
+    else if (night === 0){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s has abstained from voting.", players[voter].dname)
+        });
+    }
+    else{
+        bot.sendMessage({
+            to: voter,
+            message: "Ready status acknowledged."
+        });
+    }
+    
     players[voter].voted = true;
-    bot.sendMessage({
-        to: voter,
-        message: "Ready status acknowledged."
-    });
     
     if (nightVotesDone() || dayVotesDone()){
         if (night === 2){
@@ -602,7 +610,7 @@ function readyVote(voter, channel){
     }
 }
 
-function unvote(voter){
+function unvote(voter, channelID){
     players[voter].voted = false;
 
     var keys = Object.keys(killVotes);
@@ -613,17 +621,25 @@ function unvote(voter){
             if (killVotes[nominee].length === 0){
                 delete killVotes[nominee];
             }
+            bot.sendMessage({
+                to: channelID,
+                message: "Vote Rescinded."
+            });
+            break;
         }
     }
 }
 
 function printVotes(){
     var votes = "";
+    var ready = 0;
 
     if (night === 0){
+        var voted = 0;
         var keys = Object.keys(killVotes);
         for (var nominee of keys){
             var num = killVotes[nominee].length;
+            voted += num;
             var voters = "";
             for (var i = 0; i < num; i++){
                 voters += players[killVotes[nominee][i]].dname + ", ";
@@ -632,10 +648,20 @@ function printVotes(){
 
             votes += util.format("%s: %s votes (%s)\n", players[nominee].dname, num, voters);
         }
-        votes = votes.slice(0, -1);
+        for (var id in players){
+            if (players[id].voted){
+                ready++;
+            }
+        }
+        var passed = ready - voted;
+        if (passed > 0){
+            votes += util.format("Abstained: %s", passed);
+        }
+        else{
+            votes = votes.slice(0, -1);
+        }
     }
     else{
-        var ready = 0;
         var total = 0;
 
         var ids = Object.keys(players);
@@ -820,6 +846,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
                 }
             }
             break;
+        case "match": // Fallthrough
         case "matchmake":
             if (game === 1 && start === 1 && night === 2 && userID in players && players[userID].voted === false && 
                 players[userID].role === "cupid" && players[userID].alive === true){
@@ -830,14 +857,16 @@ function Werewolf(client, user, userID, channelID, cmd, args){
                 }
             }
             break;
+        case "pass": //Fallthrough
         case "ready":
             if (game === 1 && start === 1 && userID in players){
                 readyVote(userID, channelID);
             }
             break;
+        case "cancel": // Fallthrough
         case "unvote":
             if (game === 1 && start === 1 && userID in players && players[userID].voted === true){
-                unvote(userID);
+                unvote(userID, channelID);
             }
             break;
         case "players":
