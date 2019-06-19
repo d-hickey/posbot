@@ -22,19 +22,29 @@ var wolfChannel = "";
 var killVotes = {};
 var savedPlayers = [];
 var loverPlayers = [];
+var hunters = [];
+var visits = [];
 
-var roles1 = ["woof"];
-var roles2 = ["villager", "woof"];
-var roles3 = ["villager", "villager", "woof"];
-var roles4 = ["seer", "villager", "villager", "woof"];
-var roles5 = ["seer", "doctor", "villager", "villager", "woof"];
-var roles6 = ["seer", "doctor", "cupid", "villager", "woof", "woof"];
-var roles7 = ["seer", "doctor", "cupid", "villager", "villager", "woof", "woof"];
-var roles8 = ["seer", "doctor", "cupid", "villager", "villager", "villager", "woof", "woof"];
+var woofRole = "woof";
+var villagerRole = "villager";
+var seerRole = "seer";
+var doctorRole = "doctor";
+var cupidRole = "cupid";
+var hunterRole = "hunter";
+var harlotRole = "harlot";
+
+var roles1 = [woofRole];
+var roles2 = [villagerRole , woofRole];
+var roles3 = [villagerRole , villagerRole , woofRole];
+var roles4 = [seerRole , villagerRole , villagerRole , woofRole];
+var roles5 = [seerRole , doctorRole , villagerRole , villagerRole , woofRole];
+var roles6 = [seerRole , doctorRole , cupidRole , villagerRole , woofRole, woofRole];
+var roles7 = [seerRole , doctorRole , cupidRole , villagerRole , villagerRole , woofRole, woofRole];
+var roles8 = [seerRole , doctorRole , cupidRole , villagerRole , villagerRole , villagerRole , woofRole, woofRole];
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
-var randomRoles = ["seer", "doctor", "cupid", "villager", "woof"];
+var randomRoles = [seerRole , doctorRole , cupidRole , hunterRole , harlotRole, villagerRole , woofRole];
 
 function resetWolves(){
     var index = randomInt.Get(0, sequels.length-1);
@@ -67,6 +77,7 @@ function resetWolves(){
 function resetVotes(){
     killVotes = {};
     savedPlayers = [];
+    visits = [];
     var keys = Object.keys(players);
 
     for (var player of keys){
@@ -79,7 +90,7 @@ function getWolves(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].role === "woof"){
+        if (players[player].role === woofRole){
             wolves.push(players[player].dname);
         }
     }
@@ -96,31 +107,7 @@ function assignRoles(){
         roles.splice(index, 1);
         players[key].role = newRole;
     }
-    for (var player of keys){
-        var role = players[player].role;
-        var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
-        if (role === "woof"){
-            var wolves = getWolves();
-            roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolves are: %s", wolves);
-        }
-        if (role === "seer"){
-            roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
-        }
-        if (role === "doctor"){
-            roleMsg = roleMsg + "\nYears in education and training mean you can now cheat death itself. Use\"!save <name>\" to prevent any harm coming to somebody, or yourself.";
-        }
-        if (role === "cupid"){
-            roleMsg = roleMsg + "use \"!matchmake <name> <name>\" to select to select two players to be the secret lovers." +
-                    "\n Players: " + playerNames.toString();
-        }
-        else{
-            roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
-        }
-        bot.sendMessage({
-            to: player,
-            message: roleMsg
-        });
-    }
+    informPlayersOfRoles();
 }
 
 function assignRandomRoles(){
@@ -132,28 +119,41 @@ function assignRandomRoles(){
         var newRole = roles[index];
 
         // Can't have multiple cupids
-        if (newRole === "cupid"){
+        if (newRole === cupidRole){
             roles.splice(index, 1);
         }
         
         players[key].role = newRole;
     }
-    for (var player of keys){
+    
+    informPlayersOfRoles();
+}
+
+function informPlayersOfRoles(){
+    for (var player in players){
         var role = players[player].role;
         var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
-        if (role === "woof"){
+        if (role === woofRole){
             var wolves = getWolves();
             roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolves are: %s", wolves);
         }
-        if (role === "seer"){
+        if (role === seerRole){
             roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
         }
-        if (role === "doctor"){
+        if (role === doctorRole){
             roleMsg = roleMsg + "\nYears in education and training mean you can now cheat death itself. Use\"!save <name>\" to prevent any harm coming to somebody, or yourself.";
         }
-        if (role === "cupid"){
-            roleMsg = roleMsg + "use \"!matchmake <name> <name>\" to select to select two players to be the secret lovers." +
+        if (role === cupidRole){
+            roleMsg = roleMsg + ", use \"!matchmake <name> <name>\" to select to select two players to be the secret lovers." +
                     "\n Players: " + playerNames.toString();
+        }
+        if (role === hunterRole){
+            hunters.push(player);
+            roleMsg = roleMsg + "\nOnce per game, during the day, you can use \"!shoot <name>\" to kill another player. For now just use \"!ready\" to sleep peacefully through the night.";
+        }
+        if (role === harlotRole){
+            roleMsg = roleMsg + "\nDuring the night you can use \"!visit <name>\" to spend the night with someone, you'll gain some info too, just avoid the wuffles." +
+                      "\nOr use \"!ready\" to spend the night at home.";
         }
         else{
             roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
@@ -188,16 +188,20 @@ function sendNightMessages(){
         if (players[player].alive === true){
             var role = players[player].role;
             var roleMsg = "It's night time, so I need you to ";
-            if (role === "woof"){
+            if (role === woofRole){
                 roleMsg = roleMsg + "use \"!kill <name>\" to select a player to kill. You could also just use \"!ready\" to not kill at all." +
                         "\n Players: " + playerNames.toString();
             }
-            if (role === "seer"){
+            else if (role === seerRole){
                 roleMsg = roleMsg + "use \"!see <name>\" to select a player to spy on. You could also just use \"!ready\" to not view anyone." +
                         "\n Players: " + playerNames.toString();
             }
-            if (role === "doctor"){
+            else if (role === doctorRole){
                 roleMsg = roleMsg + "use \"!save <name>\" to select a player to heal, should any harm come to them. You could also just use \"!ready\" to abandon your duties." +
+                        "\n Players: " + playerNames.toString();
+            }
+            else if (role === harlotRole){
+                roleMsg = roleMsg + "use \"!visit <name>\" to select a player to spend some quality time with. You could also just use \"!ready\" to take the night off." +
                         "\n Players: " + playerNames.toString();
             }
             else {
@@ -209,6 +213,54 @@ function sendNightMessages(){
             });
         }
         
+    }
+}
+
+function wasOut(player){
+    for (var visit in visits){
+        if (player === visits[visit].harlot){
+            return true;
+        }
+    }
+    return false;
+}
+
+function areLovers(one, two){
+    if (loverPlayers.indexOf(one) > -1 && loverPlayers.indexOf(two) > -1){
+        return true;
+    }
+
+    return false;
+}
+
+function sendHarlotMessages(){
+    for (var visit in visits){
+        var harlot = visits[visit].harlot;
+        var paramour = visits[visit].visitee;
+
+        bot.sendMessage({
+            to: harlot,
+            message: util.format("The pillow talk with %s was very revealing. They're a %s.", players[paramour].dname, players[paramour].role)
+        });
+
+        bot.sendMessage({
+            to: paramour,
+            message: util.format("You got a surprise visit from %s last night. At first you thought they were a wolf, but it was just their fur suit ;).",
+                                 players[harlot].dname)
+        });
+
+        if (players[paramour].role === woofRole && !areLovers(harlot, paramour)){
+            players[harlot].alive = false;
+            var index = playerNames.indexOf(players[harlot].dname);
+            if (index !== -1){
+                playerNames.splice(index, 1);
+            }
+
+            bot.sendMessage({
+                to: wolfChannel,
+                message: util.format("%s visited a woof last night. That was a mistake.", players[harlot].dname)
+            });
+        }
     }
 }
 
@@ -228,6 +280,8 @@ function switchToDay(){
         });
     }
 
+    sendHarlotMessages();
+
     var index = randomInt.Get(0, dayMessages.length-1);
     var message = dayMessages[index];
     bot.sendMessage({
@@ -238,6 +292,8 @@ function switchToDay(){
 }
 
 function killPlayer(){
+    sendHarlotMessages();
+
     var keys = Object.keys(killVotes);
     var deathMsg = "";
 
@@ -259,31 +315,23 @@ function killPlayer(){
         if (savedPlayers.indexOf(victim) > -1){
             deathMsg = util.format("Everyone receives a message from %s. It contains a picture of them in a hospital bed and the tagline \"I lived bitch\".", players[victim].dname);
         }
+        else if (wasOut(victim)){
+            deathMsg = "The wuffles' target wasn't at home last night. What could they have been doing out at that hour.";
+        }
         else{
             players[victim].alive = false;
             var index = playerNames.indexOf(players[victim].dname);
             if (index !== -1){
                 playerNames.splice(index, 1);
-            }  
+            }
             killVotes = {};
 
             deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
 
+            deathMsg = handleGuests(victim, deathMsg);
+
             // Handle surviving lover
-            if (loverPlayers.indexOf(victim) > -1){
-                var widow = loverPlayers[0];
-                if (widow === victim){
-                    widow = loverPlayers[1];
-                }
-
-                players[widow].alive = false;
-                index = playerNames.indexOf(players[widow].dname);
-                if (index !== -1){
-                    playerNames.splice(index, 1);
-                }
-
-                deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, players[widow].role);
-            }
+            deathMsg = handleLoverDeath(victim, deathMsg);
         }
     }
     else{
@@ -295,37 +343,7 @@ function killPlayer(){
         dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames);
     }
 
-    if (allWolvesDead()){       
-        bot.sendMessage({
-            to: wolfChannel,
-            message: util.format("%s\nCongrats Villagers, all the wolves are dead", deathMsg)
-        });
-        setTimeout(resetWolves, 5000);
-    }
-    else if (allVillagersDead()){       
-        bot.sendMessage({
-            to: wolfChannel,
-            message: util.format("%s\nCongrats Wuffles, you've eaten them all", deathMsg)
-        });
-        setTimeout(resetWolves, 5000);
-    }
-    else if (loverPlayers.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
-        bot.sendMessage({
-            to: wolfChannel,
-            message: util.format("%s\nAll is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
-                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.", deathMsg,
-                players[loverPlayers[0]].dname, players[loverPlayers[0]].role, players[loverPlayers[1]].dname, players[loverPlayers[1]].role)
-        });
-        setTimeout(resetWolves, 5000);
-    }
-    else if (playerNames.length === 2){
-        var lastWolf = getLastWolf();
-        var lastVillager = getLastVillager();
-        bot.sendMessage({
-            to: wolfChannel,
-            message: util.format("%s\nThe games are done now, the time for deception is over. A %s and a woof stand across from each other in the centre of town. %s readies their weapon, knowing it won't be enough. %s bares their fangs." + 
-                "They run at each other, freeze frame just as they meet. Cut to credits with _Hungry like the wolf_ playing.", deathMsg, lastVillager.role, lastVillager.dname, lastWolf.dname)
-        });
+    if (checkEndStates(deathMsg)){
         setTimeout(resetWolves, 5000);
     }
     else{
@@ -345,11 +363,95 @@ function killPlayer(){
     }
 }
 
+function handleLoverDeath(victim, deathMsg){
+    if (loverPlayers.indexOf(victim) > -1){
+        var widow = loverPlayers[0];
+        if (widow === victim){
+            widow = loverPlayers[1];
+        }
+
+        players[widow].alive = false;
+        var index = playerNames.indexOf(players[widow].dname);
+        if (index !== -1){
+            playerNames.splice(index, 1);
+        }
+
+        deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, players[widow].role);
+    }
+
+    return deathMsg;
+}
+
+function handleGuests(victim, deathMsg){
+    for (var visit in visits){
+        if (victim === visits[visit].visitee){
+            var guest = visits[visit].visitee;
+
+            players[guest].alive = false;
+            var index = playerNames.indexOf(players[guest].dname);
+            if (index !== -1){
+                playerNames.splice(index, 1);
+            }
+
+            deathMsg = deathMsg + util.format("\nAnd they had %s over as a guest at the time. How unfortunate.", players[guest].dname);
+        }
+    }
+
+    return deathMsg;
+}
+
+function checkEndStates(deathMsg){
+    if (allWolvesDead()){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s\nCongrats Villagers, all the wolves are dead", deathMsg)
+        });
+        return true;
+    }
+    if (allVillagersDead()){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s\nCongrats Wuffles, you've eaten them all", deathMsg)
+        });
+        return true;
+    }
+    if (loverPlayers.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s\nAll is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
+                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.", deathMsg,
+                players[loverPlayers[0]].dname, players[loverPlayers[0]].role, players[loverPlayers[1]].dname, players[loverPlayers[1]].role)
+        });
+        return true;
+    }
+    if (playerNames.length === 2){
+        var lastWolf = getLastWolf();
+        var lastVillager = getLastVillager();
+        var channelMsg = util.format(
+            "%s\nThe games are done now, the time for deception is over. A %s and a woof stand across from each other in the centre of town." +
+            " %s readies their weapon, knowing it won't be enough. %s bares their fangs. " +
+            "They run at each other, freeze frame just as they meet. Cut to credits with _Hungry like the wolf_ playing.",
+            deathMsg, lastVillager.role, lastVillager.dname, lastWolf.dname
+        );
+        if (lastVillager.role == hunterRole){
+            channelMsg = util.format("%s\n%s has %s cornered, all hope is lost for the village.\n" +
+                "But what's this, a flash of light and %s, the hunter, has teleported behind the woof.\n" +
+                "\"Psssh... nothin personnel kid\".", deathMsg, lastWolf.dname, lastVillager.dname, lastVillager.dname);
+        }
+        bot.sendMessage({
+            to: wolfChannel,
+            message: channelMsg
+        });
+        return true;
+    }
+    return false;
+}
+
 function getLastVillager(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].alive === true && players[player].role !== "woof"){
+        if (players[player].alive === true && players[player].role !== woofRole){
             return players[player];
         }
     }
@@ -359,7 +461,7 @@ function getLastWolf(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].alive === true && players[player].role === "woof"){
+        if (players[player].alive === true && players[player].role === woofRole){
             return players[player];
         }
     }
@@ -538,7 +640,7 @@ function matchmake(cupid, loverOne, loverTwo){
     }
     else{
         players[cupid].voted = true;
-        players[cupid].role = "villager";
+        players[cupid].role = villagerRole;
 
         bot.sendMessage({
             to: cupid,
@@ -548,6 +650,102 @@ function matchmake(cupid, loverOne, loverTwo){
         if (nightVotesDone()){
             switchToDay();
         }
+    }
+}
+
+function shoot(shooter, target){
+    var shot = false;
+
+    for (var player in players){
+        var displayName = players[player].dname;
+        var name = displayName.toLowerCase();
+        var victim = target.toLowerCase();
+        if ((name === victim || name.indexOf(victim) > -1) && players[player].alive === true){
+            shot = true;
+            var hunterIndex = hunters.indexOf(shooter);
+            hunters.splice(hunterIndex, 1);
+
+            var chance = randomInt.Get(1, 100);
+            var dead = player;
+            var deathMsg = util.format("%s shoots %s. Now that they're dead it's actually really obvious they were a %s",
+                                       players[shooter].dname, displayName, players[player].role);
+
+            if (chance < 21){
+                dead = shooter;
+                deathMsg = util.format("%s! You're holding the gun backwards! Oh no, they have air pods in, they can't hear us!" +
+                                       "\nWell they _were_ a hunter if that wasn't obvious",
+                                       players[shooter].dname);
+            }
+
+            players[dead].alive = false;
+            var index = playerNames.indexOf(players[dead].dname);
+            if (index !== -1){
+                playerNames.splice(index, 1);
+            }
+            unvote(dead, wolfChannel, false);
+
+            deathMsg = handleLoverDeath(dead, deathMsg);
+
+            if (checkEndStates(deathMsg)){
+                setTimeout(resetWolves, 5000);
+            }
+            else{
+                bot.sendMessage({
+                    to: wolfChannel,
+                    message: deathMsg
+                });
+                if (dayVotesDone()){
+                    setTimeout(killPlayer, 3000);
+                }
+            }
+
+            break;
+        }
+    }
+    if (shot === false){
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("Cannot find player %s", subject)
+        });
+    }
+}
+
+function visitPlayer(harlot, paramour){
+    var visited = false;
+
+    for (var player in players){
+        var displayName = players[player].dname;
+        var name = displayName.toLowerCase();
+        var visitee = paramour.toLowerCase();
+
+        if ((name === visitee || name.indexOf(visitee) > -1) && players[player].alive === true && player !== harlot){
+            visited = true;
+            players[harlot].voted = true;
+
+            var visitObj = {};
+            visitObj.harlot = harlot;
+            visitObj.visitee = player;
+            visits.push(visitObj);
+            
+            bot.sendMessage({
+                to: harlot,
+                message: util.format("You'll be staying with %s tonight. Listen, I don't want any details, just make sure you use protection.", displayName)
+            });
+            
+            if (night === 1 && nightVotesDone()){
+                killPlayer();
+            }
+            else if(night === 2 && nightVotesDone()){
+                switchToDay();
+            }
+            break;
+        }
+    }
+    if (visited === false){
+        bot.sendMessage({
+            to: harlot,
+            message: util.format("Cannot find player %s", paramour)
+        });
     }
 }
 
@@ -610,7 +808,7 @@ function readyVote(voter, channel){
     }
 }
 
-function unvote(voter, channelID){
+function unvote(voter, channelID, notify=true){
     players[voter].voted = false;
 
     var keys = Object.keys(killVotes);
@@ -621,10 +819,12 @@ function unvote(voter, channelID){
             if (killVotes[nominee].length === 0){
                 delete killVotes[nominee];
             }
-            bot.sendMessage({
-                to: channelID,
-                message: "Vote Rescinded."
-            });
+            if (notify){
+                bot.sendMessage({
+                    to: channelID,
+                    message: "Vote Rescinded."
+                });
+            }
             break;
         }
     }
@@ -684,7 +884,7 @@ function prepFirstNight(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].role === "woof"){
+        if (players[player].role === woofRole){
             players[player].voted = true;
         }
     }
@@ -718,7 +918,7 @@ function allWolvesDead(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].role === "woof" && players[player].alive === true){
+        if (players[player].role === woofRole && players[player].alive === true){
             return false;
         }
     }
@@ -730,7 +930,7 @@ function allVillagersDead(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].role !== "woof" && players[player].alive === true){
+        if (players[player].role !== woofRole && players[player].alive === true){
             return false;
         }
     }
@@ -797,7 +997,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
             break;
         case "random": // Fallthrough
         case "start-random":
-            if (game === 1 && start === 0 && playerNames.length > 1){
+            if (game === 1 && start === 0 && playerNames.length > 0){
                 start = 1;
                 assignRandomRoles();
                 night = 2;
@@ -810,7 +1010,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
             }
             break;
         case "kill":
-            if (game === 1 && start === 1 && night === 1 && userID in players && players[userID].role === "woof" && players[userID].alive === true){
+            if (game === 1 && start === 1 && night === 1 && userID in players && players[userID].role === woofRole && players[userID].alive === true){
                 var target = args[0];
                 if (target){
                     victimVote(userID, target, channelID);
@@ -830,7 +1030,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
             break;
         case "see":
             if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false && 
-                players[userID].role === "seer" && players[userID].alive === true){
+                players[userID].role === seerRole && players[userID].alive === true){
                 var subject = args[0];
                 if (subject){
                     seeRole(userID, subject);
@@ -839,7 +1039,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
             break;
         case "save":
             if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false && 
-                players[userID].role === "doctor" && players[userID].alive === true){
+                players[userID].role === doctorRole && players[userID].alive === true){
                 var patient = args[0];
                 if (patient){
                     savePlayer(userID, patient);
@@ -849,11 +1049,31 @@ function Werewolf(client, user, userID, channelID, cmd, args){
         case "match": // Fallthrough
         case "matchmake":
             if (game === 1 && start === 1 && night === 2 && userID in players && players[userID].voted === false && 
-                players[userID].role === "cupid" && players[userID].alive === true){
+                players[userID].role === cupidRole && players[userID].alive === true){
                 var loverOne = args[0];
                 var loverTwo = args[1];
                 if (loverOne && loverTwo){
                     matchmake(userID, loverOne, loverTwo);
+                }
+            }
+            break;
+        case "shoot":
+            if (game === 1 && start === 1 && night === 0 && userID in players &&
+                players[userID].alive === true && players[userID].role === hunterRole &&
+                hunters.indexOf(userID) > -1){
+                var victim = args[0];
+                if (victim){
+                    shoot(userID, victim);
+                }
+            }
+            break;
+        case "bang": // Fallthrough
+        case "visit":
+            if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players &&
+                players[userID].voted === false && players[userID].role === harlotRole && players[userID].alive === true){
+                var paramour = args[0];
+                if (paramour){
+                    visitPlayer(userID, paramour);
                 }
             }
             break;
