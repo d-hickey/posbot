@@ -304,10 +304,10 @@ function switchToDay(){
     }
     else if (night === 2){
         night = 0;
-        resetVotes();
         setTimeout(sendLoverMessages, 2000);
         setTimeout(sendHarlotMessages, 4000);
         setTimeout(sendDayMessage, 6000);
+        setTimeout(resetVotes, 6000);
     }
 }
 
