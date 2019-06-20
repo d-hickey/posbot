@@ -85,18 +85,7 @@ function resetVotes(){
     }
 }
 
-function getWolves(){
-    var wolves = [];
-    var keys = Object.keys(players);
-
-    for (var player of keys){
-        if (players[player].role === woofRole){
-            wolves.push(players[player].dname);
-        }
-    }
-    return wolves;
-}
-
+// Role assignment
 function assignRoles(){
     var keys = Object.keys(players);
     roles = rolesSet[keys.length-1].slice(0);
@@ -137,21 +126,21 @@ function informPlayersOfRoles(){
             var wolves = getWolves();
             roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolves are: %s", wolves);
         }
-        if (role === seerRole){
+        else if (role === seerRole){
             roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
         }
-        if (role === doctorRole){
+        else if (role === doctorRole){
             roleMsg = roleMsg + "\nYears in education and training mean you can now cheat death itself. Use\"!save <name>\" to prevent any harm coming to somebody, or yourself.";
         }
-        if (role === cupidRole){
+        else if (role === cupidRole){
             roleMsg = roleMsg + ", use \"!matchmake <name> <name>\" to select to select two players to be the secret lovers." +
                     "\n Players: " + playerNames.toString();
         }
-        if (role === hunterRole){
+        else if (role === hunterRole){
             hunters.push(player);
             roleMsg = roleMsg + "\nOnce per game, during the day, you can use \"!shoot <name>\" to kill another player. For now just use \"!ready\" to sleep peacefully through the night.";
         }
-        if (role === harlotRole){
+        else if (role === harlotRole){
             roleMsg = roleMsg + "\nDuring the night you can use \"!visit <name>\" to spend the night with someone, you'll gain some info too, just avoid the wuffles." +
                       "\nOr use \"!ready\" to spend the night at home.";
         }
@@ -165,6 +154,7 @@ function informPlayersOfRoles(){
     }
 }
 
+// Send messages
 function sendDayMessage(){
     var keys = Object.keys(players);
 
@@ -175,16 +165,22 @@ function sendDayMessage(){
         }
     }
 
+    var index = randomInt.Get(0, dayMessages.length-1);
+    var message = dayMessages[index];
+
     bot.sendMessage({
         to: wolfChannel,
-        message: ats
+        message: util.format("%s %s\nThe player list is: %s", ats, message, playerNames)
     });
 }
 
 function sendNightMessages(){
-    var keys = Object.keys(players);
+    bot.sendMessage({
+        to: wolfChannel,
+        message: util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
+    });
 
-    for (var player of keys){
+    for (var player of players){
         if (players[player].alive === true){
             var role = players[player].role;
             var roleMsg = "It's night time, so I need you to ";
@@ -216,21 +212,18 @@ function sendNightMessages(){
     }
 }
 
-function wasOut(player){
-    for (var visit in visits){
-        if (player === visits[visit].harlot){
-            return true;
-        }
-    }
-    return false;
-}
+function sendLoverMessages(){
+    if (loverPlayers.length === 2){
+        bot.sendMessage({
+            to: loverPlayers[0],
+            message: util.format("%s is your lover. Your parents would never approve. You must keep this blossoming romance a secret.", players[loverPlayers[1]].dname)
+        });
 
-function areLovers(one, two){
-    if (loverPlayers.indexOf(one) > -1 && loverPlayers.indexOf(two) > -1){
-        return true;
+        bot.sendMessage({
+            to: loverPlayers[1],
+            message: util.format("You never thought you would find love in this town. And yet here you are, dreaming of %s again. The others don't understand, you'd do anything for %s. You'd die for them, you'd kill for them.", players[loverPlayers[0]].dname, players[loverPlayers[0]].dname)
+        });
     }
-
-    return false;
 }
 
 function sendHarlotMessages(){
@@ -240,7 +233,7 @@ function sendHarlotMessages(){
 
         bot.sendMessage({
             to: harlot,
-            message: util.format("The pillow talk with %s was very revealing. They're a %s.", players[paramour].dname, players[paramour].role)
+            message: util.format("The pillow talk with %s was very revealing. They're a %s.", players[paramour].dname, getRole(players[paramour]))
         });
 
         bot.sendMessage({
@@ -256,44 +249,69 @@ function sendHarlotMessages(){
                 playerNames.splice(index, 1);
             }
 
+            var deathMsg = util.format("%s visited a woof last night. That was a mistake.", players[harlot].dname);
+
+            deathMsg = handleLoverDeath(harlot, deathMsg);
+
             bot.sendMessage({
                 to: wolfChannel,
-                message: util.format("%s visited a woof last night. That was a mistake.", players[harlot].dname)
+                message: deathMsg
             });
         }
     }
 }
 
-function switchToDay(){
-    night = 0;
-    resetVotes();
-
-    if (loverPlayers.length === 2){
-        bot.sendMessage({
-            to: loverPlayers[0],
-            message: util.format("%s is your lover. Your parents would never approve. You must keep this blossoming romance a secret.", players[loverPlayers[1]].dname)
-        });
-
-        bot.sendMessage({
-            to: loverPlayers[1],
-            message: util.format("You never thought you would find love in this town. And yet here you are, dreaming of %s again. The others don't understand, you'd do anything for %s. You'd die for them, you'd kill for them.", players[loverPlayers[0]].dname, players[loverPlayers[0]].dname)
-        });
+// Progress game state
+function advanceTime(){
+    if (night === 0){
+        setTimeout(killPlayer, 2000);
     }
+    else{
+        switchToDay();
+    }
+}
 
-    sendHarlotMessages();
+function updateGameState(){
+    if (checkEndStates()){
+        setTimeout(resetWolves, 5000);
+    }
+    else{
+        resetVotes();
+        if (night === 0){
+            night = 1;
+            sendNightMessages();
+        }
+        else{
+            night = 0;
+            sendDayMessage();
+        }
+    }
+}
 
-    var index = randomInt.Get(0, dayMessages.length-1);
-    var message = dayMessages[index];
-    bot.sendMessage({
-        to: wolfChannel,
-        message: message
-    });
-    sendDayMessage();
+function postShoot(){
+    if (checkEndStates()){
+        setTimeout(resetWolves, 5000);
+    }
+    else if (votesDone()){
+        setTimeout(killPlayer, 2000);
+    }
+}
+
+function switchToDay(){
+    if (night === 1){
+        setTimeout(sendHarlotMessages, 2000);
+        setTimeout(killPlayer, 5000);
+    }
+    else if (night === 2){
+        night = 0;
+        resetVotes();
+        setTimeout(sendLoverMessages, 2000);
+        setTimeout(sendHarlotMessages, 4000);
+        setTimeout(sendDayMessage, 6000);
+    }
 }
 
 function killPlayer(){
-    sendHarlotMessages();
-
     var keys = Object.keys(killVotes);
     var deathMsg = "";
 
@@ -326,7 +344,7 @@ function killPlayer(){
             }
             killVotes = {};
 
-            deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, players[victim].role);
+            deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, getRole(players[victim]));
 
             deathMsg = handleGuests(victim, deathMsg);
 
@@ -338,29 +356,12 @@ function killPlayer(){
         deathMsg = "Nobody is dead. Strange, I'm fairly sure somebody should be dead. Anyway... ";
     }
 
-    var dayChangeMsg = util.format("It's lynching time, everyone use \"!vote <name>\" to cast your vote. (or use \"!ready\" to pass)\nThe player list is: %s", playerNames);
-    if (night === 0){
-        dayChangeMsg = util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames);
-    }
+    bot.sendMessage({
+        to: wolfChannel,
+        message: deathMsg
+    });
 
-    if (checkEndStates(deathMsg)){
-        setTimeout(resetWolves, 5000);
-    }
-    else{
-        resetVotes();
-        bot.sendMessage({
-            to: wolfChannel,
-            message: util.format("%s\n%s", deathMsg, dayChangeMsg)
-        });
-        if (night === 0){
-            night = 1;
-            sendNightMessages();
-        }
-        else{
-            night = 0;
-            sendDayMessage();
-        }
-    }
+    setTimeout(updateGameState, 3000);
 }
 
 function handleLoverDeath(victim, deathMsg){
@@ -376,7 +377,7 @@ function handleLoverDeath(victim, deathMsg){
             playerNames.splice(index, 1);
         }
 
-        deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, players[widow].role);
+        deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, getRole(players[widow]));
     }
 
     return deathMsg;
@@ -400,27 +401,27 @@ function handleGuests(victim, deathMsg){
     return deathMsg;
 }
 
-function checkEndStates(deathMsg){
+function checkEndStates(){
     if (allWolvesDead()){
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s\nCongrats Villagers, all the wolves are dead", deathMsg)
+            message: "Congrats Villagers, all the wolves are dead"
         });
         return true;
     }
     if (allVillagersDead()){
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s\nCongrats Wuffles, you've eaten them all", deathMsg)
+            message: "Congrats Wuffles, you've eaten them all"
         });
         return true;
     }
     if (loverPlayers.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s\nAll is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
-                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.", deathMsg,
-                players[loverPlayers[0]].dname, players[loverPlayers[0]].role, players[loverPlayers[1]].dname, players[loverPlayers[1]].role)
+            message: util.format("All is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
+                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.",
+                players[loverPlayers[0]].dname, getRole(players[loverPlayers[0]]), players[loverPlayers[1]].dname, getRole(players[loverPlayers[1]]))
         });
         return true;
     }
@@ -428,15 +429,15 @@ function checkEndStates(deathMsg){
         var lastWolf = getLastWolf();
         var lastVillager = getLastVillager();
         var channelMsg = util.format(
-            "%s\nThe games are done now, the time for deception is over. A %s and a woof stand across from each other in the centre of town." +
+            "The games are done now, the time for deception is over. A %s and a woof stand across from each other in the centre of town." +
             " %s readies their weapon, knowing it won't be enough. %s bares their fangs. " +
             "They run at each other, freeze frame just as they meet. Cut to credits with _Hungry like the wolf_ playing.",
-            deathMsg, lastVillager.role, lastVillager.dname, lastWolf.dname
+            getRole(lastVillager), lastVillager.dname, lastWolf.dname
         );
         if (lastVillager.role == hunterRole){
-            channelMsg = util.format("%s\n%s has %s cornered, all hope is lost for the village.\n" +
+            channelMsg = util.format("%s has %s cornered, all hope is lost for the village.\n" +
                 "But what's this, a flash of light and %s, the hunter, has teleported behind the woof.\n" +
-                "\"Psssh... nothin personnel kid\".", deathMsg, lastWolf.dname, lastVillager.dname, lastVillager.dname);
+                "\"Psssh... nothin personnel kid\".", lastWolf.dname, lastVillager.dname, lastVillager.dname);
         }
         bot.sendMessage({
             to: wolfChannel,
@@ -445,6 +446,37 @@ function checkEndStates(deathMsg){
         return true;
     }
     return false;
+}
+
+// Player checks
+function wasOut(player){
+    for (var visit in visits){
+        if (player === visits[visit].harlot){
+            return true;
+        }
+    }
+    return false;
+}
+
+function areLovers(one, two){
+    if (loverPlayers.indexOf(one) > -1 && loverPlayers.indexOf(two) > -1){
+        return true;
+    }
+
+    return false;
+}
+
+// Get player objects
+function getWolves(){
+    var wolves = [];
+    var keys = Object.keys(players);
+
+    for (var player of keys){
+        if (players[player].role === woofRole){
+            wolves.push(players[player].dname);
+        }
+    }
+    return wolves;
 }
 
 function getLastVillager(){
@@ -467,6 +499,14 @@ function getLastWolf(){
     }
 }
 
+function getRole(player){
+    if (player.role === cupidRole){
+        return villagerRole;
+    }
+    return player.role;
+}
+
+// Votes and role actions
 function victimVote(wolf, target, channel){
     if (night === 0 && channel !== wolfChannel){
         bot.sendMessage({
@@ -510,11 +550,8 @@ function victimVote(wolf, target, channel){
                 });
             }
             
-            if (night === 1 && nightVotesDone()){
-                killPlayer();
-            }
-            else if(night === 0 && dayVotesDone()){
-                killPlayer();
+            if (votesDone()){
+                advanceTime();
             }
             break;
         }
@@ -541,14 +578,11 @@ function seeRole(seer, subject){
             
             bot.sendMessage({
                 to: seer,
-                message: util.format("Where there once was doubt, there is now certainty. %s is a %s", displayName, players[player].role)
+                message: util.format("Where there once was doubt, there is now certainty. %s is a %s", displayName, getRole(players[player]))
             });
             
-            if (night === 1 && nightVotesDone()){
-                killPlayer();
-            }
-            else if(night === 2 && nightVotesDone()){
-                switchToDay();
+            if (votesDone()){
+                advanceTime();
             }
             break;
         }
@@ -588,12 +622,8 @@ function savePlayer(doctor, patient){
             }
             
             
-            if (night === 1 && nightVotesDone()){
-                killPlayer();
-            }
-            else if(night === 2 && nightVotesDone()){
-                //switch to day
-                switchToDay();
+            if (votesDone()){
+                advanceTime();
             }
             break;
         }
@@ -640,15 +670,14 @@ function matchmake(cupid, loverOne, loverTwo){
     }
     else{
         players[cupid].voted = true;
-        players[cupid].role = villagerRole;
 
         bot.sendMessage({
             to: cupid,
             message: util.format("You have chosen %s and %s to be lovers. How scandalous! Or not? I don't know I'm just a robot.", players[loverPlayers[0]].dname, players[loverPlayers[1]].dname)
         });
 
-        if (nightVotesDone()){
-            switchToDay();
+        if (votesDone()){
+            advanceTime();
         }
     }
 }
@@ -668,7 +697,7 @@ function shoot(shooter, target){
             var chance = randomInt.Get(1, 100);
             var dead = player;
             var deathMsg = util.format("%s shoots %s. Now that they're dead it's actually really obvious they were a %s",
-                                       players[shooter].dname, displayName, players[player].role);
+                                       players[shooter].dname, displayName, getRole(players[player]));
 
             if (chance < 21){
                 dead = shooter;
@@ -686,18 +715,12 @@ function shoot(shooter, target){
 
             deathMsg = handleLoverDeath(dead, deathMsg);
 
-            if (checkEndStates(deathMsg)){
-                setTimeout(resetWolves, 5000);
-            }
-            else{
-                bot.sendMessage({
-                    to: wolfChannel,
-                    message: deathMsg
-                });
-                if (dayVotesDone()){
-                    setTimeout(killPlayer, 3000);
-                }
-            }
+            bot.sendMessage({
+                to: wolfChannel,
+                message: deathMsg
+            });
+
+            setTimeout(postShoot, 2000);
 
             break;
         }
@@ -732,11 +755,8 @@ function visitPlayer(harlot, paramour){
                 message: util.format("You'll be staying with %s tonight. Listen, I don't want any details, just make sure you use protection.", displayName)
             });
             
-            if (night === 1 && nightVotesDone()){
-                killPlayer();
-            }
-            else if(night === 2 && nightVotesDone()){
-                switchToDay();
+            if (votesDone()){
+                advanceTime();
             }
             break;
         }
@@ -798,13 +818,8 @@ function readyVote(voter, channel){
     
     players[voter].voted = true;
     
-    if (nightVotesDone() || dayVotesDone()){
-        if (night === 2){
-            switchToDay();
-        }
-        else{
-            killPlayer();
-        }
+    if (votesDone()){
+        advanceTime();
     }
 }
 
@@ -880,6 +895,7 @@ function printVotes(){
     return votes;
 }
 
+// Setup and state checking
 function prepFirstNight(){
     var keys = Object.keys(players);
 
@@ -890,19 +906,7 @@ function prepFirstNight(){
     }
 }
 
-function nightVotesDone(){
-    var keys = Object.keys(players);
-
-    for (var player of keys){
-        if (players[player].alive === true && players[player].voted === false){
-            return false;
-        }
-    }
-
-    return true;
-}
-
-function dayVotesDone(){
+function votesDone(){
     var keys = Object.keys(players);
 
     for (var player of keys){
