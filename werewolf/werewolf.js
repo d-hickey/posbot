@@ -416,7 +416,7 @@ function checkEndStates(){
         });
         return true;
     }
-    if (loverPlayers.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
+    if (playerNames.length === 2 && loverPlayers.length === 2 && players[loverPlayers[0]].alive && players[loverPlayers[1]].alive){
         bot.sendMessage({
             to: wolfChannel,
             message: util.format("All is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
