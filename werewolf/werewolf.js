@@ -180,7 +180,7 @@ function sendNightMessages(){
         message: util.format("It's sleepy time, wolves use \"!kill <name>\" to pick dinner.\nThe player list is: %s", playerNames)
     });
 
-    for (var player of players){
+    for (var player in players){
         if (players[player].alive === true){
             var role = players[player].role;
             var roleMsg = "It's night time, so I need you to ";
@@ -227,7 +227,7 @@ function sendLoverMessages(){
 }
 
 function sendHarlotMessages(){
-    for (var visit in visits){
+    for (var visit of visits){
         var harlot = visits[visit].harlot;
         var paramour = visits[visit].visitee;
 
