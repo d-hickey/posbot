@@ -228,8 +228,8 @@ function sendLoverMessages(){
 
 function sendHarlotMessages(){
     for (var visit of visits){
-        var harlot = visits[visit].harlot;
-        var paramour = visits[visit].visitee;
+        var harlot = visit.harlot;
+        var paramour = visit.visitee;
 
         bot.sendMessage({
             to: harlot,
@@ -384,9 +384,9 @@ function handleLoverDeath(victim, deathMsg){
 }
 
 function handleGuests(victim, deathMsg){
-    for (var visit in visits){
-        if (victim === visits[visit].visitee){
-            var guest = visits[visit].visitee;
+    for (var visit of visits){
+        if (victim === visit.visitee){
+            var guest = visit.visitee;
 
             players[guest].alive = false;
             var index = playerNames.indexOf(players[guest].dname);
@@ -450,8 +450,8 @@ function checkEndStates(){
 
 // Player checks
 function wasOut(player){
-    for (var visit in visits){
-        if (player === visits[visit].harlot){
+    for (var visit of visits){
+        if (player === visit.harlot){
             return true;
         }
     }
