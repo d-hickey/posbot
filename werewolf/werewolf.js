@@ -32,6 +32,7 @@ var doctorRole = "doctor";
 var cupidRole = "cupid";
 var hunterRole = "hunter";
 var harlotRole = "harlot";
+var traitorRole = "traitor";
 
 var roles1 = [woofRole];
 var roles2 = [villagerRole , woofRole];
@@ -44,16 +45,19 @@ var roles8 = [seerRole , doctorRole , cupidRole , villagerRole , villagerRole , 
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
-var randomRoles = [seerRole , doctorRole , cupidRole , hunterRole , harlotRole, villagerRole , woofRole];
+var randomRoles = [seerRole, doctorRole, cupidRole, hunterRole, harlotRole, traitorRole, villagerRole, woofRole];
 
 function resetWolves(){
     var index = randomInt.Get(0, sequels.length-1);
     var sequel = sequels[index];
     var cast = "";
 
-    var keys = Object.keys(players);
-    for (var player of keys){
-        cast += util.format("\n%s as the %s", players[player].dname, players[player].role);
+    for (var player in players){
+        var creditsRole = players[player].role;
+        if (players[player].cursed){
+            creditsRole = "cursed " + creditsRole;
+        }
+        cast += util.format("\n%s as the %s", players[player].dname, creditsRole);
     }
 
     bot.sendMessage({
@@ -124,9 +128,10 @@ function informPlayersOfRoles(){
         var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
         if (role === woofRole){
             var wolves = getWolves();
-            roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolves are: %s", wolves);
+            roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolf team is: %s", wolves);
         }
         else if (role === seerRole){
+            players[player].cursed = false;
             roleMsg = roleMsg + "\nYou have the gift and can sense one's true nature. Gather your crystal balls and incense and use \"!see <name>\" to determine the targets role in all this";
         }
         else if (role === doctorRole){
@@ -143,6 +148,11 @@ function informPlayersOfRoles(){
         else if (role === harlotRole){
             roleMsg = roleMsg + "\nDuring the night you can use \"!visit <name>\" to spend the night with someone, you'll gain some info too, just avoid the wuffles." +
                       "\nOr use \"!ready\" to spend the night at home.";
+        }
+        else if (role === traitorRole){
+            roleMsg = roleMsg + "\nYou're an inactive member of team wuffle. For now. If they all die you will become a woof. For now just try to avoid suspicion. " +
+                      "Other roles will see you as a villager" +
+                      "\nUse \"!ready\" to bide your time.";
         }
         else{
             roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
@@ -271,20 +281,24 @@ function advanceTime(){
     }
 }
 
+function nextPhase(){
+    resetVotes();
+    if (night === 0){
+        night = 1;
+        sendNightMessages();
+    }
+    else{
+        night = 0;
+        sendDayMessage();
+    }
+}
+
 function updateGameState(){
     if (checkEndStates()){
         setTimeout(resetWolves, 5000);
     }
     else{
-        resetVotes();
-        if (night === 0){
-            night = 1;
-            sendNightMessages();
-        }
-        else{
-            night = 0;
-            sendDayMessage();
-        }
+        setTimeout(nextPhase, 1000);
     }
 }
 
@@ -401,8 +415,30 @@ function handleGuests(victim, deathMsg){
     return deathMsg;
 }
 
+function transformTraitors(){
+    for (var player in players){
+        if (players[player].role === traitorRole && players[player].alive){
+            players[player].role = woofRole;
+            bot.sendMessage({
+                to: player,
+                message: "You're a real woof now. Go get them."
+            });
+        }
+    }
+}
+
 function checkEndStates(){
     if (allWolvesDead()){
+        if (anyTraitorsAlive()){
+            transformTraitors();
+            bot.sendMessage({
+                to: wolfChannel,
+                message: "Congrats Villagers, all the wolves are dead" +
+                         "\nBut wait, are those howls your hear?" +
+                         "\nCould it be the town had traitors among them? They've now achieved their final form."
+            });
+            return false;
+        }
         bot.sendMessage({
             to: wolfChannel,
             message: "Congrats Villagers, all the wolves are dead"
@@ -466,13 +502,22 @@ function areLovers(one, two){
     return false;
 }
 
+function isWolfTeam(player){
+    if (player.role === woofRole){
+        return true;
+    }
+    if (player.role === traitorRole){
+        return true;
+    }
+    return false;
+}
+
 // Get player objects
 function getWolves(){
     var wolves = [];
-    var keys = Object.keys(players);
 
-    for (var player of keys){
-        if (players[player].role === woofRole){
+    for (var player in players){
+        if (isWolfTeam(players[player])){
             wolves.push(players[player].dname);
         }
     }
@@ -501,6 +546,9 @@ function getLastWolf(){
 
 function getRole(player){
     if (player.role === cupidRole){
+        return villagerRole;
+    }
+    if (player.role === traitorRole){
         return villagerRole;
     }
     return player.role;
@@ -565,20 +613,24 @@ function victimVote(wolf, target, channel){
 }
 
 function seeRole(seer, subject){
-    var keys = Object.keys(players);
     var found = false;
 
-    for (var player of keys){
+    for (var player in players){
         var displayName = players[player].dname;
         var name = displayName.toLowerCase();
         var victim = subject.toLowerCase();
         if ((name === victim || name.indexOf(victim) > -1) && players[player].alive === true){
             found = true;
             players[seer].voted = true;
+
+            var roleSeen = getRole(players[player]);
+            if (players[player].cursed){
+                roleSeen = woofRole;
+            }
             
             bot.sendMessage({
                 to: seer,
-                message: util.format("Where there once was doubt, there is now certainty. %s is a %s", displayName, getRole(players[player]))
+                message: util.format("Where there once was doubt, there is now certainty. %s is a %s", displayName, roleSeen)
             });
             
             if (votesDone()){
@@ -896,6 +948,13 @@ function printVotes(){
 }
 
 // Setup and state checking
+function playerJoin(user, userID){
+    var cursed = randomInt.Get(1, 100) < 11;
+
+    playerNames.push(user);
+    players[userID] = { "dname": user, "role": "", "alive": true, "voted": false, "cursed": cursed };
+}
+
 function prepFirstNight(){
     var keys = Object.keys(players);
 
@@ -930,11 +989,21 @@ function allWolvesDead(){
     return true;
 }
 
+function anyTraitorsAlive(){
+    for (var player in players){
+        if (players[player].role === traitorRole && players[player].alive === true){
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function allVillagersDead(){
     var keys = Object.keys(players);
 
     for (var player of keys){
-        if (players[player].role !== woofRole && players[player].alive === true){
+        if (!isWolfTeam(players[player]) && players[player].alive === true){
             return false;
         }
     }
@@ -953,8 +1022,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
                 game = 1;
                 wolfChannel = channelID;
 
-                playerNames.push(user);
-                players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false };
+                playerJoin(user, userID);
 
                 bot.sendMessage({
                     to: channelID,
@@ -965,8 +1033,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
         case "join":
             if (game === 1 && start === 0){
                 if (playerNames.indexOf(user) === -1){
-                    playerNames.push(user);
-                    players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false };
+                    playerJoin(user, userID);
                 }
                 bot.sendMessage({
                     to: channelID,
@@ -977,8 +1044,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
                 game = 1;
                 wolfChannel = channelID;
 
-                playerNames.push(user);
-                players[userID] = { "dname" : user, "role" : "", "alive" : true, "voted" : false };
+                playerJoin(user, userID);
 
                 bot.sendMessage({
                     to: channelID,
