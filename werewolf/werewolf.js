@@ -518,7 +518,7 @@ function getWolves(){
 
     for (var player in players){
         if (isWolfTeam(players[player])){
-            wolves.push(util.format("%s (%s)", players[player].dname, players[player].role);
+            wolves.push(util.format("%s (%s)", players[player].dname, players[player].role));
         }
     }
     return wolves;
