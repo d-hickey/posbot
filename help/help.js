@@ -7,137 +7,137 @@ var bot;
 
 var help = {
     "ping": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Ping posbot"
     },
     "help": {
-        "alias": "halp, man",
+        "alias": ["halp", "man"],
         "args": "<command or keyword>",
         "desc": "Get help for a command or search for commands with a keyword"
     },
     "helpall": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Get description of all commands"
     },
     "notail": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Flower, river, rainbow which are you?"
     },
     "compliment": {
-        "alias": "",
+        "alias": [],
         "args": "[complimentee]",
         "desc": "Get a compliment sourced from some of the nicest subreddits, for yourself or a target"
     },
     "markov": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Get a markov generated response, include @posbot in any message to get a more personalised response"
     },
     "markov-chance": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "See the current trigger chance for a markov message"
     },
     "quote": {
-        "alias": "q",
+        "alias": ["q"],
         "args": "<messageID>",
         "desc": "Formats a quote of the message with the given ID (turn on dev mode to copy message IDs)"
     },
     "roll": {
-        "alias": "r",
+        "alias": ["r"],
         "args": "<dice>",
         "desc": "Rolls the specified dice (d6, 2d4, d20) and returns result"
     },
     "heyruby": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Say hello to ruby"
     },
     "inspo": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Get an inspirational message in a fancy font"
     },
     "savepoint": {
-        "alias": "determination",
+        "alias": ["determination"],
         "args": "",
         "desc": "Need some determination? This is the command for you"
     },
     "stats": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Displays your message stats for the current text channel"
     },
     "statstotal": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Displays your message stats for the all text channels"
     },
     "rank": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Displays your current pos Level"
     },
     "buy-microtransaction": {
-        "alias": "",
+        "alias": [],
         "args": "<link>",
         "desc": "Exchange a link for progress"
     },
     "leaderboard": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Shows the rank leaderboard"
     },
     "8ball": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Gives a magic 8 ball response"
     },
     "remindme": {
-        "alias": "remind",
+        "alias": ["remind"],
         "args": "<time> [message]",
         "desc": "Sets a reminder, time should be specified in minutes and be between 1 and 10080"
     },
     "reminddays": {
-        "alias": "remindmedays, remindday, remindmeday",
+        "alias": ["remindays", "remindmedays", "remindday", "remindmeday"],
         "args": "<days> [message]",
         "desc": "Sets a reminder (triggers at noon) for a number of days in the future."
     },
     "todo": {
-        "alias": "",
+        "alias": [],
         "args": "[task]",
         "desc": "Shows your tasks or adds a task to your todo list"
     },
     "tasks": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Shows the tasks on your todo list"
     },
     "removetask": {
-        "alias": "todone",
+        "alias": ["todone"],
         "args": "<indices>",
         "desc": "Removes the tasks at the given positions from your todo list (0 indexed)"
     },
     "squadgoals": {
-        "alias": "",
+        "alias": [],
         "args": "[task]",
         "desc": "Shows squad goals or adds a goal to the todo list"
     },
     "squaddone": {
-        "alias": "",
+        "alias": [],
         "args": "<indices>",
         "desc": "Removes the goal at the given positions from the squad todo list (0 indexed)"
     },
     "werewolf": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Start a game of werewolf. Other werewolf commands should be explained as part of the game"
     },
     "newgift": {
-        "alias": "",
+        "alias": [],
         "args": "",
         "desc": "Not happy with your xmas gift? Use this to get a new one"
     }
@@ -159,6 +159,16 @@ function PrintHelp(channelID, userID, args){
         });
         return;
     }
+    for (var comm in help){
+        var index = help[comm].alias.indexOf(key);
+        if (index > -1){
+            bot.sendMessage({
+                to: channelID,
+                message: util.format("<@%s> %s", userID, BuildCommandDescription(comm, index))
+            });
+            return;
+        }
+    }
     
     var search = args[0];
     var commands = [];
@@ -167,9 +177,6 @@ function PrintHelp(channelID, userID, args){
             commands.push(command);
         }
         else if (help[command].desc.indexOf(search) > -1){
-            commands.push(command);
-        }
-        else if (help[command].alias.indexOf(search) > -1){
             commands.push(command);
         }
         else if (help[command].args.indexOf(search) > -1){
@@ -191,14 +198,20 @@ function PrintHelp(channelID, userID, args){
     }
 }
 
-function BuildCommandDescription(key){
-    var command = key + " ";
+function BuildCommandDescription(key, aliasIndex=-1){
+    var aliasList = help[key].alias.slice(0);
+    var comm = key;
+    if (aliasIndex > -1){
+        comm = aliasList.splice(aliasIndex, 1);
+        aliasList.push(key);
+    }
+    var command = comm + " ";
     if (help[key].args !== ""){
         command += help[key].args + " ";
     }
     command += "- " + help[key].desc;
-    if (help[key].alias !== ""){
-        command += " (alias: " + help[key].alias + ")";
+    if (help[key].alias.length > 0){
+        command += " (alias: " + aliasList.join(", ") + ")";
     }
     return command;
 }

@@ -201,6 +201,7 @@ function Commands(client, userID, channelID, cmd, args){
         case "remindmedays": // Fallthrough
         case "remindmeday": // Fallthrough
         case "reminddays": // Fallthrough
+        case "remindays": //Fallthrough
         case "remindday":
             var days = 1;
             if (args.length > 0){
