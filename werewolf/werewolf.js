@@ -123,11 +123,11 @@ function assignRandomRoles(){
 }
 
 function informPlayersOfRoles(){
+    var wolves = getWolves();
     for (var player in players){
         var role = players[player].role;
         var roleMsg = util.format("########### NEW GAME ###########\nYou have been assigned the role: %s", role);
         if (role === woofRole){
-            var wolves = getWolves();
             roleMsg = roleMsg + util.format("\nYou cannot kill on the first night, but perhaps you can consort with your wuffle buddies? Use \"!ready\" to progress.\nThe wolf team is: %s", wolves);
         }
         else if (role === seerRole){
@@ -151,7 +151,7 @@ function informPlayersOfRoles(){
         }
         else if (role === traitorRole){
             roleMsg = roleMsg + "\nYou're an inactive member of team wuffle. For now. If they all die you will become a woof. For now just try to avoid suspicion. " +
-                      "Other roles will see you as a villager" +
+                      "Other roles will see you as a villager.\nThe wolf team is: " + wolves.toString() +
                       "\nUse \"!ready\" to bide your time.";
         }
         else{
@@ -518,7 +518,7 @@ function getWolves(){
 
     for (var player in players){
         if (isWolfTeam(players[player])){
-            wolves.push(players[player].dname);
+            wolves.push(util.format("%s (%s)", players[player].dname, players[player].role);
         }
     }
     return wolves;
