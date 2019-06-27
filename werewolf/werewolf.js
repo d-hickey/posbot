@@ -849,6 +849,9 @@ function impatience(player){
 }
 
 function readyVote(voter, channel){
+    if (players[voter].voted){
+        return;
+    }
     if (channel === wolfChannel && night !== 0){
         bot.sendMessage({
             to: wolfChannel,
@@ -1014,6 +1017,10 @@ function allVillagersDead(){
 
 function Werewolf(client, user, userID, channelID, cmd, args){
     bot = client;
+
+    if (game === 1 && start === 1 && votesDone()){
+        return;
+    }
 
     switch(cmd){
         case "play": // Fallthrough
