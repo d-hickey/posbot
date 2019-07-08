@@ -60,12 +60,15 @@ function diceRoll(args) {
 }
 
 // Reddit Functions
-var subs = ["LadyBoners", "happy", "aww", "RoastMe", "relationships", "meirl", "me_irl", "gonewild", "Tinder", "PrequelMemes", "UpliftingNews"];
+var subs = [
+"amiugly", "awesome", "aww", "beauty", "boastme", "FancyFollicles", "gonewild", "happy", "LadyBoners", "MakeupAddiction",
+"meirl", "me_irl", "Pareidolia", "PrequelMemes", "relationships", "RoastMe", "Tinder", "UpliftingNews"
+];
 
 function getRedditComment(sub, callback){
     var url = "http://www.reddit.com/r/" + sub + "/comments/.json?limit=50";
     logger.info(url);
-    var comment = "<Insert reprehensible shit here>";
+    var comment = "<Insert reddit comment here>";
 
     request(url, function(error, response, body){
         //console.log("error:", error); // Print the error if one occurred
@@ -76,8 +79,14 @@ function getRedditComment(sub, callback){
         var post = randomInt.Get(0, 49);
 
         comment = redditResponse.data.children[post].data.body;
-        logger.info(comment);
-        return callback(comment);
+        if (comment.indexOf("I am a bot") > -1){
+            return getRedditComment(sub, callback);
+        }
+        else{
+            logger.info(comment);
+            return callback(comment);
+        }
+        
     });
 }
 
@@ -428,7 +437,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     // It will listen for messages that will start with `!`
     if (message.substring(0, 1) == "!") {
         var args = message.substring(1).split(" ");
-        var cmd = args[0];
+        var cmd = args[0].toLowerCase();
 
         args = args.splice(1);
         logger.info(args);
@@ -514,7 +523,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 var chip = "meow";
                 rubyPatience = rubyPatience + 1;
                 if (rubyPatience > 2){
-                    chip = "_bonks head on leg_"
+                    chip = "_bonks head on leg_";
                 }
                 bot.sendMessage({
                     to: channelID,
