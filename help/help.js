@@ -99,7 +99,7 @@ var help = {
     "remindme": {
         "alias": ["remind"],
         "args": "<time> [message]",
-        "desc": "Sets a reminder, time should be specified in minutes and be between 1 and 10080"
+        "desc": "Sets a reminder, time should be specified in minutes and be between 1 and 40320. Or use some or all of the format #w#d#h#m to specify weeks, days, hours and/or minutes."
     },
     "reminddays": {
         "alias": ["remindays", "remindmedays", "remindday", "remindmeday"],

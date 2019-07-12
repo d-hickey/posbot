@@ -23,19 +23,69 @@ function WriteReminders(){
     fs.writeFileSync('./remind/reminders.json', remindJson);
 }
 
+function GetMinutes(time){
+    var total = 0;
+    if (time.indexOf("w") > -1){
+        var weeksplit = time.split("w");
+        var weeks = parseInt(weeksplit[0]);
+        time = weeksplit[1];
+
+        if (isNaN(weeks) || weeks < 1){
+            return 0;
+        }
+        total += (weeks * 7 * 24 * 60);
+    }
+
+    if (time.indexOf("d") > -1){
+        var daysplit = time.split("d");
+        var days = parseInt(daysplit[0]);
+        time = daysplit[1];
+
+        if (isNaN(days) || days < 1){
+            return 0;
+        }
+        total += (days * 24 * 60);
+    }
+
+    if (time.indexOf("h") > -1){
+        var hoursplit = time.split("h");
+        var hours = parseInt(hoursplit[0]);
+        time = hoursplit[1];
+
+        if (isNaN(hours) || hours < 1){
+            return 0;
+        }
+        total += (hours * 60);
+    }
+
+    if (time.indexOf("m") > -1){
+        var minsplit = time.split("m");
+        var mins = parseInt(minsplit[0]);
+        time = minsplit[1];
+
+        if (isNaN(mins) || mins < 1){
+            return 0;
+        }
+        total += mins;
+    }
+    return total;
+}
+
 // Reminder
-function SetReminder(userID, channelID, mins, message){
+function SetReminder(userID, channelID, time, message){
     var remindMsg = message;
+
+    var mins = GetMinutes(time);
 
     if (isNaN(mins) || mins < 1){
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> Please enter a number of minutes", userID)
+            message: util.format("<@%s> Please enter a number of minutes or a time in the format #w#d#h#m", userID)
         });
         return;
     }
 
-    if (mins > 10080){
+    if (mins > 40320){
         bot.sendMessage({
             to: channelID,
             message: util.format("<@%s> Use !reminddays for reminders this far away", userID)
@@ -48,10 +98,10 @@ function SetReminder(userID, channelID, mins, message){
     }
 
     if (mins > 30){
-        SetLongReminder(userID, channelID, mins, remindMsg)
+        SetLongReminder(userID, channelID, mins, remindMsg);
     }
     else{
-        SetShortReminder(userID, channelID, mins, remindMsg)
+        SetShortReminder(userID, channelID, mins, remindMsg);
     }
 
     bot.sendMessage({
@@ -63,7 +113,7 @@ function SetReminder(userID, channelID, mins, message){
 function SetShortReminder(userID, channelID, mins, message){
     timer = mins * 60000;
 
-    setTimeout(DoTheReminding, timer, userID, channelID, message)
+    setTimeout(DoTheReminding, timer, userID, channelID, message);
 }
 
 function SetLongReminder(userID, channelID, mins, message){
@@ -149,7 +199,7 @@ function CheckDailyReminders(client){
     bot = client;
     for (var date in reminders){
         if ("type" in reminders[date] && reminders[date].type !== "day"){
-            continue
+            continue;
         }
 
         if (IsToday(date)){
@@ -188,7 +238,7 @@ function Commands(client, userID, channelID, cmd, args){
         case "remindme":
             var time = 1;
             if (args.length > 0){
-                time = parseInt(args[0]);
+                time = args[0];
                 args = args.splice(1);
             }
 
