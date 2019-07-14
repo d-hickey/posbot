@@ -68,6 +68,13 @@ function GetMinutes(time){
         }
         total += mins;
     }
+    if (total === 0){
+        var justMins = parseInt(time);
+        if (isNaN(justMins) || justMins < 1){
+            return 0;
+        }
+        total = justMins;
+    }
     return total;
 }
 
