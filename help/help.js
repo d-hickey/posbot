@@ -131,6 +131,11 @@ var help = {
         "args": "<indices>",
         "desc": "Removes the goal at the given positions from the squad todo list (0 indexed)"
     },
+    "rollchar": {
+        "alias": ["newchar"],
+        "args": "",
+        "desc": "In need of a D&D or tabletop rpg character? Generate a name, race, class, and backstory."
+    },
     "werewolf": {
         "alias": [],
         "args": "",

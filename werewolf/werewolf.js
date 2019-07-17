@@ -24,6 +24,10 @@ var savedPlayers = [];
 var loverPlayers = [];
 var hunters = [];
 var visits = [];
+var potions = [];
+var poisons = [];
+var revived =[];
+var poisoned = [];
 
 var woofRole = "woof";
 var villagerRole = "villager";
@@ -33,6 +37,8 @@ var cupidRole = "cupid";
 var hunterRole = "hunter";
 var harlotRole = "harlot";
 var traitorRole = "traitor";
+var witchRole = "witch";
+var muteRole = "mute";
 
 var roles1 = [woofRole];
 var roles2 = [villagerRole , woofRole];
@@ -45,7 +51,7 @@ var roles8 = [seerRole , doctorRole , cupidRole , villagerRole , villagerRole , 
 
 var rolesSet = [roles1, roles2, roles3, roles4, roles5, roles6, roles7, roles8];
 
-var randomRoles = [seerRole, doctorRole, cupidRole, hunterRole, harlotRole, traitorRole, villagerRole, woofRole];
+var randomRoles = [seerRole, doctorRole, cupidRole, hunterRole, harlotRole, traitorRole, witchRole, muteRole, villagerRole, woofRole];
 
 function resetWolves(){
     var index = randomInt.Get(0, sequels.length-1);
@@ -154,6 +160,17 @@ function informPlayersOfRoles(){
                       "Other roles will see you as a villager.\nThe wolf team is: " + wolves.toString() +
                       "\nUse \"!ready\" to bide your time.";
         }
+        else if (role === witchRole){
+            potions.push(player);
+            poisons.push(player);
+            roleMsg = roleMsg + "\nYou're on the villager team. You have one potion and one poison. At night you can use \"!revive <name>\" to use the potion to bring someone back to life." +
+                " Or you can use \"!poison <name>\" to kill a suspect, an enemy, or just someone you don't like. You are a witch after all." +
+                "\nAs always use \"!ready\" to do nothing during the night.";
+        }
+        else if (role === muteRole){
+            roleMsg = roleMsg + "\nDon't Speak! That was my Gwen Stefani. But, really, you've been silenced by dark magix and can't speak. Attempting to might have.. disasterous results." +
+                "You can use \"!vote\" or \"!ready\" during the day, and \"!ready\" now. But that's about it.";
+        }
         else{
             roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
         }
@@ -210,6 +227,14 @@ function sendNightMessages(){
                 roleMsg = roleMsg + "use \"!visit <name>\" to select a player to spend some quality time with. You could also just use \"!ready\" to take the night off." +
                         "\n Players: " + playerNames.toString();
             }
+            else if (role === witchRole){
+                roleMsg = roleMsg + "use \"!potion <name>\" to revive or use \"!poison <name>\" to poison, if you have either vials left." +
+                        " You could also just use \"!ready\" to just hang out with your familiar." +
+                        "\n Players: " + playerNames.toString();
+            }
+            else if (role === muteRole){
+                roleMsg = "... ... !ready";
+            } 
             else {
                 roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
             }
@@ -253,11 +278,7 @@ function sendHarlotMessages(){
         });
 
         if (players[paramour].role === woofRole && !areLovers(harlot, paramour)){
-            players[harlot].alive = false;
-            var index = playerNames.indexOf(players[harlot].dname);
-            if (index !== -1){
-                playerNames.splice(index, 1);
-            }
+            removePlayerFromPool(harlot);
 
             var deathMsg = util.format("%s visited a woof last night. That was a mistake.", players[harlot].dname);
 
@@ -268,6 +289,25 @@ function sendHarlotMessages(){
                 message: deathMsg
             });
         }
+    }
+}
+
+function sendWitchMessages(){
+    for (var revive of revived){
+        players[revive].alive = true;
+        playerNames.push(players[revive].dname);
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s was brought back from the dead in a magic ritual.", players[revive].dname)
+        });
+    }
+
+    for (var poison of poisoned){
+        removePlayerFromPool(poison);
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s was found dead. Face down in their porridge. Poison! They were a %s", players[poison].dname, players[poison].role)
+        });
     }
 }
 
@@ -314,12 +354,14 @@ function postShoot(){
 function switchToDay(){
     if (night === 1){
         setTimeout(sendHarlotMessages, 2000);
+        setTimeout(sendWitchMessages, 3500);
         setTimeout(killPlayer, 5000);
     }
     else if (night === 2){
         night = 0;
         setTimeout(sendLoverMessages, 2000);
         setTimeout(sendHarlotMessages, 4000);
+        setTimeout(sendWitchMessages, 4500);
         setTimeout(sendDayMessage, 6000);
         setTimeout(resetVotes, 6000);
     }
@@ -351,11 +393,7 @@ function killPlayer(){
             deathMsg = "The wuffles' target wasn't at home last night. What could they have been doing out at that hour.";
         }
         else{
-            players[victim].alive = false;
-            var index = playerNames.indexOf(players[victim].dname);
-            if (index !== -1){
-                playerNames.splice(index, 1);
-            }
+            removePlayerFromPool(victim);
             killVotes = {};
 
             deathMsg = util.format("%s is dead and they were a %s", players[victim].dname, getRole(players[victim]));
@@ -378,6 +416,17 @@ function killPlayer(){
     setTimeout(updateGameState, 3000);
 }
 
+function removePlayerFromPool(id){
+    players[id].alive = false;
+
+    var index = playerNames.indexOf(players[id].dname);
+    if (index !== -1){
+        playerNames.splice(index, 1);
+    }
+
+    unvote(id);
+}
+
 function handleLoverDeath(victim, deathMsg){
     if (loverPlayers.indexOf(victim) > -1){
         var widow = loverPlayers[0];
@@ -385,11 +434,7 @@ function handleLoverDeath(victim, deathMsg){
             widow = loverPlayers[1];
         }
 
-        players[widow].alive = false;
-        var index = playerNames.indexOf(players[widow].dname);
-        if (index !== -1){
-            playerNames.splice(index, 1);
-        }
+        removePlayerFromPool(widow);
 
         deathMsg = deathMsg + util.format("\nTheir lover, %s, dies of a broken heart. How romantic and sad. They were a %s.", players[widow].dname, getRole(players[widow]));
     }
@@ -402,11 +447,7 @@ function handleGuests(victim, deathMsg){
         if (victim === visit.visitee){
             var guest = visit.visitee;
 
-            players[guest].alive = false;
-            var index = playerNames.indexOf(players[guest].dname);
-            if (index !== -1){
-                playerNames.splice(index, 1);
-            }
+            removePlayerFromPool(guest);
 
             deathMsg = deathMsg + util.format("\nAnd they had %s over as a guest at the time. How unfortunate.", players[guest].dname);
         }
@@ -434,21 +475,21 @@ function checkEndStates(){
             bot.sendMessage({
                 to: wolfChannel,
                 message: "Congrats Villagers, all the wolves are dead" +
-                         "\nBut wait, are those howls your hear?" +
+                         "\nVILLAGE VICT... Wait, are those howls your hear?" +
                          "\nCould it be the town had traitors among them? They've now achieved their final form."
             });
             return false;
         }
         bot.sendMessage({
             to: wolfChannel,
-            message: "Congrats Villagers, all the wolves are dead"
+            message: "Congrats Villagers, all the wolves are dead\nVILLAGE VICTORY!"
         });
         return true;
     }
     if (allVillagersDead()){
         bot.sendMessage({
             to: wolfChannel,
-            message: "Congrats Wuffles, you've eaten them all"
+            message: "Congrats Wuffles, you've eaten them all\nWUFFLE VICTORY!"
         });
         return true;
     }
@@ -456,7 +497,7 @@ function checkEndStates(){
         bot.sendMessage({
             to: wolfChannel,
             message: util.format("All is quiet in the empty town except for the faint sound of Lady Gaga's _Bad Romance_ playing on the radio in one of the abandoned houses. " +
-                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.",
+                "The lovers %s (a %s) and %s (a %s) find themselves alone in the town. Nobody left to judge their digusting romance.\nLOVERS VICTORY!",
                 players[loverPlayers[0]].dname, getRole(players[loverPlayers[0]]), players[loverPlayers[1]].dname, getRole(players[loverPlayers[1]]))
         });
         return true;
@@ -467,13 +508,22 @@ function checkEndStates(){
         var channelMsg = util.format(
             "The games are done now, the time for deception is over. A %s and a woof stand across from each other in the centre of town." +
             " %s readies their weapon, knowing it won't be enough. %s bares their fangs. " +
-            "They run at each other, freeze frame just as they meet. Cut to credits with _Hungry like the wolf_ playing.",
+            "They run at each other, freeze frame just as they meet. Cut to credits with _Hungry like the wolf_ playing.\nWUFFLE VICTORY!",
             getRole(lastVillager), lastVillager.dname, lastWolf.dname
         );
         if (lastVillager.role == hunterRole){
-            channelMsg = util.format("%s has %s cornered, all hope is lost for the village.\n" +
-                "But what's this, a flash of light and %s, the hunter, has teleported behind the woof.\n" +
-                "\"Psssh... nothin personnel kid\".", lastWolf.dname, lastVillager.dname, lastVillager.dname);
+            channelMsg = util.format("%s, a hunter, has the last woof, %s, in their sights.\n" +
+                "They pull the trigger. *click* \"Well,\" they think as the woof closes the distance, \"I should've brought more than one bullet.\"" +
+                "\nWUFFLE VICTORY!", lastVillager.dname, lastWolf.dname, lastVillager.dname);
+            for (var hunterID of hunters){
+                if (players[hunterID].dname === lastVillager.dname){
+                    channelMsg = util.format("%s has %s cornered, all hope is lost for the village.\n" +
+                        "But what's this, a flash of light and %s, the hunter, has teleported behind the woof.\n" +
+                        "\"Psssh... nothin personnel kid\".\nVILLAGE VICTORY!", lastWolf.dname, lastVillager.dname, lastVillager.dname);
+                    break;
+                }
+            }
+            
         }
         bot.sendMessage({
             to: wolfChannel,
@@ -758,12 +808,7 @@ function shoot(shooter, target){
                                        players[shooter].dname);
             }
 
-            players[dead].alive = false;
-            var index = playerNames.indexOf(players[dead].dname);
-            if (index !== -1){
-                playerNames.splice(index, 1);
-            }
-            unvote(dead, wolfChannel, false);
+            removePlayerFromPool(dead);
 
             deathMsg = handleLoverDeath(dead, deathMsg);
 
@@ -818,6 +863,83 @@ function visitPlayer(harlot, paramour){
             to: harlot,
             message: util.format("Cannot find player %s", paramour)
         });
+    }
+}
+
+function revivePlayer(witch, corpse){
+    var success = false;
+
+    for (var player in players){
+        var displayName = players[player].dname;
+        var name = displayName.toLowerCase();
+        var dead = corpse.toLowerCase();
+
+        if ((name === dead || name.indexOf(dead) > -1) && players[player].alive === false){
+            success = true;
+            players[witch].voted = true;
+            
+            var witchIndex = potions.indexOf(witch);
+            potions.splice(witchIndex, 1);
+
+            bot.sendMessage({
+                to: witch,
+                message: util.format("You pour your magic potion over the corpse of %s. By morning they'll be good as new. The potion is Coke Zero of course :greatcoketastezerosugar:", displayName)
+            });
+            revived.push(player);
+
+            if (votesDone()){
+                advanceTime();
+            }
+            break;
+        }
+    }
+    if (success === false){
+        bot.sendMessage({
+            to: witch,
+            message: util.format("Cannot find dead player %s", corpse)
+        });
+    }
+}
+
+function poisonPlayer(witch, target){
+    var success = false;
+
+    for (var player in players){
+        var displayName = players[player].dname;
+        var name = displayName.toLowerCase();
+        var dead = target.toLowerCase();
+
+        if ((name === dead || name.indexOf(dead) > -1) && players[player].alive === true){
+            success = true;
+            players[witch].voted = true;
+            
+            var witchIndex = poisons.indexOf(witch);
+            poisons.splice(witchIndex, 1);
+
+            bot.sendMessage({
+                to: witch,
+                message: util.format("You poison %s's overnight oats, planting the flax seeds of their doom. Maybe chia.", displayName)
+            });
+            poisoned.push(player);
+
+            if (votesDone()){
+                advanceTime();
+            }
+            break;
+        }
+    }
+    if (success === false){
+        bot.sendMessage({
+            to: witch,
+            message: util.format("Cannot find player %s", target)
+        });
+    }
+}
+
+function killMute(userID, channelID, cmd=""){
+    if (game === 1 && start === 1 && channelID === wolfChannel && userID in players &&
+        players[userID].role === muteRole && cmd !== "vote" && cmd !== "pass" && cmd !== "ready"){
+        removePlayerFromPool(userID);
     }
 }
 
@@ -878,7 +1000,10 @@ function readyVote(voter, channel){
     }
 }
 
-function unvote(voter, channelID, notify=true){
+function unvote(voter, channelID){
+    if (night !== 0 && players[voter].role !== woofRole){
+        return;
+    }
     players[voter].voted = false;
 
     var keys = Object.keys(killVotes);
@@ -889,7 +1014,7 @@ function unvote(voter, channelID, notify=true){
             if (killVotes[nominee].length === 0){
                 delete killVotes[nominee];
             }
-            if (notify){
+            if (channelID){
                 bot.sendMessage({
                     to: channelID,
                     message: "Vote Rescinded."
@@ -1017,6 +1142,8 @@ function allVillagersDead(){
 
 function Werewolf(client, user, userID, channelID, cmd, args){
     bot = client;
+
+    killMute(userID, channelID, cmd);
 
     if (game === 1 && start === 1 && votesDone()){
         return;
@@ -1154,6 +1281,25 @@ function Werewolf(client, user, userID, channelID, cmd, args){
                 }
             }
             break;
+        case "potion": // Fallthrough
+        case "revive":
+            if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players &&
+                players[userID].voted === false && players[userID].role === witchRole && players[userID].alive === true){
+                var corpse = args[0];
+                if (corpse){
+                    revivePlayer(userID, corpse);
+                }
+            }
+            break;
+        case "poison":
+            if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players &&
+                players[userID].voted === false && players[userID].role === witchRole && players[userID].alive === true){
+                var poisonee = args[0];
+                if (poisonee){
+                    poisonPlayer(userID, poisonee);
+                }
+            }
+            break;
         case "pass": //Fallthrough
         case "ready":
             if (game === 1 && start === 1 && userID in players){
@@ -1194,3 +1340,4 @@ function Werewolf(client, user, userID, channelID, cmd, args){
 }
 
 exports.Commands = Werewolf;
+exports.MuteCheck = killMute;

@@ -605,6 +605,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
         return;
     }
 
+    // Extra werewolf check
+    werewolf.MuteCheck(userID, channelID);
+
     // Check xmas
     if (IsXmas()){
         if (!(userID in xmasGifts)){
