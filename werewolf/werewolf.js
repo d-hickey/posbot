@@ -937,9 +937,17 @@ function poisonPlayer(witch, target){
 }
 
 function killMute(userID, channelID, cmd=""){
-    if (game === 1 && start === 1 && channelID === wolfChannel && userID in players &&
-        players[userID].role === muteRole && cmd !== "vote" && cmd !== "pass" && cmd !== "ready"){
+    if (game === 1 && start === 1 && channelID === wolfChannel && userID in players && players[userID].alive &&
+            players[userID].role === muteRole && cmd !== "vote" && cmd !== "pass" && cmd !== "ready"){
         removePlayerFromPool(userID);
+
+        bot.sendMessage({
+            to: wolfChannel,
+            message: util.format("%s starts to speak and their head explodes. They should not have spoken, not at all.", players[userID].dname)
+        });
+        if (night === 0){
+            setTimeout(postShoot, 2000);
+        }
     }
 }
 
@@ -1145,7 +1153,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
 
     killMute(userID, channelID, cmd);
 
-    if (game === 1 && start === 1 && votesDone()){
+    if (game === 1 && start === 1 && votesDone() && cmd !== "end"){
         return;
     }
 
