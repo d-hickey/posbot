@@ -22,16 +22,21 @@ function FindQuote(channelID, messageID, commandID, quoterID, channelKey){
     },
     function (err, message){
         if (!err){
-            SendQuote(channelID, commandID, quoterID, message);
+            SendQuote(channelID, commandID, quoterID, message, channelKey);
         }
     });
 }
 
-function SendQuote(channelID, commandID, quoterID, message){
+function SendQuote(channelID, commandID, quoterID, message, channelKey){
     var quote = {color: 6826080};
     var member = user.GetMember(bot, message.author.id);
     var quoter = user.GetMember(bot, quoterID);
-    quote.description = message.content;
+
+    var server = bot.channels[channelKey].guild_id;
+
+    var link = util.format("https://discordapp.com/channels/%s/%s/%s", server, channelKey, message.id)
+
+    quote.description = util.format("[%s](%s)", message.content, link);
     quote.author = {name: member.nick};
     quote.timestamp = message.timestamp;
     quote.footer = {text: util.format("Quoted by %s", quoter.nick)};

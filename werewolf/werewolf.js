@@ -304,9 +304,11 @@ function sendWitchMessages(){
 
     for (var poison of poisoned){
         removePlayerFromPool(poison);
+        var deathMsg = util.format("%s was found dead. Face down in their porridge. Poison! They were a %s", players[poison].dname, players[poison].role);
+        deathMsg = handleLoverDeath(victim, deathMsg);
         bot.sendMessage({
             to: wolfChannel,
-            message: util.format("%s was found dead. Face down in their porridge. Poison! They were a %s", players[poison].dname, players[poison].role)
+            message: deathMsg
         });
     }
 }
