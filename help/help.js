@@ -136,6 +136,16 @@ var help = {
         "args": "",
         "desc": "In need of a D&D or tabletop rpg character? Generate a name, race, class, and backstory."
     },
+    "improve": {
+        "alias": [],
+        "args": "",
+        "desc": "Get some posbot certified tips on how to improve yourself, your outlook and your life."
+    },
+    "gaydar": {
+        "alias": [],
+        "args": "",
+        "desc": "Killian requested this one."
+    },
     "werewolf": {
         "alias": [],
         "args": "",

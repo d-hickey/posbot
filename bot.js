@@ -11,6 +11,7 @@ var schedule = require("node-schedule");
 // Local
 var auth = require("./auth.json");
 var help = require("./help/help");
+var improve = require("./improve/improve");
 var markov = require("./markov/markov");
 var quote = require("./quote/quote");
 var randomInt = require("./randomint");
@@ -582,10 +583,22 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "8ball":
                 predict(userID, channelID);
                 break;
+            case "gaydar":
+                var radarmessage = "I am simply a posbot, it's not for me to determine the sexuality of you or anyone else.";
+                if (userID == 88632232113102848){
+                    radarmessage = "I am simply a posbot, it's not for me to... Actually, you're like, hella gay my dude. And that's ok, we accept you for who you are.";
+                }
+                bot.sendMessage({
+                    to: channelID,
+                    message: radarmessage
+                });
+                break;
             default:
                 // No other cases matched, check other modules
                 // Help
                 help.Commands(bot, userID, channelID, cmd, args);
+                // Improve yourself
+                improve.Commands(bot, userID, channelID, cmd);
                 // Ranks
                 ranks.Commands(bot, userID, channelID, cmd, args);
                 // Quote
