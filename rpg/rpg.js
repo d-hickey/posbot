@@ -54,7 +54,7 @@ function StoryGen(){
     var destinyIndex = randomInt.Get(0, genParts.destiny.length-1);
     var destiny = genParts.destiny[destinyIndex];
 
-    return util.format("You were born %s. Your parents were %s. You spent years %s but %s. Now you %s.", 
+    return util.format("They say you were born %s. Your parents were %s. You spent years %s. But %s. Now you %s.", 
                         born, parents, background, reason, destiny);
 }
 
