@@ -39,12 +39,20 @@ function update_chat_log(message){
 
 function send_markov(channelID) {
     var limit = randomInt.Get(1, 25);
-    bot.sendMessage({
-        to: channelID,
-        message: quotes.start( function(wordList) {
+    var markov = quotes.start(
+        function(wordList) {
             var tmpList = Object.keys(wordList);
             return tmpList[~~(Math.random()*tmpList.length)];
-        }).end(limit).process()
+        }
+    ).end(limit).process();
+
+    markov = markov.replace(/(com\/.*?\/status\/)/gi, "https://twitter.$1");
+
+    markov = markov.replace(/com\/r\//gi, "https://reddit.com/r/");
+
+    bot.sendMessage({
+        to: channelID,
+        message: markov
     });
 }
 
