@@ -122,6 +122,9 @@ function ByLocation(location) {
             locations += summary;
         }
     }
+    if (locations === ""){
+        return "Sorry, no burgers at " + location;
+    }
     var block = "```" + locations + "```";
     return block;
 }
@@ -139,7 +142,7 @@ function Scoreboard() {
     var board = "Leaderboard\n```";
     var position = 1;
     var keys = Object.keys(scores);
-    keys.sort((a, b) => a - b);
+    keys.sort((a, b) => b - a);
 
     for (var key of keys) {
         for (var name of scores[key]) {
