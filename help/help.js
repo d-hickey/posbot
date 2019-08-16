@@ -155,28 +155,72 @@ var help = {
         "alias": [],
         "args": "",
         "desc": "Not happy with your xmas gift? Use this to get a new one"
+    },
+    "burg": {
+        "alias": ["burgers"],
+        "args": "",
+        "desc": "Get the low down on the burger commands. Chicken, veggie and vegan burgers are welcome."
+    },
+    "burg-checklist": {
+        "alias": ["burg-check", "burg-progress"],
+        "args": "",
+        "desc": "See the full list of burgers."
+    },
+    "burg-todo": {
+        "alias": [],
+        "args": "",
+        "desc": "See the list of burgers uneaten, choose your next target."
+    },
+    "burg-eaten": {
+        "alias": ["burg-done-list"],
+        "args": "",
+        "desc": "Take in our culinary accomplishments."
+    },
+    "burg-eater": {
+        "alias": ["burg-by"],
+        "args": "<username/id>",
+        "desc": "View the accomplishments of a particular user."
+    },
+    "burg-at": {
+        "alias": ["burg-where"],
+        "args": "<location>",
+        "desc": "See what burgers are available at your entered geographical location."
+    },
+    "burg-info": {
+        "alias": ["burg-joint"],
+        "args": "<restaurant>",
+        "desc": "Info on a given restaurant, bar or food shop that makes the burgers."
+    },
+    "burg-score": {
+        "alias": ["burg-leaderboard"],
+        "args": "",
+        "desc": "This isn't a competition, but if you want to see who has eaten the most burgers on the list this is the command. "
+    },
+    "burg-ate": {
+        "alias": ["burg-done"],
+        "args": "<restaurant>",
+        "desc": "Mark the given burger joint as completed by you."
     }
 };
 
 // Help
-function PrintHelp(channelID, userID, args){
+function PrintHelp(channelID, userID, args) {
     var key = "";
-    if (args.length === 0){
+    if (args.length === 0) {
         key = "help";
-    }
-    else{
+    } else {
         key = args[0];
     }
-    if (key in help){
+    if (key in help) {
         bot.sendMessage({
             to: channelID,
             message: util.format("<@%s> %s", userID, BuildCommandDescription(key))
         });
         return;
     }
-    for (var comm in help){
+    for (var comm in help) {
         var index = help[comm].alias.indexOf(key);
-        if (index > -1){
+        if (index > -1) {
             bot.sendMessage({
                 to: channelID,
                 message: util.format("<@%s> %s", userID, BuildCommandDescription(comm, index))
@@ -184,28 +228,25 @@ function PrintHelp(channelID, userID, args){
             return;
         }
     }
-    
+
     var search = args[0];
     var commands = [];
-    for (var command in help){
-        if (command.indexOf(search) > -1){
+    for (var command in help) {
+        if (command.indexOf(search) > -1) {
             commands.push(command);
-        }
-        else if (help[command].desc.indexOf(search) > -1){
+        } else if (help[command].desc.indexOf(search) > -1) {
             commands.push(command);
-        }
-        else if (help[command].args.indexOf(search) > -1){
+        } else if (help[command].args.indexOf(search) > -1) {
             commands.push(command);
         }
     }
 
-    if (commands.length > 0){
+    if (commands.length > 0) {
         bot.sendMessage({
             to: channelID,
             message: util.format("<@%s> Possible commands based on search term %s: %s", userID, search, commands.join(", "))
         });
-    }
-    else{
+    } else {
         bot.sendMessage({
             to: channelID,
             message: util.format("<@%s> Nothing found with search term %s", userID, search)
@@ -213,27 +254,27 @@ function PrintHelp(channelID, userID, args){
     }
 }
 
-function BuildCommandDescription(key, aliasIndex=-1){
+function BuildCommandDescription(key, aliasIndex = -1) {
     var aliasList = help[key].alias.slice(0);
     var comm = key;
-    if (aliasIndex > -1){
+    if (aliasIndex > -1) {
         comm = aliasList.splice(aliasIndex, 1);
         aliasList.push(key);
     }
     var command = comm + " ";
-    if (help[key].args !== ""){
+    if (help[key].args !== "") {
         command += help[key].args + " ";
     }
     command += "- " + help[key].desc;
-    if (help[key].alias.length > 0){
+    if (help[key].alias.length > 0) {
         command += " (alias: " + aliasList.join(", ") + ")";
     }
     return command;
 }
 
-function PrintHelpAll(channelID, userID){
+function PrintHelpAll(channelID, userID) {
     var allhelp = "";
-    for (var command in help){
+    for (var command in help) {
         allhelp += BuildCommandDescription(command) + "\n";
     }
 
@@ -248,10 +289,10 @@ function PrintHelpAll(channelID, userID){
     });
 }
 
-function Commands(client, userID, channelID, cmd, args){
+function Commands(client, userID, channelID, cmd, args) {
     bot = client;
 
-    switch (cmd){
+    switch (cmd) {
         case "halp": // Fallthrough
         case "man": // Fallthrough
         case "help":

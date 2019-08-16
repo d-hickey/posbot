@@ -10,6 +10,7 @@ var schedule = require("node-schedule");
 
 // Local
 var auth = require("./auth.json");
+var burgs = require("./burgs/burgs")
 var help = require("./help/help");
 var improve = require("./improve/improve");
 var markov = require("./markov/markov");
@@ -30,8 +31,8 @@ logger.add(logger.transports.Console, {
 logger.level = "debug";
 
 // Dice Roll
-function isPositiveNumber(num){
-    if (num && num !== Number.isNaN && +num > 0){
+function isPositiveNumber(num) {
+    if (num && num !== Number.isNaN && +num > 0) {
         return true;
     }
     return false;
@@ -39,18 +40,18 @@ function isPositiveNumber(num){
 
 function diceRoll(args) {
     var dice = args[0];
-    if (dice.indexOf("d") > -1){
+    if (dice.indexOf("d") > -1) {
         var diceParts = dice.split("d");
         var amount = diceParts[0];
         var dicenumber = diceParts[1];
 
-        if (amount === ""){
+        if (amount === "") {
             amount = "1";
         }
 
-        if (isPositiveNumber(amount) && isPositiveNumber(dicenumber)){
+        if (isPositiveNumber(amount) && isPositiveNumber(dicenumber)) {
             var total = 0;
-            for (var i = 0; i < +amount; i++){
+            for (var i = 0; i < +amount; i++) {
                 total = total + randomInt.Get(1, +dicenumber);
             }
             return total;
@@ -62,16 +63,16 @@ function diceRoll(args) {
 
 // Reddit Functions
 var subs = [
-"amiugly", "awesome", "aww", "beauty", "boastme", "FancyFollicles", "gonewild", "happy", "LadyBoners", "MakeupAddiction",
-"meirl", "me_irl", "Pareidolia", "PrequelMemes", "relationships", "RoastMe", "Tinder", "UpliftingNews"
+    "amiugly", "awesome", "aww", "beauty", "boastme", "FancyFollicles", "gonewild", "happy", "LadyBoners", "MakeupAddiction",
+    "meirl", "me_irl", "Pareidolia", "PrequelMemes", "relationships", "RoastMe", "Tinder", "UpliftingNews"
 ];
 
-function getRedditComment(sub, callback){
+function getRedditComment(sub, callback) {
     var url = "http://www.reddit.com/r/" + sub + "/comments/.json?limit=50";
     logger.info(url);
     var comment = "<Insert reddit comment here>";
 
-    request(url, function(error, response, body){
+    request(url, function(error, response, body) {
         //console.log("error:", error); // Print the error if one occurred
         //console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
         //console.log("body:", body); // Print the HTML for the Google homepage.
@@ -80,22 +81,21 @@ function getRedditComment(sub, callback){
         var post = randomInt.Get(0, 49);
 
         comment = redditResponse.data.children[post].data.body;
-        if (comment.indexOf("I am a bot") > -1){
+        if (comment.indexOf("I am a bot") > -1) {
             return getRedditComment(sub, callback);
-        }
-        else{
+        } else {
             logger.info(comment);
             return callback(comment);
         }
-        
+
     });
 }
 
 // Get Gift
-function getImgurImage(callback){
+function getImgurImage(callback) {
     var url = "http://www.imgur.com/random";
 
-    request(url, function(error, response, body){
+    request(url, function(error, response, body) {
         //console.log("error:", error); // Print the error if one occurred
         //console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
         //console.log("body:", body); // Print the HTML for the Google homepage.
@@ -108,13 +108,13 @@ function getImgurImage(callback){
     });
 }
 
-function regift(userID, channelID){
-    if (!(userID in xmasGifts)){
+function regift(userID, channelID) {
+    if (!(userID in xmasGifts)) {
         return;
     }
 
-    if ("regifted" in xmasGifts){
-        if (xmasGifts.regifted.indexOf(userID) > -1){
+    if ("regifted" in xmasGifts) {
+        if (xmasGifts.regifted.indexOf(userID) > -1) {
             bot.sendMessage({
                 to: channelID,
                 message: util.format("<@%s> Listen here, bucko. I've already gotten you two thoughtful gifts. Maybe you should be a little more grateful.", userID)
@@ -122,12 +122,11 @@ function regift(userID, channelID){
             return;
         }
         xmasGifts.regifted.push(userID);
-    }
-    else{
+    } else {
         xmasGifts.regifted = [];
         xmasGifts.regifted.push(userID);
     }
-    getImgurImage(function(image){
+    getImgurImage(function(image) {
         xmasGifts[userID] = image;
         bot.sendMessage({
             to: channelID,
@@ -139,9 +138,9 @@ function regift(userID, channelID){
 // Xmas
 var xmasGifts = {};
 
-function IsXmas(){
+function IsXmas() {
     var today = new Date().toString();
-    if (today.indexOf("Dec 25") > -1){
+    if (today.indexOf("Dec 25") > -1) {
         return true;
     }
     xmasGifts = {};
@@ -152,10 +151,10 @@ function IsXmas(){
 var birthdays = JSON.parse(fs.readFileSync('bdays.json', 'utf8'));
 var baby = "";
 
-function IsBirthday(userID){
+function IsBirthday(userID) {
     var today = new Date().toString();
-    for (var bday in birthdays){
-        if (today.indexOf(bday) > -1 && birthdays[bday] == userID && birthdays[bday] != baby){
+    for (var bday in birthdays) {
+        if (today.indexOf(bday) > -1 && birthdays[bday] == userID && birthdays[bday] != baby) {
             baby = birthdays[bday];
             return true;
         }
@@ -170,9 +169,9 @@ var rubyPatience = 0;
 var savepoints = JSON.parse(fs.readFileSync('determination.json', 'utf8'));
 var overwrite = -1;
 
-function getSavepoint () {
-    var index = randomInt.Get(0, savepoints.length-1);
-    if (overwrite !== -1){
+function getSavepoint() {
+    var index = randomInt.Get(0, savepoints.length - 1);
+    if (overwrite !== -1) {
         index = overwrite;
         overwrite = -1;
     }
@@ -181,23 +180,23 @@ function getSavepoint () {
 
 // Initialize Discord Bot
 var bot = new Discord.Client({
-   token: auth.token,
-   autorun: true
+    token: auth.token,
+    autorun: true
 });
 
-bot.on("ready", function (evt) {
+bot.on("ready", function(evt) {
     logger.info("Connected");
     logger.info("Logged in as: ");
     logger.info(bot.username + " - (" + bot.id + ")");
 });
 
 // Noon scheduler
-var noonScheduler = schedule.scheduleJob("0 12 * * *", function(){
+var noonScheduler = schedule.scheduleJob("0 12 * * *", function() {
     remind.CheckDailyReminders(bot);
 });
 
 // Minute scheduler
-var minScheduler = schedule.scheduleJob("* * * * *", function(){
+var minScheduler = schedule.scheduleJob("* * * * *", function() {
     remind.CheckMinuteReminders(bot);
 });
 
@@ -205,41 +204,38 @@ var minScheduler = schedule.scheduleJob("* * * * *", function(){
 var userMsgCount = JSON.parse(fs.readFileSync('messagecount.json', 'utf8'));
 var updateFile = true;
 
-function updateUserMsgCount(channel, user, createNewChan=true){
-    if (channel in userMsgCount){
-        if (user in userMsgCount[channel]){
+function updateUserMsgCount(channel, user, createNewChan = true) {
+    if (channel in userMsgCount) {
+        if (user in userMsgCount[channel]) {
             userMsgCount[channel][user]++;
-        }
-        else{
+        } else {
             userMsgCount[channel][user] = 1;
         }
-    }
-    else if (createNewChan){
+    } else if (createNewChan) {
         userMsgCount[channel] = {};
         userMsgCount[channel][user] = 1;
     }
 
-    if (updateFile){
+    if (updateFile) {
         var msgJson = JSON.stringify(userMsgCount);
         fs.writeFileSync('messagecount.json', msgJson);
     }
 }
 
-function queryChannelHistory(chanID){
+function queryChannelHistory(chanID) {
     logger.info("getting message history for channel: " + chanID);
     bot.getMessages({
-        channelID : chanID,
-        limit : 100
-    }, function (err, messageArray){
-        if (err){
+        channelID: chanID,
+        limit: 100
+    }, function(err, messageArray) {
+        if (err) {
             logger.info(err);
-        }
-        else{
+        } else {
             logger.info("1 array size: " + messageArray.length);
             var lastID = 0;
-            for (var message of messageArray){
+            for (var message of messageArray) {
                 logger.info("content: " + message.content);
-                if (message.content == null){ continue; }
+                if (message.content == null) { continue; }
                 lastID = message.id;
                 var user = message.author;
                 var userID = user.id;
@@ -253,24 +249,23 @@ function queryChannelHistory(chanID){
             logger.info("done outer history");
         }
     });
-    
+
 }
 
-function getPastMessages(chanID, beforeID, count){
+function getPastMessages(chanID, beforeID, count) {
     bot.getMessages({
-        channelID : chanID,
-        before : beforeID,
-        limit : 100
-    }, function (err, messageArray){
-        if (err){
+        channelID: chanID,
+        before: beforeID,
+        limit: 100
+    }, function(err, messageArray) {
+        if (err) {
             logger.info("got error, waiting for 10 seconds\n " + err);
             setTimeout(getPastMessages(chanID, beforeID, count), 10000);
-        }
-        else{
+        } else {
             var lastID = 0;
             logger.info(count + " array size: " + messageArray.length);
-            for (var message of messageArray){
-                if (message.content == null){ continue; }
+            for (var message of messageArray) {
+                if (message.content == null) { continue; }
                 //logger.info(message.content);
                 lastID = message.id;
                 var user = message.author;
@@ -278,10 +273,9 @@ function getPastMessages(chanID, beforeID, count){
                 updateUserMsgCount(chanID, userID);
             }
 
-            if (messageArray.length == 100){
+            if (messageArray.length == 100) {
                 getPastMessages(chanID, lastID, count + 1);
-            }
-            else{
+            } else {
                 var msgJson = JSON.stringify(userMsgCount);
                 fs.writeFileSync('messagecount.json', msgJson);
                 logger.info("done history " + count);
@@ -295,37 +289,37 @@ function getPastMessages(chanID, beforeID, count){
     });
 }
 
-function getMessageTotal(){
+function getMessageTotal() {
     var total = 0;
-    for (var chan in userMsgCount){
-        for (var user in userMsgCount[chan]){
+    for (var chan in userMsgCount) {
+        for (var user in userMsgCount[chan]) {
             total = total + userMsgCount[chan][user];
         }
     }
     return total;
 }
 
-function getChannelTotal(chan){
+function getChannelTotal(chan) {
     var total = 0;
-    for (var user in userMsgCount[chan]){
+    for (var user in userMsgCount[chan]) {
         total = total + userMsgCount[chan][user];
     }
     return total;
 }
 
-function getUserTotal(user){
+function getUserTotal(user) {
     var total = 0;
-    for (var chan in userMsgCount){
-        if (user in userMsgCount[chan]){
+    for (var chan in userMsgCount) {
+        if (user in userMsgCount[chan]) {
             total = total + userMsgCount[chan][user];
         }
     }
     return total;
 }
 
-function getMessageStats(channel, user, name){
-    if (channel in userMsgCount){
-        if (user in userMsgCount[channel]){
+function getMessageStats(channel, user, name) {
+    if (channel in userMsgCount) {
+        if (user in userMsgCount[channel]) {
             var count = userMsgCount[channel][user];
             var total = getChannelTotal(channel);
             var percent = ((count / total) * 100).toFixed(2);
@@ -338,7 +332,7 @@ function getMessageStats(channel, user, name){
     return "Channel hasn't been counted.";
 }
 
-function getTotalStats(user, name){
+function getTotalStats(user, name) {
     var count = getUserTotal(user);
     var total = getMessageTotal();
     var percent = ((count / total) * 100).toFixed(2);
@@ -350,25 +344,22 @@ function getTotalStats(user, name){
 // Who Am I vars
 var whoYouAre = JSON.parse(fs.readFileSync('whoyouare.json', 'utf8'));
 
-function whoAmI(name, user, id){
-    var outerIndex = randomInt.Get(0,7);
-    if (outerIndex > 3){
+function whoAmI(name, user, id) {
+    var outerIndex = randomInt.Get(0, 7);
+    if (outerIndex > 3) {
         outerIndex = 1;
     }
     var array = whoYouAre[outerIndex];
-    var index = randomInt.Get(0, array.length-1);
+    var index = randomInt.Get(0, array.length - 1);
     var message = "";
-    
-    if (outerIndex === 0){
+
+    if (outerIndex === 0) {
         message = array[index];
-    }
-    else if (outerIndex === 1){
+    } else if (outerIndex === 1) {
         message = util.format(array[index], name);
-    }
-    else if (outerIndex === 2){
+    } else if (outerIndex === 2) {
         message = util.format(array[index], name, user);
-    }
-    else if (outerIndex === 3){
+    } else if (outerIndex === 3) {
         message = util.format(array[index], name, id);
     }
     return message;
@@ -377,12 +368,13 @@ function whoAmI(name, user, id){
 // Inspiration quotes (inspo)
 var inspoQuotes = JSON.parse(fs.readFileSync('inspo.json', 'utf8'));
 var alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-                'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'];
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+];
 var fonts = [120432, 120380, 120328, 120276, 120224, 120172, 120016, 119912, 119808];
 
-function Inspo(channelID, userID){
-    var fontIndex = randomInt.Get(0, fonts.length-1);
-    var inspoIndex = randomInt.Get(0, inspoQuotes.length-1);
+function Inspo(channelID, userID) {
+    var fontIndex = randomInt.Get(0, fonts.length - 1);
+    var inspoIndex = randomInt.Get(0, inspoQuotes.length - 1);
 
     var inspiration = convert(fonts[fontIndex], inspoQuotes[inspoIndex]);
 
@@ -417,11 +409,12 @@ function convert(font, string) {
 }
 
 // Magic 8 ball
-function predict(userID, channelID){
+function predict(userID, channelID) {
     var responses = ["It is certain.", "It is decidedly so.", "Without a doubt.", "Yes - definitely.", "You may rely on it.", "As I see it, yes.",
-                     "Most likely.", "Outlook good.", "Yes.", "Signs point to yes.", "Reply hazy, try again.", "Ask again later.", "Better not tell you now.",
-                     "Cannot predict now.", "Concentrate and ask again.", "Don't count on it.", "My reply is no.", "My sources say no.", "Outlook not so good.",
-                     "Very doubtful."];
+        "Most likely.", "Outlook good.", "Yes.", "Signs point to yes.", "Reply hazy, try again.", "Ask again later.", "Better not tell you now.",
+        "Cannot predict now.", "Concentrate and ask again.", "Don't count on it.", "My reply is no.", "My sources say no.", "Outlook not so good.",
+        "Very doubtful."
+    ];
     var index = randomInt.Get(0, responses.length - 1);
     bot.sendMessage({
         to: channelID,
@@ -429,8 +422,8 @@ function predict(userID, channelID){
     });
 }
 
-bot.on("message", function (user, userID, channelID, message, evt) {
-    if (userID == bot.id){
+bot.on("message", function(user, userID, channelID, message, evt) {
+    if (userID == bot.id) {
         return;
     }
 
@@ -442,7 +435,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
 
         args = args.splice(1);
         logger.info(args);
-        switch(cmd) {
+        switch (cmd) {
             // !ping
             case "ping":
                 bot.sendMessage({
@@ -453,13 +446,11 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "notail":
                 var noun = "flower";
                 var choice = randomInt.Get(1, 3);
-                if (choice === 1){
+                if (choice === 1) {
                     noun = "flower";
-                }
-                else if (choice === 2){
+                } else if (choice === 2) {
                     noun = "river";
-                }
-                else{
+                } else {
                     noun = "fucking rainbow m8";
                 }
                 bot.sendMessage({
@@ -469,13 +460,13 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "compliment":
                 var subcount = subs.length;
-                var subno = randomInt.Get(0, subcount-1);
+                var subno = randomInt.Get(0, subcount - 1);
                 var sub = subs[subno];
                 var rec = util.format("<@%s>", userID);
-                if (args.length > 0){
+                if (args.length > 0) {
                     rec = args.join(" ");
                 }
-                getRedditComment(sub, function(comm){
+                getRedditComment(sub, function(comm) {
                     bot.sendMessage({
                         to: channelID,
                         message: rec + " " + comm
@@ -502,16 +493,16 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "heypatch": // Fallthrough
             case "heyruby": // Fallthrough
             case "heysammy": // Fallthrough
-            case "heytess":  // Fallthrough
+            case "heytess": // Fallthrough
             case "heyyoshi": // Fallthrough
             case "heydoggo": // Fallthrough
             case "heydog":
                 var ruby = "woof";
                 rubyPatience = rubyPatience + 1;
-                if (rubyPatience > 1){
+                if (rubyPatience > 1) {
                     ruby = "bork";
                 }
-                if (rubyPatience > 2){
+                if (rubyPatience > 2) {
                     ruby = "woof woof woof";
                     rubyPatience = 0;
                 }
@@ -523,7 +514,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
             case "heychips":
                 var chip = "meow";
                 rubyPatience = rubyPatience + 1;
-                if (rubyPatience > 2){
+                if (rubyPatience > 2) {
                     chip = "_bonks head on leg_";
                 }
                 bot.sendMessage({
@@ -551,18 +542,17 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 });
                 break;
             case "countmessages":
-                if (userID === "88614328499961856"){
-                    if (args.length > 0){
+                if (userID === "88614328499961856") {
+                    if (args.length > 0) {
                         queryChannelHistory(args[0]);
-                    }
-                    else{
+                    } else {
                         queryChannelHistory(channelID);
                     }
                 }
                 break;
             case "whoami":
                 var member = userInfo.GetMember(bot, userID);
-                
+
                 bot.sendMessage({
                     to: channelID,
                     message: whoAmI(member.nick, user, userID)
@@ -585,7 +575,7 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 break;
             case "gaydar":
                 var radarmessage = "I am simply a posbot, it's not for me to determine the sexuality of you or anyone else.";
-                if (userID == 88632232113102848){
+                if (userID == 88632232113102848) {
                     radarmessage = "I am simply a posbot, it's not for me to... Actually, you're like, hella gay my dude. And that's ok, we accept you for who you are.";
                 }
                 bot.sendMessage({
@@ -609,6 +599,8 @@ bot.on("message", function (user, userID, channelID, message, evt) {
                 remind.Commands(bot, userID, channelID, cmd, args);
                 // RPG
                 rpg.Commands(bot, userID, channelID, cmd, args);
+                // Burger checklist
+                burgs.Commands(bot, user, userID, channelID, cmd, args);
                 // Werewolf
                 werewolf.Commands(bot, user, userID, channelID, cmd, args);
                 break;
@@ -622,9 +614,9 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     werewolf.MuteCheck(userID, channelID);
 
     // Check xmas
-    if (IsXmas()){
-        if (!(userID in xmasGifts)){
-            getImgurImage(function(image){
+    if (IsXmas()) {
+        if (!(userID in xmasGifts)) {
+            getImgurImage(function(image) {
                 xmasGifts[userID] = image;
                 bot.sendMessage({
                     to: channelID,
@@ -635,8 +627,8 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     }
 
     // Check Birthdays
-    if (IsBirthday(userID)){
-        getImgurImage(function(image){
+    if (IsBirthday(userID)) {
+        getImgurImage(function(image) {
             bot.sendMessage({
                 to: channelID,
                 message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere's your gift %s", baby, image)
@@ -648,13 +640,13 @@ bot.on("message", function (user, userID, channelID, message, evt) {
     markov.Update(bot, userID, channelID, message);
 
     // Extra message contents responses
-    if (message.indexOf("🙃") > -1){
+    if (message.indexOf("🙃") > -1) {
         bot.sendMessage({
             to: channelID,
             message: "don't worry sam! Something something something"
         });
     }
-    if (message.indexOf("^w^") > -1){
+    if (message.indexOf("^w^") > -1) {
         bot.sendMessage({
             to: channelID,
             message: "How he do that face?"

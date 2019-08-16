@@ -1,0 +1,304 @@
+{
+    "burgers": [
+    {
+        "burger": "Snooze",
+        "rank": "50",
+        "location": "Luxembourg",
+        "eaten": []
+    },
+    {
+        "burger": "Beaver Brewing Company",
+        "rank": "49",
+        "location": "Vienna, Austria",
+        "eaten": []
+    },
+    {
+        "burger": "Roxor",
+        "rank": "48",
+        "location": "Bratislava, Slovakia",
+        "eaten": []
+    },
+    {
+        "burger": "Alfredo’s Barbacoa",
+        "rank": "47",
+        "location": "Madrid, Spain",
+        "eaten": []
+    },
+    {
+        "burger": "T. & C. Burger Lab",
+        "rank": "46",
+        "location": "Rome, Italy",
+        "eaten": []
+    },
+    {
+        "burger": "Real Hamburgueria",
+        "rank": "45",
+        "location": "Porto, Portugal",
+        "eaten": []
+    },
+    {
+        "burger": "La Esquina",
+        "rank": "44",
+        "location": "Athens, Greece",
+        "eaten": []
+    },
+    {
+        "burger": "Ellis Gourmet Burger",
+        "rank": "43",
+        "location": "Bruge, Belgium",
+        "eaten": []
+    },
+    {
+        "burger": "Tuning Burger",
+        "rank": "42",
+        "location": "Budapest, Hungary",
+        "eaten": []
+    },
+    {
+        "burger": "Franky’s Kitchen",
+        "rank": "41",
+        "location": "Stockholm, Sweden",
+        "eaten": []
+    },
+    {
+        "burger": "Otto’s Burger",
+        "rank": "40",
+        "location": "Hamburg, Germany",
+        "eaten": []
+    },
+    {
+        "burger": "Almost Famous",
+        "rank": "39",
+        "location": "Liverpool, United Kingdom",
+        "eaten": []
+    },
+    {
+        "burger": "Wow Burger",
+        "rank": "38",
+        "location": "Dublin, Ireland",
+        "eaten": []
+    },
+    {
+        "burger": "Ter Marsch & Co",
+        "rank": "37",
+        "location": "Rotterdam, Netherlands",
+        "eaten": []
+    },
+    {
+        "burger": "Street Burgers",
+        "rank": "36",
+        "location": "Riga, Latvia",
+        "eaten": []
+    },
+    {
+        "burger": "Burger Van Bistro",
+        "rank": "35",
+        "location": "Bucharest, Romania",
+        "eaten": []
+    },
+    {
+        "burger": "Roomies",
+        "rank": "34",
+        "location": "Paris, France",
+        "eaten": []
+    },
+    {
+        "burger": "Bar Centro",
+        "rank": "33",
+        "location": "Burgers & Craft Beer – Barcelona, Spain",
+        "eaten": []
+    },
+    {
+        "burger": "2112",
+        "rank": "32",
+        "location": "Gothenburg, Sweden",
+        "eaten": []
+    },
+    {
+        "burger": "Taste Burger",
+        "rank": "31",
+        "location": "Warszawa, Poland",
+        "eaten": []
+    },
+    {
+        "burger": "Mac & Wild",
+        "rank": "30",
+        "location": "London, United Kingdom",
+        "eaten": []
+    },
+    {
+        "burger": "Ruff’s Burger",
+        "rank": "29",
+        "location": "Munich, Germany ",
+        "eaten": []
+    },
+    {
+        "burger": "Estonian Burger Factory",
+        "rank": "28",
+        "location": "Talinn, Estonia",
+        "eaten": []
+    },
+    {
+        "burger": "Roof Burger Bar",
+        "rank": "27",
+        "location": "Ayia Napa, Cyprus",
+        "eaten": []
+    },
+    {
+        "burger": "Submarine Burger",
+        "rank": "26",
+        "location": "Zagreb, Croatia",
+        "eaten": []
+    },
+    {
+        "burger": "Broebbeleir",
+        "rank": "25",
+        "location": "Brussels, Belgium",
+        "eaten": []
+    },
+    {
+        "burger": "Tommi’s Burger Joint",
+        "rank": "24",
+        "location": "Copenhagen, Denmark",
+        "eaten": []
+    },
+    {
+        "burger": "Social Burgerjoint",
+        "rank": "23",
+        "location": "Helsinki, Finland",
+        "eaten": []
+    },
+    {
+        "burger": "Le Butcher",
+        "rank": "22",
+        "location": "Vilnius, Lithuania",
+        "eaten": []
+    },
+    {
+        "burger": "Hawksmoor",
+        "rank": "21",
+        "location": "Manchester, United Kingdom",
+        "eaten": []
+    },
+    {
+        "burger": "Bacoa Burger",
+        "rank": "20",
+        "location": "Barcelona, Spain",
+        "eaten": []
+    },
+    {
+        "burger": "Ohana Lei’Pomo & Grille",
+        "rank": "19",
+        "location": "Tampere, Finland",
+        "eaten": []
+    },
+    {
+        "burger": "Le Ruisseau",
+        "rank": "18",
+        "location": "Paris, France",
+        "eaten": []
+    },
+    {
+        "burger": "Shoreditch Bar and Kitchen",
+        "rank": "17",
+        "location": "St Julian’s, Malta",
+        "eaten": []
+    },
+    {
+        "burger": "Manhattn’s Burgers",
+        "rank": "16",
+        "location": "Brussels, Belgium",
+        "eaten": []
+    },
+    {
+        "burger": "Boom! Burgers",
+        "rank": "15",
+        "location": "Sofia, Bulgaria",
+        "eaten": []
+    },
+    {
+        "burger": "Burger House",
+        "rank": "14",
+        "location": "Munich, Germany",
+        "eaten": []
+    },
+    {
+        "burger": "Bleecker Burger",
+        "rank": "13",
+        "location": "London, United Kingdom",
+        "eaten": []
+    },
+    {
+        "burger": "Projekt Burger",
+        "rank": "12",
+        "location": "Kranj, Slovenia",
+        "eaten": []
+    },
+    {
+        "burger": "Bread Meats Bread",
+        "rank": "11",
+        "location": "Scotland, United Kingdom",
+        "eaten": []
+    },
+    {
+        "burger": "The Beef Chief",
+        "rank": "10",
+        "location": "Amsterdam, Netherlands",
+        "eaten": []
+    },
+    {
+        "burger": "Burgermeister",
+        "rank": "9",
+        "location": "Berlin, Germany",
+        "eaten": []
+    },
+    {
+        "burger": "Burger Bar",
+        "rank": "8",
+        "location": "Amsterdam, Netherlands",
+        "eaten": []
+    },
+    {
+        "burger": "Bunsen",
+        "rank": "7",
+        "location": "Dublin, Ireland",
+        "eaten": []
+    },
+    {
+        "burger": "Barrels Burgers & Beer",
+        "rank": "6",
+        "location": "Stockholm, Sweden",
+        "eaten": []
+    },
+    {
+        "burger": "Bamba Marha Burger Bar",
+        "rank": "5",
+        "location": "Budapest, Hungary",
+        "eaten": []
+    },
+    {
+        "burger": "Patty And Bun",
+        "rank": "4",
+        "location": "London, United Kingdom",
+        "eaten": []
+    },
+    {
+        "burger": "Dish",
+        "rank": "3",
+        "location": "Prague, Czech Republic",
+        "eaten": []
+    },
+    {
+        "burger": "Gasoline Grill",
+        "rank": "2",
+        "location": "Copenhagen, Denmark ",
+        "eaten": []
+    },
+    {
+        "burger": "Burger And Beyond",
+        "rank": "1",
+        "location": "London, United Kingdom",
+        "eaten": []
+    }],
+    "eaters": []
+}
