@@ -10,7 +10,7 @@ var schedule = require("node-schedule");
 
 // Local
 var auth = require("./auth.json");
-var burgs = require("./burgs/burgs")
+var burgs = require("./burgs/burgs");
 var help = require("./help/help");
 var improve = require("./improve/improve");
 var markov = require("./markov/markov");
@@ -422,6 +422,18 @@ function predict(userID, channelID) {
     });
 }
 
+// Cheese
+var cheeses = JSON.parse(fs.readFileSync('cheeses.json', 'utf8'));
+
+function cheese(userID, channelID) {
+    var index = randomInt.Get(0, cheeses.length - 1);
+
+    bot.sendMessage({
+        to: channelID,
+        message: util.format("<@%s> %s", userID, cheeses[index])
+    });
+}
+
 bot.on("message", function(user, userID, channelID, message, evt) {
     if (userID == bot.id) {
         return;
@@ -582,6 +594,9 @@ bot.on("message", function(user, userID, channelID, message, evt) {
                     to: channelID,
                     message: radarmessage
                 });
+                break;
+            case "cheese":
+                cheese(userID, channelID);
                 break;
             default:
                 // No other cases matched, check other modules
