@@ -190,6 +190,13 @@ bot.on("ready", function(evt) {
     logger.info(bot.username + " - (" + bot.id + ")");
 });
 
+function CheckConnection() {
+    if (!bot.connected) {
+        logger.info("Bot has lost connection to Discord. Reconnecting.");
+        bot.connect();
+    }
+}
+
 // Noon scheduler
 var noonScheduler = schedule.scheduleJob("0 12 * * *", function() {
     remind.CheckDailyReminders(bot);
@@ -197,6 +204,7 @@ var noonScheduler = schedule.scheduleJob("0 12 * * *", function() {
 
 // Minute scheduler
 var minScheduler = schedule.scheduleJob("* * * * *", function() {
+    CheckConnection();
     remind.CheckMinuteReminders(bot);
 });
 
