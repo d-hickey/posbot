@@ -669,7 +669,7 @@ bot.on("message", function(user, userID, channelID, message, evt) {
             message: "don't worry sam! Something something something"
         });
     }
-    if (message.indexOf("^w^") > -1) {
+    if (message.toLowerCase().indexOf("^w^") > -1) {
         bot.sendMessage({
             to: channelID,
             message: "How he do that face?"

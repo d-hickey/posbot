@@ -2,6 +2,8 @@ var util = require("util");
 
 var ranks = require("../ranks/ranks");
 
+var logger = require("winston");
+
 // Discord client
 var bot;
 
@@ -200,6 +202,11 @@ var help = {
         "alias": ["burg-done"],
         "args": "<restaurant>",
         "desc": "Mark the given burger joint as completed by you."
+    },
+    "cheese": {
+        "alias": [],
+        "args": "",
+        "desc": "Posbot will tell you the name of a cheese."
     }
 };
 
@@ -273,20 +280,32 @@ function BuildCommandDescription(key, aliasIndex = -1) {
 }
 
 function PrintHelpAll(channelID, userID) {
-    var allhelp = "";
+    var allhelp = [];
+    var helppart = "";
     for (var command in help) {
-        allhelp += BuildCommandDescription(command) + "\n";
+        helppart += BuildCommandDescription(command) + "\n";
+        if (helppart.length > 1900){
+            allhelp.push(helppart);
+            helppart = "";
+        }
     }
+    allhelp.push(helppart);
 
     bot.sendMessage({
         to: channelID,
         message: "Response is in your DMs, yo."
     });
 
-    bot.sendMessage({
-        to: userID,
-        message: allhelp
-    });
+    for (var msgpart of allhelp){
+        if (msgpart !== ""){
+            bot.sendMessage({
+                to: userID,
+                message: msgpart
+            }, function(err){
+                logger.info(err);
+            });
+        }
+    }
 }
 
 function Commands(client, userID, channelID, cmd, args) {
