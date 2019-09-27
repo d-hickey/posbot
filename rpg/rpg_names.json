@@ -41,6 +41,7 @@
         "Sildar",
         "Tenshorn",
         "Vandeyr",
+        "Walril",
         "Watfalen",
         "Wilidyr"
     ],
@@ -52,6 +53,7 @@
         " Bluejeans",
         " Bottomhard",
         " Burnsides",
+        " Bush",
         " Clethtinthiallor",
         " Draavrodi",
         " Edermath",
@@ -72,7 +74,7 @@
         " Thady",
         " Thae'din"
     ],
-    "title":[
+    "title": [
         "",
         "Bearer of the Curse",
         "Glasstaff",
@@ -124,7 +126,7 @@
         "The Vengeful",
         "The Wretched"
     ],
-    "race":[
+    "race": [
         "A Bugbear",
         "A Dark Elf",
         "A Dragon",
@@ -152,7 +154,7 @@
         "A Wood Elf",
         "A Zombie"
     ],
-    "class":[
+    "class": [
         "Adventurer",
         "Assassin",
         "Barbarian",
@@ -199,7 +201,7 @@
         "Witch Doctor",
         "Wizard"
     ],
-    "born":[
+    "born": [
         "as a full grown adult",
         "as the enemies breached the city walls",
         "at the crack of dawn",
@@ -255,7 +257,7 @@
         "with a full head of hair, and a full suit of armour",
         "with purpose in your heart"
     ],
-    "parents":[
+    "parents": [
         "a blacksmith and a shopkeeper",
         "a buddy cop duo",
         "a bunch of fools",
@@ -311,7 +313,7 @@
         "well meaning",
         "well, distant memories by now"
     ],
-    "background":[
+    "background": [
         "as an Acolyte, with a steadily growing doubt",
         "as an Acolyte, in service of a higher power",
         "as an Archaeologist, spending your time looking at bones",
@@ -361,7 +363,7 @@
         "as an Urchin, dealing in secrets",
         "as an Urchin, surviving the streets"
     ],
-    "reason":[
+    "reason": [
         "a chance encounter altered the course of your life forever",
         "a relative sent you on a convoluted quest to recovery a family heirloom",
         "a shocking truth about you was revealed, and you left in a hurry",
@@ -373,6 +375,7 @@
         "one of your crew was actually an undercover cop",
         "the collapse of the kingdom left you displaced and aimless",
         "the death of a close friend started you on the path of vengeance",
+        "the fragile peace didn't hold and the land was thrown into turmoil",
         "they found you. You always knew they would, eventually. It was time to move on",
         "things got too serious, you couldn't commit, you left a note at least",
         "you could not ignore your calling any longer",
@@ -384,24 +387,61 @@
         "you were offered a way out, if you just did one last job",
         "you were recruited for an expedition to a far away land"
     ],
-    "destiny":[
+    "destiny": [
         "are dead, maybe for real this time",
         "are destined for greatness, according to that fortune teller",
         "are determind to see things through to their end, no matter the outcome",
         "are happily married",
         "are in an adventuring party with the see no evil, hear no evil, speak no evil monkeys",
+        "are lost in a great labyrinth, but you're sure the exit is just around the corner",
         "are one step away from the crown, but are unsure if you want it",
         "are so close to getting revenge",
         "do odd jobs for money you don't really need",
         "find it hard to keep up with old friends, you try to organise to meet up but the calendars never line up",
         "have a secured a deal for a series of stage plays detailing your exploits",
+        "have lost everything and everyone, except your drive to keep going",
         "have saved the world like 4 or 5 times, it gets old after a while",
         "just need a little more gold, one more job maybe, then you're out",
         "live alone in the woods, where it's nice and quiet",
+        "make a decent living as an adventurer",
         "own a successful business",
         "plot and plan and bide your time",
         "still search tirelessly for the cure to your curse",
+        "work for a mercenary company",
         "work for Odd Bob",
         "write about your years of adventuring, enhancing some of the details so it makes a better book"
+    ],
+    "weapon": {
+        "sword": "slash",
+        "lance": "impale",
+        "axe": "chop",
+        "dagger": "stab",
+        "bow": "snipe",
+        "quarterstaff": "thwack",
+        "staff": "fireball",
+        "wand": "zap",
+        "tome": "life drain",
+        "fist": "punch",
+        "gun": "shoot",
+        "mace": "smash",
+        "bomb": "explode",
+        "shield": "bash",
+        "holy symbol": "bless",
+        "familiar": "command your familiar to attack",
+        "whip": "whip",
+        "katana": "shinobi execute",
+        "chainsaw": "eviscerate"
+    },
+    "stats": [
+        "STR",
+        "DEX",
+        "CON",
+        "INT",
+        "WIS",
+        "CHA",
+        "COOL",
+        "HOT",
+        "TECH",
+        "WEIRD"
     ]
 }
