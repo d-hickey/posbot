@@ -662,6 +662,9 @@ bot.on("message", function(user, userID, channelID, message, evt) {
     // Check markov triggers and update history
     markov.Update(bot, userID, channelID, message);
 
+    // Check rpg triggers
+    rpg.Update(bot, userID, channelID);
+
     // Extra message contents responses
     if (message.indexOf("🙃") > -1) {
         bot.sendMessage({
