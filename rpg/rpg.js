@@ -86,13 +86,19 @@ function WeaponGen() {
     var type = weapons[index];
     var rarity = randomInt.Get(0, 100);
     var bonus = 0;
-    if (rarity > 90){
+    if (rarity >= 100){
+        bonus = 5;
+    }
+    else if (rarity >= 95){
+        bonus = 4;
+    }
+    if (rarity >= 85){
         bonus = 3;
     }
-    else if (rarity > 75){
+    else if (rarity >= 65){
         bonus = 2;
     }
-    else if (rarity > 50){
+    else if (rarity >= 40){
         bonus = 1;
     }
 
@@ -139,7 +145,7 @@ function StatString(stats) {
     return string;
 }
 
-function CreateCharacter(userID) {
+function CharGen(){
     var char = {};
     char.name = NameGen();
     char.race = RaceGen();
@@ -149,6 +155,11 @@ function CreateCharacter(userID) {
     char.stats = StatsGen();
     char.time = 0;
     char.alive = true;
+    return char;
+}
+
+function CreateCharacter(userID) {
+    var char = CharGen();
 
     save.chars[userID] = char;
     SaveGame();
@@ -165,6 +176,14 @@ function CharacterString(userID) {
     return util.format("You are %s, %s %s\nYou're weapon of choice: %s\n%s\n%s", char.name, char.race, char.class, WeaponString(char.weapon), char.story, StatString(char.stats));
 }
 
+function BioString(userID){
+    if (!(userID in save.chars)){
+        return "";
+    }
+    var char = save.chars[userID];
+    return util.format("You are %s, %s %s", char.name, char.race, char.class);
+}
+
 // Events
 function RunEvent(userID, channelID){
     if (!save.chars[userID].alive){
@@ -175,10 +194,20 @@ function RunEvent(userID, channelID){
 
     var summary = ev.summary;
     var item = {};
+    var ally = "";
     for (var task of ev.setup){
         if (task === "weapon"){
             item = WeaponGen();
             summary = summary.replace("<weapon>", WeaponString(item));
+        }
+        if (task === "ally"){
+            ally = GetAlly(userID);
+            if (ally === ""){
+                // No allies, run different event
+                RunEvent(userID, channelID);
+                return;
+            }
+            summary = summary.replace("<ally>", save.chars[ally].name);
         }
     }
 
@@ -190,6 +219,22 @@ function RunEvent(userID, channelID){
     save.events[userID] = {};
     save.events[userID].choices = ev.choices;
     save.events[userID].item = item;
+    save.events[userID].ally = ally;
+}
+
+function GetAlly(userID){
+    var candidates = [];
+    for (var id in save.chars){
+        if (id != userID && save.chars[id].alive){
+            candidates.push(id);
+        }
+    }
+    if (candidates.length === 0){
+        return "";
+    }
+
+    var index = randomInt.Get(0, candidates.length - 1);
+    return candidates[index];
 }
 
 function ChoiceString(choices){
@@ -218,7 +263,7 @@ function Action(userID, channelID, letter){
     var check = choice.check;
 
     if (check.length === 0){
-        HandleResult(userID, channelID, char, choice.succeed, ev.item);
+        HandleResult(userID, channelID, char, choice.succeed, ev.item, ev.ally);
         return;
     }
 
@@ -232,43 +277,95 @@ function Action(userID, channelID, letter){
         mod = char.stats[stat];
     }
     var roll = randomInt.Get(1, 20);
+    if (stat === "GOLD"){
+        roll = 0;
+    }
 
     var result = choice.fail;
     if (roll + mod > dc){
         result = choice.succeed;
     }
-    HandleResult(userID, channelID, char, result, ev.item);
+    HandleResult(userID, channelID, char, result, ev.item, ev.ally);
 }
 
-function HandleResult(userID, channelID, char, result, item){
+function HandleResult(userID, channelID, char, result, item, ally){
     delete save.events[userID];
-    var outcome = result[0];
+    var outcomes = result[0].split(",");
     var message = result[1];
     message = message.replace("<attack>", genParts.weapon[char.weapon.type]);
+    if (ally && ally != "" && ally in save.chars){
+        message = message.replace("<ally>", save.chars[ally].name);
+    }
 
-    if (outcome === "die"){
-        char.alive = false;
-        message += " You died.";
-    }
-    else if (outcome === "weapon"){
-        var weaponEvent = {};
-        weaponEvent.choices = weaponChoices;
-        weaponEvent.item = WeaponGen();
-        save.events[userID] = weaponEvent;
-        message += util.format(" You find a %s.\n%s", WeaponString(weaponEvent.item), ChoiceString(weaponEvent.choices));
-    }
-    else if (outcome === "take"){
-        char.weapon = item;
-    }
-    else if (outcome !== ""){
-        var parts = outcome.split(" ");
-        var stat = parts[0];
-        var amount = parseInt(parts[1]);
-        char.stats[stat] += amount;
-        message += util.format(" Your %s changes by %d and is now %d.", stat, amount, char.stats[stat]);
-        if (stat === "HP" && char.stats[stat] < 1){
-            message += " You die.";
+    for (var outcome of outcomes){
+        if (outcome === "die"){
             char.alive = false;
+            message += " You died.";
+        }
+        else if (outcome === "allydie"){
+            message += util.format(" %s dies.", save.chars[ally].name);
+            save.chars[ally].alive = false;
+            HandleAllyDeath(ally);
+        }
+        else if (outcome === "weapon"){
+            var weaponEvent = {};
+            weaponEvent.choices = weaponChoices;
+            weaponEvent.item = WeaponGen();
+            save.events[userID] = weaponEvent;
+            message += util.format(" You find a %s.\n%s", WeaponString(weaponEvent.item), ChoiceString(weaponEvent.choices));
+        }
+        else if (outcome === "take"){
+            char.weapon = item;
+        }
+        else if (outcome === "swap"){
+            message += Swap(userID, allyID);
+        }
+        else if (outcome === "gen"){
+            var newchar = CharGen();
+            newchar.name = char.name;
+            char = newchar;
+            message += " You have been rebuilt. Generated from scratch.";
+        }
+        else if (outcome === "allygen"){
+            var newally = CharGen();
+            newally.name = save.chars[ally].name;
+            save.chars[ally] = newally;
+            message += util.format(" %s has been completely remade. Somebody should tell them.", newally.name);
+        }
+        else if (outcome !== ""){
+            var parts = outcome.split(" ");
+            var stat = parts[0];
+            var amount = parseInt(parts[1]);
+            if (stat === "title"){
+                char.title = genParts.title[amount];
+                message += " You are given the title " + char.title;
+            }
+            else if (stat === "stat"){
+                var statIndex = randomInt.Get(0, genParts.stats.length - 1);
+                var upgraded = genParts.stats[statIndex];
+                char.stats[upgraded] += amount;
+                message += util.format(" Your %s changes by %d and is now %d.", upgraded, amount, char.stats[upgraded]);
+            }
+            else if (stat === "allyHP"){
+                save.chars[ally].stats.HP += amount;
+                message += util.format(" %s's HP changes by %d and is now %d.", save.chars[ally].name, amount, save.chars[ally].stats.HP);
+                if (save.chars[ally].stats.HP < 1){
+                    message += " They die.";
+                    save.chars[ally].alive = false;
+                    HandleAllyDeath(ally);
+                }
+            }
+            else{
+                if (!(stat in char.stats)){
+                    char.stats[stat] = 0;
+                }
+                char.stats[stat] += amount;
+                message += util.format(" Your %s changes by %d and is now %d.", stat, amount, char.stats[stat]);
+                if (stat === "HP" && char.stats[stat] < 1){
+                    message += " You die.";
+                    char.alive = false;
+                }
+            }
         }
     }
     bot.sendMessage({
@@ -277,6 +374,37 @@ function HandleResult(userID, channelID, char, result, item){
     });
 
     SaveGame();
+}
+
+function HandleAllyDeath(userID){
+    if (userID in save.events){
+        delete save.events[userID];
+    }
+}
+
+function Swap(userID, allyID){
+    var temp = {};
+    var char = save.chars[userID];
+    var ally = save.chars[allyID];
+
+    temp.race = char.race;
+    temp.class = char.class;
+    temp.story = char.story;
+    temp.weapon = char.weapon;
+    temp.stats = char.stats;
+
+    char.race = ally.race;
+    char.class = ally.class;
+    char.story = ally.story;
+    char.weapon = ally.weapon;
+    char.stats = ally.stats;
+
+    ally.race = temp.race;
+    ally.class = temp.class;
+    ally.story = temp.story;
+    ally.weapon = temp.weapon;
+    ally.stats = temp.stats;
+    return util.format(" %s and %s have had their character sheets swapped.", char.name, ally.name);
 }
 
 function Commands(client, userID, channelID, cmd, args) {
@@ -292,10 +420,36 @@ function Commands(client, userID, channelID, cmd, args) {
             });
             break;
         case "showchar":
-            bot.sendMessage({
-                to: channelID,
-                message: CharacterString(userID)
-            });
+            if (userID in save.chars){
+                bot.sendMessage({
+                    to: channelID,
+                    message: CharacterString(userID)
+                });
+            }
+            break;
+        case "showname":
+            if (userID in save.chars){
+                bot.sendMessage({
+                    to: channelID,
+                    message: BioString(userID)
+                });
+            }
+            break;
+        case "showweapon":
+            if (userID in save.chars){
+                bot.sendMessage({
+                    to: channelID,
+                    message: util.format("Your weapon is: %s", WeaponString(save.chars[userID].weapon))
+                });
+            }
+            break;
+        case "showstats":
+            if (userID in save.chars){
+                bot.sendMessage({
+                    to: channelID,
+                    message: StatString(save.chars[userID].stats)
+                });
+            }
             break;
         case "choose":
             Action(userID, channelID, args[0]);
@@ -327,6 +481,7 @@ function Entry(client, userID, channelID){
         var chance = randomInt.Get(1, time);
         if (chance > save.chance){
             RunEvent(userID, channelID);
+            save.chars[userID].time = 0;
         }
         SaveGame();
     }

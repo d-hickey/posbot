@@ -1,49 +1,87 @@
 {
   "first": [
+    "Adoice",
+    "Adokas",
     "Aedoras",
+    "Áine",
     "Akra",
+    "Andalara",
     "Angus",
     "Aryboise",
     "Artemis",
     "Aurick",
     "Barry",
+    "Brett",
     "Brogden",
     "Brohm",
+    "Caoimhín",
+    "Cillian",
     "Colmeron",
+    "Daire",
     "Daran",
     "Demon Lord",
     "Dr.",
+    "Dundar",
+    "Éama",
+    "Eilora",
     "Elmar",
     "Fardi",
     "Fizford",
+    "Glen",
     "Gradryn",
     "Gatien",
+    "Gundren",
+    "Guratris",
     "Hordeyr",
     "Iarno",
     "Ingthin",
     "Jenkins",
+    "Jon",
     "King",
     "Klarg",
     "Krisora",
     "Kuroar",
+    "Laeral",
+    "Leokul",
+    "Leoras",
+    "Loral",
+    "Lyassa",
+    "Magrath",
     "Marmitar",
     "Maxium",
     "Melody",
     "Michmar",
+    "Norril",
+    "Oloaver",
+    "Olohand",
+    "Ostín",
     "Nezznar",
     "Nymeria",
+    "Posbot",
     "Prince",
     "Princess",
     "Qelline",
     "Queen",
+    "Quithyra",
+    "Quofa",
+    "Rameel",
     "Renmitar",
+    "Seaf",
+    "Seaver",
     "Sheriff",
     "Sildar",
+    "Somhairle",
     "Tenshorn",
+    "Therthyra",
+    "Thoril",
+    "Thoven",
     "Vandeyr",
     "Walril",
     "Watfalen",
-    "Wilidyr"
+    "Wilidyr",
+    "Xavvan",
+    "Yenhorn",
+    "Zannan"
   ],
   "last": [
     "",
@@ -52,11 +90,19 @@
     " Barthen",
     " Bluejeans",
     " Bottomhard",
+    " Brenys",
     " Burnsides",
     " Bush",
+    "-chan",
     " Clethtinthiallor",
+    " Chandler",
+    " Darkeyes",
     " Draavrodi",
+    " Droverson",
     " Edermath",
+    " Fiedlerson",
+    " Fletcher",
+    " Goldkin",
     " Gryffin",
     " Halftorque",
     " Halwinter",
@@ -65,23 +111,41 @@
     " Highchurch",
     " Holysword",
     " Jenkins",
+    " Jos",
     "-kun",
+    " Loyaler",
+    " Milner",
     " Mol'diira",
+    " Pegason",
     " Rockseeker",
     " Roughridge",
+    "-sama",
+    " Serpenthelm",
+    " Shieldheart",
     " Silen",
+    " Silverkin",
+    " Smith",
+    " Spelloyal",
+    " Songsteel",
     " Stonehill",
+    " Tarmikos",
     " Thady",
-    " Thae'din"
+    " Thae'din",
+    " Tigersol",
+    " Vernjack",
+    " Windsailor",
+    " Wolfswift"
   ],
   "title": [
     "",
     "Bearer of the Curse",
+    "Friend of the Goblins",
     "Glasstaff",
     "Hand of the King",
     "Hand of the Queen",
     "of the Boreal Valley",
     "Shieldbiter",
+    "Silvertongue",
     "The Anointed",
     "The Ashen One",
     "The Beheader",
@@ -497,7 +561,7 @@
         },
         "C": {
           "action": "Explode the boulder with magic.",
-          "check": ["INT", 32],
+          "check": ["INT", 12],
           "succeed": ["", "You blast your way through the blocking stone."],
           "fail": ["HP -10", "You got the boulder alright, and yourself, and everything else nearby. Always check your spell radius."]
         },
@@ -627,7 +691,7 @@
         "C": {
           "action": "Pray for gains.",
           "check": ["WIS", 25],
-          "succeed": ["STR 3", "You feel stronger already."],
+          "succeed": ["stat 3", "You feel stronger already."],
           "fail": ["HOT 1", "You don't feel any more buff, but you do notice some of the clergy checking you out."]
         },
         "D": {
@@ -635,6 +699,189 @@
           "check": ["DEX", 20],
           "succeed": ["WIS 1", "You take a nap in a confessional booth. You awake to a man in the other booth mid confession. He compliments your ability to listen."],
           "fail": ["COOL -1", "You're kicked out by a very angry nun."]
+        }
+      }
+    },
+    {
+      "summary": "You are accosted by some goblins.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "To Arms!",
+          "check": ["ATT", 8],
+          "succeed": ["GOLD 50", "You <attack> those goblins and make short work of them."],
+          "fail": ["HP -7", "Bested by gobins, how embarrassing."]
+        },
+        "B": {
+          "action": "Attempt to resolve your differences with words.",
+          "check": ["CHA", 20],
+          "succeed": ["title 2", "The goblins take to you well, and count you as one of their own."],
+          "fail": ["COOL -1", "Even goblins don't want to hang out with you."]
+        },
+        "C": {
+          "action": "Flee!",
+          "check": ["DEX", 10],
+          "succeed": ["", "You escape with your life, but not your pride."],
+          "fail": ["HP -3", "You get away from the goblins, they don't even chase you. But you do trip and hurt yourself in the process."]
+        }
+      }
+    },
+    {
+      "summary": "In the sky! A Dragon! It descends upon you.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Oh what a story this will be! Attack!",
+          "check": ["ATT", 18],
+          "succeed": ["GOLD 500", "An epic showdown ensues but in the end you <attack> the mighty dragon and bring it down."],
+          "fail": ["HP -30", "You try your best, you even get some good hits in. But when the dragon unleashes its fiery breath you don't stand a chance."]
+        },
+        "B": {
+          "action": "Charm the dragon.",
+          "check": ["CHA", 30],
+          "succeed": ["title 8", "You've got a way with words and make a great impression on the dragon. You arrange a monthly tea time. Word of your charm spreads far."],
+          "fail": ["die", "You do not impress the dragon. And you've let your guard down."]
+        },
+        "C": {
+          "action": "Offer a tribute of gold (50)!",
+          "check": ["GOLD", 50],
+          "succeed": ["GOLD -50", "Money solves every problem."],
+          "fail": ["die", "You should have counted your coins, dragons don't like being insulted like this."]
+        },
+        "D": {
+          "action": "This is a fight you can't win. Run!",
+          "check": ["DEX", 25],
+          "succeed": ["COOL 1", "Dodge, duck, dip, dive and dodge. You escape unscathed."],
+          "fail": ["HP -15", "You get away, barely. But you're covered in cuts and bruises, and some of the dragon fire got you."]
+        }
+      }
+    },
+    {
+      "summary": "The ruin you're exploring already has some bandits inside.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Good, you were looking for something to fight.",
+          "check": ["ATT", 10],
+          "succeed": ["GOLD 75", "You <attack> your way through the bandits. And loot their gold."],
+          "fail": ["HP -12", "These bandits are tough, or maybe you're just weak."]
+        },
+        "B": {
+          "action": "Sneak by.",
+          "check": ["DEX", 20],
+          "succeed": ["GOLD 20,weapon", "You're as quiet as a mouse, and get to the treasure first."],
+          "fail": ["HP -5", "They hear you. You flee but catch an arrow in the ass."]
+        },
+        "C": {
+          "action": "Turn back.",
+          "check": [],
+          "succeed": ["", "They were here first, after all."]
+        }
+      }
+    },
+    {
+      "summary": "You're in the city shopping, I hope you brought your gold.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Buy a new weapon (75).",
+          "check": ["GOLD", 75],
+          "succeed": ["GOLD -75,weapon", "This town has a weird system, you pay for the weapon before you see it."],
+          "fail": ["COOL -1", "'This isn't enough', the clerk says. You grab your gold and leave in a hurry."]
+        },
+        "B": {
+          "action": "Buy a health potion (50).",
+          "check": ["GOLD", 50],
+          "succeed": ["GOLD -50,HP 5", "Yum, it tastes like your favourite fruit."],
+          "fail": ["COOL -1", "'This isn't enough', the clerk says. You grab your gold and leave in a hurry."]
+        },
+        "C": {
+          "action": "Buy a stat boost potion (100).",
+          "check": ["GOLD", 100],
+          "succeed": ["GOLD -100,stat 5", "The taste is bitter but the warm feeling it gives is intoxicating."],
+          "fail": ["COOL -2", "'Please don't waste our time', the entire store is judging you."]
+        },
+        "D": {
+          "action": "'Just browsing.''",
+          "check": [],
+          "succeed": ["", "Nothing catches your eye, or you're too broke."]
+        }
+      }
+    },
+    {
+      "summary": "Oh no! <ally> is hanging off a cliff edge, barely holding on.",
+      "setup": ["ally"],
+      "choices": {
+        "A": {
+          "action": "Pull them up.",
+          "check": ["STR", 10],
+          "succeed": ["COOL 2", "You pull them up. The audience cheers. You give them the gun show."],
+          "fail": ["allydie,die", "You grab hold of them, but you slip. You both fall."]
+        },
+        "B": {
+          "action": "Leave them to it, it's not your problem.",
+          "check": [],
+          "succeed": ["allydie", "'They'll be fine', you think as you walk away."]
+        },
+        "C": {
+          "action": "Cast featherfall on them.",
+          "check": ["INT", 15],
+          "succeed": ["GOLD 25", "You successfully cast the spell. <ally> finds some gold at the bottom and gives it to you as a reward."],
+          "fail": ["allydie", "You cast the spell, but it's only when you hear the thud at the bottom of the cliff that you realise you cast it on yourself."]
+        }
+      }
+    },
+    {
+      "summary": "An orc horde is bearing down on you and <ally>. You are facing impossible odds, with no time to run.",
+      "setup": ["ally"],
+      "choices": {
+        "A": {
+          "action": "Make your stand. Here. Together.",
+          "check": ["ATT", 15],
+          "succeed": ["weapon", "You work together in perfect unison. Orcs die by the hundreds before you. You take the warchief's weapon from his body."],
+          "fail": ["allydie,die", "It's beautiful. It happens in slow motion of course. You each take down dozens before you succomb to your wounds."]
+        },
+        "B": {
+          "action": "Tell them to run. You'll hold the orcs off.",
+          "check": ["ATT", 18],
+          "succeed": ["COOL 5, GOLD 100", "Anyone else would have fallen here. But the orcs weren't counting on you. You stride away from the battlefield, covered in blood. None of it yours."],
+          "fail": ["die,title 48", "You are true to your word, no orc gets past you while you still draw breath. Which is more than long enough for your ally to escape."]
+        },
+        "C": {
+          "action": "Run while they fight the orcs.",
+          "check": ["DEX", 10],
+          "succeed": ["allydie", "You hear them curse your name as you dash away. But at least you're alive."],
+          "fail": ["allydie, die", "You leave your friend to die. But you're not actually fast enough to escape."]
+        }
+      }
+    },
+    {
+      "summary": "You find yourself in a small room with glass walls. In an adjacent room is <ally>. A console in your room presents options.",
+      "setup": ["ally"],
+      "choices": {
+        "A": {
+          "action": "Swap lives, everything but your name.",
+          "check": ["TECH", 18],
+          "succeed": ["swap", "A bright flash of light and everything about you has changed. Hopefully this is something you both wanted."],
+          "fail": ["allygen,gen", "A bright flash of light and everything about you has changed. Something must have gone wrong, you don't recognise yourself."]
+        },
+        "B": {
+          "action": "Give them 10 of your HP.",
+          "check": ["TECH", 10],
+          "succeed": ["HP -10,allyHP 10", "Very generous of you."],
+          "fail": ["HP -20,allyHP 20", "You're not so good at the computers, you give more than you intended."]
+        },
+        "C": {
+          "action": "Steal 10 HP from them.",
+          "check": ["TECH", 14],
+          "succeed": ["HP 10,allyHP -10", "They have it to spare, right?"],
+          "fail": ["HP 5,allyHP -5", "You only manage to steal 5 HP, was it worth it?"]
+        },
+        "D": {
+          "action": "Release.",
+          "check": ["TECH", 5],
+          "succeed": ["", "The doors to both rooms open. You're free to leave."],
+          "fail": ["allydie", "The door to your room opens. But your neighbour is gone, and so is the floor in their room."]
         }
       }
     }
