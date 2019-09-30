@@ -419,6 +419,7 @@ function Commands(client, userID, channelID, cmd, args) {
                 message: CharacterString(userID)
             });
             break;
+        case "char": // Fallthrough
         case "showchar":
             if (userID in save.chars){
                 bot.sendMessage({

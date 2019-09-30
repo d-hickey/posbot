@@ -101,12 +101,12 @@ var help = {
     "remindme": {
         "alias": ["remind"],
         "args": "<time> [message]",
-        "desc": "Sets a reminder, time should be specified in minutes and be between 1 and 40320. Or use some or all of the format #w#d#h#m to specify weeks, days, hours and/or minutes."
+        "desc": "Sets a reminder, time should be an integer representing minutes. Or use some or all of the format #w#d#h#m (replacing # with numbers) to specify weeks, days, hours and/or minutes."
     },
-    "reminddays": {
-        "alias": ["remindays", "remindmedays", "remindday", "remindmeday"],
-        "args": "<days> [message]",
-        "desc": "Sets a reminder (triggers at noon) for a number of days in the future."
+    "reminddate": {
+        "alias": ["remindate"],
+        "args": "<ISO 8601 date string> [message]",
+        "desc": "Sets a reminder for given date. If no time is given it will trigger at noon. Examples: 2020-04-20, 2020-04-20T16:20:00"
     },
     "todo": {
         "alias": [],
@@ -137,6 +137,36 @@ var help = {
         "alias": ["newchar"],
         "args": "",
         "desc": "In need of a D&D or tabletop rpg character? Generate a name, race, class, and backstory."
+    },
+    "showchar": {
+        "alias": ["char"],
+        "args": "",
+        "desc": "Show all the details for your existing rpg character."
+    },
+    "choose": {
+        "alias": [],
+        "args": "<letter>",
+        "desc": "Choose an rpg event option."
+    },
+    "a": {
+        "alias": [],
+        "args": "",
+        "desc": "Choose an rpg event option A."
+    },
+    "b": {
+        "alias": [],
+        "args": "",
+        "desc": "Choose an rpg event option B."
+    },
+    "c": {
+        "alias": [],
+        "args": "",
+        "desc": "Choose an rpg event option C."
+    },
+    "d": {
+        "alias": [],
+        "args": "",
+        "desc": "Choose an rpg event option D."
     },
     "improve": {
         "alias": [],
