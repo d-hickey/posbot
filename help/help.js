@@ -143,6 +143,21 @@ var help = {
         "args": "",
         "desc": "Show all the details for your existing rpg character."
     },
+    "showname": {
+        "alias": [],
+        "args": "",
+        "desc": "Show the name, race and class your existing rpg character."
+    },
+    "showweapon": {
+        "alias": [],
+        "args": "",
+        "desc": "Show the weapon used by your existing rpg character."
+    },
+    "showstats": {
+        "alias": [],
+        "args": "",
+        "desc": "Show the stat block for your existing rpg character."
+    },
     "choose": {
         "alias": [],
         "args": "<letter>",

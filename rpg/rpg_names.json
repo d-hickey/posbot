@@ -551,7 +551,7 @@
           "action": "Lift the boulder out of your path.",
           "check": ["STR", 15],
           "succeed": ["HOT 1", "You effortlessly toss the boulder aside"],
-          "fail": ["HP -5", "You move the big rock, but hurt your back in the process."]
+          "fail": ["HP -3", "You move the big rock, but hurt your back in the process."]
         },
         "B": {
           "action": "Squeeze past the boulder.",
@@ -570,6 +570,66 @@
           "check": ["WEIRD", 20],
           "succeed": ["weapon", "You walk straight through the boulder, and find a new toy inside."],
           "fail": ["die", "You get halfway through the giant rock before you realise what you're doing is impossible. You're trapped in stone with no air."]
+        }
+      }
+    },
+    {
+      "summary": "The cave you're in has a large chasm impeding progress.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Leap across.",
+          "check": ["STR", 20],
+          "succeed": ["HOT 1", "With a running start and powerful legs you soar through the air and clear the gap."],
+          "fail": ["HP -6,weapon", "You gracefully leap into the air and not so gracefully plummet into the pit. There's a weapon down here at least, if you survived the fall."]
+        },
+        "B": {
+          "action": "Use a grappling hook to swing across.",
+          "check": ["DEX", 20],
+          "succeed": ["COOL 1", "Your expert use of a grappling hook. Your majestic swing. Your perfect landing. If anyone was around to see it, they'd be very impressed."],
+          "fail": ["HP -6,weapon", "Using a grappling hook actually takes practice, it turns out. You land on an old skeleton, something shiny in its hand."]
+        },
+        "C": {
+          "action": "Use magic to levitate across the gap.",
+          "check": ["INT", 15],
+          "succeed": ["", "You casually walk over the hole and touch down safely on the other side."],
+          "fail": ["HP -6,weapon", "While crossing you bump into a stalactite, which breaks your concentration. You fall into the hole. There's a weapon down here at least, if you survived the fall."]
+        },
+        "D": {
+          "action": "Attack the chasm!",
+          "check": ["WEIRD", 25],
+          "succeed": ["GOLD 100,WEIRD 2", "You do what? How do you even... Wait you killed it? And it dropped gold?"],
+          "fail": ["HP -6,weapon", "You attack with all your might and tumble into the pit. How else was this going to turn out? The remains of some other fools lay here. You could loot them if you are still alive."]
+        }
+      }
+    },
+    {
+      "summary": "You've come up against a large metal door. A console in the connecting wall blinks on.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Punch the door.",
+          "check": ["STR", 30],
+          "succeed": ["HOT 2", "All it takes is one punch and the door comes down. Damn, you're buff."],
+          "fail": ["HP -5", "Thud. The door doesn't budge. That's a broken hand, for sure."]
+        },
+        "B": {
+          "action": "Hack the console. Hack the door. Hack the world.",
+          "check": ["TECH", 20],
+          "succeed": ["COOL 1,CHA 1", "Turns out there's an open button on the console, but you make it look like you're doing cool hacking."],
+          "fail": ["COOL -1", "What's less cool than a nerd? A nerd who can't even get this door open."]
+        },
+        "C": {
+          "action": "Hack the console. Like, with an axe.",
+          "check": ["ATT", 15],
+          "succeed": ["INT 1", "You <attack> the machine in just the right way. The door slides open."],
+          "fail": ["", "You <attack> the console and thoroughly destroy it. Hopefully nothing good was behind that door."]
+        },
+        "D": {
+          "action": "Try to seduce the computer.",
+          "check": ["CHA", 25],
+          "succeed": ["HOT 1,WIS 1", "Wow, you know exactly what to say to get those fans whirring. The console opens the door for you, and gives you its number."],
+          "fail": ["HOT -1,COOL -1", "In hindsight, seducing a machine was probably never going to work. But the rejection isn't any less damaging to your ego."]
         }
       }
     },
@@ -802,7 +862,7 @@
           "fail": ["COOL -2", "'Please don't waste our time', the entire store is judging you."]
         },
         "D": {
-          "action": "'Just browsing.''",
+          "action": "'Just browsing.'",
           "check": [],
           "succeed": ["", "Nothing catches your eye, or you're too broke."]
         }
@@ -851,7 +911,7 @@
           "action": "Run while they fight the orcs.",
           "check": ["DEX", 10],
           "succeed": ["allydie", "You hear them curse your name as you dash away. But at least you're alive."],
-          "fail": ["allydie, die", "You leave your friend to die. But you're not actually fast enough to escape."]
+          "fail": ["allydie,die", "You leave your friend to die. But you're not actually fast enough to escape."]
         }
       }
     },
@@ -881,7 +941,36 @@
           "action": "Release.",
           "check": ["TECH", 5],
           "succeed": ["", "The doors to both rooms open. You're free to leave."],
-          "fail": ["allydie", "The door to your room opens. But your neighbour is gone, and so is the floor in their room."]
+          "fail": ["allydie", "The door to your room opens. But your neighbour is gone, and so is the floor in their room. Which button did you press?"]
+        }
+      }
+    },
+    {
+      "summary": "You're a contestant in the final round of 'Don't Drink the Milk!'. The last task is to eat a spicy pepper.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Bite into the pepper.",
+          "check": ["CON", 20],
+          "succeed": ["GOLD 50,CHA 1", "You bite into the pepper and... it's not that bad, you expected worse. You play it up for the crowd though and they eat it up. You are the winner."],
+          "fail": ["GOLD 10,HP -1", "Hot! Too hot! It burns! You chug the milk and place second."]
+        },
+        "B": {
+          "action": "Eat the pepper whole, without chewing.",
+          "check": ["STR", 20],
+          "succeed": ["GOLD 50,INT 1", "Swallowing a whole pepper without anything to wash it down isn't easy, but you manage it. You win and feel a little bit smarter."],
+          "fail": ["die", "I'll spare you the gruesome details, but you choke on a pepper on a gameshow."]
+        },
+        "C": {
+          "action": "Pretend to eat the pepper and hide it up your sleeve.",
+          "check": ["DEX", 25],
+          "succeed": ["GOLD 50,CHA 1,INT 1", "Clever plan. And they seem to buy it. You make chewing motions and fake struggle with the heat. You win and have a pepper saved for later."],
+          "fail": ["COOL -1", "Nobody is fooled, the crowd boos and you're disqualified."]
+        },
+        "D": {
+          "action": "Drink the milk.",
+          "check": [],
+          "succeed": ["GOLD 10", "Too spicy for you. You'll take the runner up prize."]
         }
       }
     }

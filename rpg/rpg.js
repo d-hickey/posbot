@@ -4,6 +4,7 @@ var util = require("util");
 
 // Local
 var randomInt = require("../randomint");
+var user = require("../user");
 
 // Discord client
 var bot;
@@ -137,9 +138,16 @@ function StatsGen() {
 
 function StatString(stats) {
     var string = "";
+    // Standard stats
     for (var stat of genParts.stats) {
         if (stat in stats) {
             string += util.format("%s:%d ", stat, stats[stat]);
+        }
+    }
+    // Additional stats
+    for (var userStat in stats){
+        if (genParts.stats.indexOf(userStat) < 0){
+            string += util.format("%s:%d ", userStat, stats[userStat]);
         }
     }
     return string;
@@ -187,6 +195,18 @@ function BioString(userID){
 // Events
 function RunEvent(userID, channelID){
     if (!save.chars[userID].alive){
+        var resChance = randomInt.Get(0, 100);
+        if (resChance >= 85){
+            save.chars[userID].alive = true;
+            save.chars[userID].stats.HP = randomInt.Get(1, 20);
+            bot.sendMessage({
+                to: channelID,
+                message: util.format(
+                    "<@%s> %s awakes in a field outside a quiet hamlet, alive and well. How did they get here? Didn't they die? Maybe it was all just a bad dream",
+                    userID, save.chars[userID].name
+                )
+            });
+        }
         return;
     }
     var index = randomInt.Get(0, genParts.events.length - 1);
@@ -235,6 +255,12 @@ function GetAlly(userID){
 
     var index = randomInt.Get(0, candidates.length - 1);
     return candidates[index];
+}
+
+function AllyDisplayName(userID){
+    var name = save.chars[userID].name;
+    var nick = user.GetMember(bot, userID).nick;
+    return util.format("%s (%s)", name, nick);
 }
 
 function ChoiceString(choices){
@@ -294,7 +320,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
     var message = result[1];
     message = message.replace("<attack>", genParts.weapon[char.weapon.type]);
     if (ally && ally != "" && ally in save.chars){
-        message = message.replace("<ally>", save.chars[ally].name);
+        message = message.replace("<ally>", AllyDisplayName(ally));
     }
 
     for (var outcome of outcomes){
@@ -303,16 +329,16 @@ function HandleResult(userID, channelID, char, result, item, ally){
             message += " You died.";
         }
         else if (outcome === "allydie"){
-            message += util.format(" %s dies.", save.chars[ally].name);
+            message += util.format(" %s dies.", AllyDisplayName(ally));
             save.chars[ally].alive = false;
             HandleAllyDeath(ally);
         }
-        else if (outcome === "weapon"){
+        else if (outcome === "weapon" && char.alive){
             var weaponEvent = {};
             weaponEvent.choices = weaponChoices;
             weaponEvent.item = WeaponGen();
             save.events[userID] = weaponEvent;
-            message += util.format(" You find a %s.\n%s", WeaponString(weaponEvent.item), ChoiceString(weaponEvent.choices));
+            message += util.format(" You find a **%s**.\n%s", WeaponString(weaponEvent.item), ChoiceString(weaponEvent.choices));
         }
         else if (outcome === "take"){
             char.weapon = item;
@@ -323,14 +349,16 @@ function HandleResult(userID, channelID, char, result, item, ally){
         else if (outcome === "gen"){
             var newchar = CharGen();
             newchar.name = char.name;
+            newchar.weapon = char.weapon;
             char = newchar;
             message += " You have been rebuilt. Generated from scratch.";
         }
         else if (outcome === "allygen"){
             var newally = CharGen();
             newally.name = save.chars[ally].name;
+            newally.weapon = save.chars[ally].weapon;
             save.chars[ally] = newally;
-            message += util.format(" %s has been completely remade. Somebody should tell them.", newally.name);
+            message += util.format(" %s has been completely remade. Somebody should tell them.", AllyDisplayName(ally));
         }
         else if (outcome !== ""){
             var parts = outcome.split(" ");
@@ -348,7 +376,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             }
             else if (stat === "allyHP"){
                 save.chars[ally].stats.HP += amount;
-                message += util.format(" %s's HP changes by %d and is now %d.", save.chars[ally].name, amount, save.chars[ally].stats.HP);
+                message += util.format(" %s's HP changes by %d and is now %d.", AllyDisplayName(ally), amount, save.chars[ally].stats.HP);
                 if (save.chars[ally].stats.HP < 1){
                     message += " They die.";
                     save.chars[ally].alive = false;
@@ -390,19 +418,16 @@ function Swap(userID, allyID){
     temp.race = char.race;
     temp.class = char.class;
     temp.story = char.story;
-    temp.weapon = char.weapon;
     temp.stats = char.stats;
 
     char.race = ally.race;
     char.class = ally.class;
     char.story = ally.story;
-    char.weapon = ally.weapon;
     char.stats = ally.stats;
 
     ally.race = temp.race;
     ally.class = temp.class;
     ally.story = temp.story;
-    ally.weapon = temp.weapon;
     ally.stats = temp.stats;
     return util.format(" %s and %s have had their character sheets swapped.", char.name, ally.name);
 }
