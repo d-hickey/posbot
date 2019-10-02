@@ -221,13 +221,22 @@ function RunEvent(userID, channelID){
             summary = summary.replace("<weapon>", WeaponString(item));
         }
         if (task === "ally"){
-            ally = GetAlly(userID);
+            ally = GetAlly(userID, true);
             if (ally === ""){
                 // No allies, run different event
                 RunEvent(userID, channelID);
                 return;
             }
-            summary = summary.replace("<ally>", save.chars[ally].name);
+            summary = summary.replace("<ally>", AllyDisplayName(ally));
+        }
+        if (task === "dead"){
+            ally = GetAlly(userID, false);
+            if (ally === ""){
+                // No allies, run different event
+                RunEvent(userID, channelID);
+                return;
+            }
+            summary = summary.replace("<ally>", AllyDisplayName(ally));
         }
     }
 
@@ -242,10 +251,10 @@ function RunEvent(userID, channelID){
     save.events[userID].ally = ally;
 }
 
-function GetAlly(userID){
+function GetAlly(userID, alive){
     var candidates = [];
     for (var id in save.chars){
-        if (id != userID && save.chars[id].alive){
+        if (id != userID && save.chars[id].alive === alive){
             candidates.push(id);
         }
     }
@@ -332,6 +341,11 @@ function HandleResult(userID, channelID, char, result, item, ally){
             message += util.format(" %s dies.", AllyDisplayName(ally));
             save.chars[ally].alive = false;
             HandleAllyDeath(ally);
+        }
+        else if (outcome === "allyrevive"){
+            save.chars[ally].alive = true;
+            save.chars[ally].stats.HP = randomInt.Get(1, 20);
+            message += util.format(" %s is returned from death.", AllyDisplayName(ally));
         }
         else if (outcome === "weapon" && char.alive){
             var weaponEvent = {};

@@ -627,8 +627,8 @@
         },
         "D": {
           "action": "Try to seduce the computer.",
-          "check": ["CHA", 25],
-          "succeed": ["HOT 1,WIS 1", "Wow, you know exactly what to say to get those fans whirring. The console opens the door for you, and gives you its number."],
+          "check": ["HOT", 25],
+          "succeed": ["HOT 1,WIS 1,CHA 1", "Wow, you know exactly what to say to get those fans whirring. The console opens the door for you, and gives you its number."],
           "fail": ["HOT -1,COOL -1", "In hindsight, seducing a machine was probably never going to work. But the rejection isn't any less damaging to your ego."]
         }
       }
@@ -905,7 +905,7 @@
           "action": "Tell them to run. You'll hold the orcs off.",
           "check": ["ATT", 18],
           "succeed": ["COOL 5, GOLD 100", "Anyone else would have fallen here. But the orcs weren't counting on you. You stride away from the battlefield, covered in blood. None of it yours."],
-          "fail": ["die,title 48", "You are true to your word, no orc gets past you while you still draw breath. Which is more than long enough for your ally to escape."]
+          "fail": ["die,title 49", "You are true to your word, no orc gets past you while you still draw breath. Which is more than long enough for your ally to escape."]
         },
         "C": {
           "action": "Run while they fight the orcs.",
@@ -946,13 +946,43 @@
       }
     },
     {
+      "summary": "You've finally found it, the hidden tomb. Rumoured to be the resting place of <ally>.",
+      "setup": ["dead"],
+      "choices": {
+        "A": {
+          "action": "Their work is unfinished. Say a prayer of resurrection.",
+          "check": ["WIS", 12],
+          "succeed": ["allyrevive", "The tomb is bathed in golden light as you say the words. Darkness returns as you finish, and nothing happens. You sit down, defeated. At least you gave it your all. Then the coffin stirs."],
+          "fail": ["WIS 1", "You pray your hardest. You feel the power of the gods flowing through you into the room. But it is not enough. Maybe they're too long gone, maybe you have more to learn."]
+        },
+        "B": {
+          "action": "You're here to loot, obviously.",
+          "check": ["DEX", 15],
+          "succeed": ["GOLD 50,weapon", "Some people wouldn't dare loot the dead, but you're not above some old fashioned grave digging. You get some gold and trinkets for your trouble."],
+          "fail": ["GOLD 20,HP -10,allyrevive", "You make your way through the tomb, checking every corner. You find some gold here and there... Wait, was that coffin always open? You're hit by something from the darkness."]
+        },
+        "C": {
+          "action": "You can rebuild them. You have the technology.",
+          "check": ["TECH", 20],
+          "succeed": ["allyrevive,TECH 2", "The tomb is filled with the sound of power tools. You replace flesh with metal. You wire circuitry to organs. Eventually a cry is heard echoing through the halls: \"It's alive\"."],
+          "fail": ["TECH 1,INT 1", "In the end all you really manage to to drill some metal into a corpse. A good learning experience at least."]
+        },
+        "D": {
+          "action": "Challenge the coffin to a game of cards. If you win it has to release its prisoner.",
+          "check": ["WEIRD", 15],
+          "succeed": ["allyrevive,WEIRD 1", "You play the best you ever have. Your poker face is impenetrable. But it's close, the tide looks to be turning against you. And then you see it, your opening. SNAP!"],
+          "fail": ["WEIRD 1,HP -3", "You are found days later, surrounded by playing cards. You whisper to the rescue team 'I fold'."]
+        }
+      }
+    },
+    {
       "summary": "You're a contestant in the final round of 'Don't Drink the Milk!'. The last task is to eat a spicy pepper.",
       "setup": [],
       "choices": {
         "A": {
           "action": "Bite into the pepper.",
           "check": ["CON", 20],
-          "succeed": ["GOLD 50,CHA 1", "You bite into the pepper and... it's not that bad, you expected worse. You play it up for the crowd though and they eat it up. You are the winner."],
+          "succeed": ["GOLD 50,CHA 1", "You bite into the pepper and... it's not that bad. You expected worse. You play it up for the crowd though and they eat it up. You are the winner."],
           "fail": ["GOLD 10,HP -1", "Hot! Too hot! It burns! You chug the milk and place second."]
         },
         "B": {
