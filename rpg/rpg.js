@@ -181,7 +181,7 @@ function CharacterString(userID) {
     if (!char.alive){
         return util.format("You were %s. But now you are dead. You can use !rollchar for another chance at life.", char.name);
     }
-    return util.format("You are %s, %s %s\nYou're weapon of choice: %s\n%s\n%s", char.name, char.race, char.class, WeaponString(char.weapon), char.story, StatString(char.stats));
+    return util.format("You are %s, %s %s\nYour weapon of choice: %s\n%s\n%s", char.name, char.race, char.class, WeaponString(char.weapon), char.story, StatString(char.stats));
 }
 
 function BioString(userID){
@@ -307,6 +307,10 @@ function Action(userID, channelID, letter){
     var mod = 0;
     if (stat === "ATT"){
         mod = char.weapon.bonus;
+    }
+    else if (stat === "FIGHT"){
+        mod = char.weapon.bonus;
+        dc = randomInt.Get(1, 20) + save.chars[ev.ally].weapon.bonus;
     }
     else{
         mod = char.stats[stat];
