@@ -321,7 +321,7 @@ function Action(userID, channelID, letter){
     }
 
     var result = choice.fail;
-    if (roll + mod > dc){
+    if (roll + mod >= dc){
         result = choice.succeed;
     }
     HandleResult(userID, channelID, char, result, ev.item, ev.ally);
