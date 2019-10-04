@@ -383,7 +383,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             var stat = parts[0];
             var amount = parseInt(parts[1]);
             if (stat === "title"){
-                char.title = genParts.title[amount];
+                char.name += util.format(" \"%s\"", genParts.title[amount]);
                 message += " You are given the title " + char.title;
             }
             else if (stat === "stat"){

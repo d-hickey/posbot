@@ -568,7 +568,7 @@
         },
         "D": {
           "action": "The boulder is not real, you are not real, simply walk through it.",
-          "check": ["WEIRD", 20],
+          "check": ["WEIRD", 18],
           "succeed": ["weapon", "You walk straight through the boulder, and find a new toy inside."],
           "fail": ["die", "You get halfway through the giant rock before you realise what you're doing is impossible. You're trapped in stone with no air."]
         }
@@ -610,13 +610,13 @@
       "choices": {
         "A": {
           "action": "Punch the door.",
-          "check": ["STR", 30],
+          "check": ["STR", 25],
           "succeed": ["HOT 2", "All it takes is one punch and the door comes down. Damn, you're buff."],
           "fail": ["HP -5", "Thud. The door doesn't budge. That's a broken hand, for sure."]
         },
         "B": {
           "action": "Hack the console. Hack the door. Hack the world.",
-          "check": ["TECH", 20],
+          "check": ["TECH", 15],
           "succeed": ["COOL 1,CHA 1", "Turns out there's an open button on the console, but you make it look like you're doing cool hacking."],
           "fail": ["COOL -1", "What's less cool than a nerd? A nerd who can't even get this door open."]
         },
@@ -745,19 +745,19 @@
         },
         "B": {
           "action": "Pray for wealth.",
-          "check": ["WIS", 30],
+          "check": ["WIS", 20],
           "succeed": ["weapon", "What's this, beneath your bench?"],
           "fail": ["", "The gods do not reward greed, most of the time."]
         },
         "C": {
           "action": "Pray for gains.",
-          "check": ["WIS", 25],
+          "check": ["WIS", 22],
           "succeed": ["stat 3", "You feel stronger already."],
           "fail": ["HOT 1", "You don't feel any more buff, but you do notice some of the clergy checking you out."]
         },
         "D": {
           "action": "Find somewhere to sleep.",
-          "check": ["DEX", 20],
+          "check": ["DEX", 15],
           "succeed": ["WIS 1", "You take a nap in a confessional booth. You awake to a man in the other booth mid confession. He compliments your ability to listen."],
           "fail": ["COOL -1", "You're kicked out by a very angry nun."]
         }
@@ -775,7 +775,7 @@
         },
         "B": {
           "action": "Attempt to resolve your differences with words.",
-          "check": ["CHA", 20],
+          "check": ["CHA", 18],
           "succeed": ["title 2", "The goblins take to you well, and count you as one of their own."],
           "fail": ["COOL -1", "Even goblins don't want to hang out with you."]
         },
@@ -811,7 +811,7 @@
         },
         "D": {
           "action": "This is a fight you can't win. Run!",
-          "check": ["DEX", 25],
+          "check": ["DEX", 20],
           "succeed": ["COOL 1", "Dodge, duck, dip, dive and dodge. You escape unscathed."],
           "fail": ["HP -15", "You get away, barely. But you're covered in cuts and bruises, and some of the dragon fire got you."]
         }
@@ -886,7 +886,7 @@
         },
         "C": {
           "action": "Cast featherfall on them.",
-          "check": ["INT", 15],
+          "check": ["INT", 14],
           "succeed": ["GOLD 25", "You successfully cast the spell. <ally> finds some gold at the bottom and gives it to you as a reward."],
           "fail": ["allydie", "You cast the spell, but it's only when you hear the thud at the bottom of the cliff that you realise you cast it on yourself."]
         }
@@ -898,7 +898,7 @@
       "choices": {
         "A": {
           "action": "Make your stand. Here. Together.",
-          "check": ["ATT", 15],
+          "check": ["ATT", 14],
           "succeed": ["weapon", "You work together in perfect unison. Orcs die by the hundreds before you. You take the warchief's weapon from his body."],
           "fail": ["allydie,die", "It's beautiful. It happens in slow motion of course. You each take down dozens before you succomb to your wounds."]
         },
@@ -958,19 +958,19 @@
         },
         "B": {
           "action": "Declare your eternal love for your opponent. You will not fight. They will have to kill you both.",
-          "check": ["CHA", 18],
+          "check": ["CHA", 15],
           "succeed": ["HOT 1,title 35", "The crowd loves it, love found on the battlefield. To avoid risking a revolt the lord announces you as joint victors."],
           "fail": ["allydie,die", "They do. They do kill you both."]
         },
         "C": {
           "action": "The lord presides over the spectical. In the open. You've practiced this manoeuvre. If your opponent launches you into the air just right you can reach him.",
-          "check": ["DEX", 25],
+          "check": ["DEX", 20],
           "succeed": ["COOL 3,title 33,GOLD 200", "You charge as if to attack. Your ally drops to a crouch and holds their shield above their head. You jump and they push up. The lord's face is filled with surprise and terror as you fly right at him."],
           "fail": ["die", "You are launched into the air, but fall just short. Unfortunately the walls of this arena are lined with spikes. <ally> is declare the winner by default."]
         },
         "D": {
           "action": "Fight your way out.",
-          "check": ["ATT", 16],
+          "check": ["ATT", 15],
           "succeed": ["CON 1", "They send in the troops and you <attack> your way through them. When he sees how well you're doing the lord makes a swift exit. You and <ally> leave the arena alive, a trail of bodies behidn you."],
           "fail": ["HP -12,allyHP -12", "It's tough going getting out, there seems to be an endless supply of guards. You take some bad hits, but eventually get away. You finally stop to rest in a clearing in the woods."]
         }
@@ -1012,19 +1012,19 @@
       "choices": {
         "A": {
           "action": "Bite into the pepper.",
-          "check": ["CON", 20],
+          "check": ["CON", 15],
           "succeed": ["GOLD 50,CHA 1", "You bite into the pepper and... it's not that bad. You expected worse. You play it up for the crowd though and they eat it up. You are the winner."],
           "fail": ["GOLD 10,HP -1", "Hot! Too hot! It burns! You chug the milk and place second."]
         },
         "B": {
           "action": "Eat the pepper whole, without chewing.",
-          "check": ["STR", 20],
+          "check": ["STR", 15],
           "succeed": ["GOLD 50,INT 1", "Swallowing a whole pepper without anything to wash it down isn't easy, but you manage it. You win and feel a little bit smarter."],
           "fail": ["die", "I'll spare you the gruesome details, but you choke on a pepper on a gameshow."]
         },
         "C": {
           "action": "Pretend to eat the pepper and hide it up your sleeve.",
-          "check": ["DEX", 25],
+          "check": ["DEX", 20],
           "succeed": ["GOLD 50,CHA 1,INT 1", "Clever plan. And they seem to buy it. You make chewing motions and fake struggle with the heat. You win and have a pepper saved for later."],
           "fail": ["COOL -1", "Nobody is fooled, the crowd boos and you're disqualified."]
         },
@@ -1032,6 +1032,30 @@
           "action": "Drink the milk.",
           "check": [],
           "succeed": ["GOLD 10", "Too spicy for you. You'll take the runner up prize."]
+        }
+      }
+    },
+    {
+      "summary": "After a wild adventure, you find yourself in a tavern, a few beers in. A band of musicians is playing, getting louder and less precise as they're tipped in drinks by the merry clientele. The atmosphere is jovial. Some tables are cleared away in front of the band to make space for dancing.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Time to show off your moves!",
+          "check": ["CHA", 15],
+          "succeed": ["DEX 1,HOT 3", "You stand up as Ke$ha's TikTok starts playing and break out into a perfectly choreographed routine. The tavern explodes in applause."],
+          "fail": ["CHA -1,COOL -3", "Your limbs flail about awkwardly, nowhere near in time with the music. You elbow a dragonborn warrior in the ribs. She does not take this kindly. You get shoved into a nearby table, tipping it over and smashing at least 4 drinks."]
+        },
+        "B": {
+          "action": "Pickpocket while everyone is distracted.",
+          "check": ["DEX", 15],
+          "succeed": ["GOLD 20", "You slip through the crowd, silently cutting a few purses along the way."],
+          "fail": ["", "Your hand gets stuck in an old high elf's trouser pocket as you try to grab his purse. He grabs your wrist, turns to you, and winks... This is very uncomfortable now."]
+        },
+        "C": {
+          "action": "Sit this one out. Dancing's not really your thing...",
+          "check": ["COOL", 15],
+          "succeed": ["COOL 3", "You sip your drink and soak in the atmosphere. You have nothing to prove to anyone."],
+          "fail": ["COOL -3", "Almost everyone else has joined in. You try to act cool, but you just look like a loner. This is just like fantasy highschool all over again."]
         }
       }
     }
