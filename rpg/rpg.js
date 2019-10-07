@@ -384,7 +384,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             var amount = parseInt(parts[1]);
             if (stat === "title"){
                 char.name += util.format(" \"%s\"", genParts.title[amount]);
-                message += " You are given the title " + char.title;
+                message += " You are given the title " + genParts.title[amount];
             }
             else if (stat === "stat"){
                 var statIndex = randomInt.Get(0, genParts.stats.length - 1);
