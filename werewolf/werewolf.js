@@ -121,10 +121,10 @@ function assignRandomRoles(){
         if (newRole === cupidRole){
             roles.splice(index, 1);
         }
-        
+
         players[key].role = newRole;
     }
-    
+
     informPlayersOfRoles();
 }
 
@@ -234,7 +234,7 @@ function sendNightMessages(){
             }
             else if (role === muteRole){
                 roleMsg = "... ... !ready";
-            } 
+            }
             else {
                 roleMsg = roleMsg + " use \"!ready\" to sleep peacefully through the night.";
             }
@@ -243,7 +243,7 @@ function sendNightMessages(){
                 message: roleMsg
             });
         }
-        
+
     }
 }
 
@@ -305,7 +305,7 @@ function sendWitchMessages(){
     for (var poison of poisoned){
         removePlayerFromPool(poison);
         var deathMsg = util.format("%s was found dead. Face down in their porridge. Poison! They were a %s", players[poison].dname, players[poison].role);
-        deathMsg = handleLoverDeath(victim, deathMsg);
+        deathMsg = handleLoverDeath(poison, deathMsg);
         bot.sendMessage({
             to: wolfChannel,
             message: deathMsg
@@ -525,7 +525,7 @@ function checkEndStates(){
                     break;
                 }
             }
-            
+
         }
         bot.sendMessage({
             to: wolfChannel,
@@ -649,7 +649,7 @@ function victimVote(wolf, target, channel){
                     message: util.format("Accept vote for %s", displayName)
                 });
             }
-            
+
             if (votesDone()){
                 advanceTime();
             }
@@ -679,12 +679,12 @@ function seeRole(seer, subject){
             if (players[player].cursed){
                 roleSeen = woofRole;
             }
-            
+
             bot.sendMessage({
                 to: seer,
                 message: util.format("Where there once was doubt, there is now certainty. %s is a %s", displayName, roleSeen)
             });
-            
+
             if (votesDone()){
                 advanceTime();
             }
@@ -724,8 +724,8 @@ function savePlayer(doctor, patient){
                     message: util.format("You will check up on %s tonight, make sure they aren't bleeding to death. Maybe you'll even get paid, does this town have socialised healthcare?", displayName)
                 });
             }
-            
-            
+
+
             if (votesDone()){
                 advanceTime();
             }
@@ -848,12 +848,12 @@ function visitPlayer(harlot, paramour){
             visitObj.harlot = harlot;
             visitObj.visitee = player;
             visits.push(visitObj);
-            
+
             bot.sendMessage({
                 to: harlot,
                 message: util.format("You'll be staying with %s tonight. Listen, I don't want any details, just make sure you use protection.", displayName)
             });
-            
+
             if (votesDone()){
                 advanceTime();
             }
@@ -879,7 +879,7 @@ function revivePlayer(witch, corpse){
         if ((name === dead || name.indexOf(dead) > -1) && players[player].alive === false){
             success = true;
             players[witch].voted = true;
-            
+
             var witchIndex = potions.indexOf(witch);
             potions.splice(witchIndex, 1);
 
@@ -914,7 +914,7 @@ function poisonPlayer(witch, target){
         if ((name === dead || name.indexOf(dead) > -1) && players[player].alive === true){
             success = true;
             players[witch].voted = true;
-            
+
             var witchIndex = poisons.indexOf(witch);
             poisons.splice(witchIndex, 1);
 
@@ -1002,9 +1002,9 @@ function readyVote(voter, channel){
             message: "Ready status acknowledged."
         });
     }
-    
+
     players[voter].voted = true;
-    
+
     if (votesDone()){
         advanceTime();
     }
@@ -1081,7 +1081,7 @@ function printVotes(){
         votes = util.format("%s ready out of a possible %s", ready, total);
     }
 
-    
+
     return votes;
 }
 
@@ -1243,7 +1243,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
             }
             break;
         case "see":
-            if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false && 
+            if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false &&
                 players[userID].role === seerRole && players[userID].alive === true){
                 var subject = args[0];
                 if (subject){
@@ -1252,7 +1252,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
             }
             break;
         case "save":
-            if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false && 
+            if (game === 1 && start === 1 && (night === 1 || night === 2) && userID in players && players[userID].voted === false &&
                 players[userID].role === doctorRole && players[userID].alive === true){
                 var patient = args[0];
                 if (patient){
@@ -1262,7 +1262,7 @@ function Werewolf(client, user, userID, channelID, cmd, args){
             break;
         case "match": // Fallthrough
         case "matchmake":
-            if (game === 1 && start === 1 && night === 2 && userID in players && players[userID].voted === false && 
+            if (game === 1 && start === 1 && night === 2 && userID in players && players[userID].voted === false &&
                 players[userID].role === cupidRole && players[userID].alive === true){
                 var loverOne = args[0];
                 var loverTwo = args[1];
