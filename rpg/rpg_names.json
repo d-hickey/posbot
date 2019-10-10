@@ -870,6 +870,34 @@
       }
     },
     {
+      "summary": "You're exploring the alleys of Shiftyfell and are greeted by a hooded goblin. \"Ey you want some muscle accelerant?\", he scratches his nose.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Try a free sample.",
+          "check": [],
+          "succeed": ["HP -2,STR 1", ""]
+        },
+        "B": {
+          "action": "\"Aw yeah, hit me with that shit\" (requires 50 gp).",
+          "check": ["GOLD", 50],
+          "succeed": ["GOLD -50,HP -2,STR 4", ""],
+          "fail": ["", "Sorry, you're too poor."]
+        },
+        "C": {
+          "action": "Punch him and take his money.",
+          "check": ["STR", 12],
+          "succeed": ["GOLD 50", "Well done you beat up the small child-like goblin and took all his money."],
+          "fail": ["HP -5", "You fist bounces off the goblin's thick skull. He looks up at you in hurt confusion and then bites your leg and runs away."]
+        },
+        "D": {
+          "action": "\"No thanks I don't do drugs\".",
+          "check": [],
+          "succeed": ["", "The goblin tips his hood back down over his eyes and continues on in search of another customer."]
+        }
+      }
+    },
+    {
       "summary": "Oh no! <ally> is hanging off a cliff edge, barely holding on.",
       "setup": ["ally"],
       "choices": {
