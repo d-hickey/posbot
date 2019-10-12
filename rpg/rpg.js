@@ -196,7 +196,7 @@ function BioString(userID){
 function RunEvent(userID, channelID){
     if (!save.chars[userID].alive){
         var resChance = randomInt.Get(0, 100);
-        if (resChance >= 85){
+        if (resChance >= 95){
             save.chars[userID].alive = true;
             save.chars[userID].stats.HP = randomInt.Get(1, 20);
             bot.sendMessage({
