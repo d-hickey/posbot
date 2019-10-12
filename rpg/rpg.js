@@ -389,8 +389,13 @@ function HandleResult(userID, channelID, char, result, item, ally){
             else if (stat === "stat"){
                 var statIndex = randomInt.Get(0, genParts.stats.length - 1);
                 var upgraded = genParts.stats[statIndex];
+                var oldvalue = char.stats[upgraded];
                 char.stats[upgraded] += amount;
-                message += util.format(" Your %s changes by %d and is now %d.", upgraded, amount, char.stats[upgraded]);
+                var direction = "increases";
+                if (amount < 0){
+                    direction = "decreases";
+                }
+                message += util.format(" Your %s %s from %d to %d.", upgraded, direction, oldvalue, char.stats[upgraded]);
             }
             else if (stat === "allyHP"){
                 save.chars[ally].stats.HP += amount;
