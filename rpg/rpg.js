@@ -312,6 +312,9 @@ function Action(userID, channelID, letter){
         mod = char.weapon.bonus;
         dc = randomInt.Get(1, 20) + save.chars[ev.ally].weapon.bonus;
     }
+    else if (stat === "TEAM"){
+        mod = char.weapon.bonus + save.chars[ev.ally].weapon.bonus;
+    }
     else{
         mod = char.stats[stat];
     }

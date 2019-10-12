@@ -926,14 +926,14 @@
       "choices": {
         "A": {
           "action": "Make your stand. Here. Together.",
-          "check": ["ATT", 14],
+          "check": ["TEAM", 14],
           "succeed": ["weapon", "You work together in perfect unison. Orcs die by the hundreds before you. You take the warchief's weapon from his body."],
           "fail": ["allydie,die", "It's beautiful. It happens in slow motion of course. You each take down dozens before you succomb to your wounds."]
         },
         "B": {
           "action": "Tell them to run. You'll hold the orcs off.",
           "check": ["ATT", 18],
-          "succeed": ["COOL 5, GOLD 100", "Anyone else would have fallen here. But the orcs weren't counting on you. You stride away from the battlefield, covered in blood. None of it yours."],
+          "succeed": ["COOL 5,GOLD 100", "Anyone else would have fallen here. But the orcs weren't counting on you. You stride away from the battlefield, covered in blood. None of it yours."],
           "fail": ["die,title 50", "You are true to your word, no orc gets past you while you still draw breath. Which is more than long enough for your ally to escape."]
         },
         "C": {
@@ -998,8 +998,8 @@
         },
         "D": {
           "action": "Fight your way out.",
-          "check": ["ATT", 15],
-          "succeed": ["CON 1", "They send in the troops and you <attack> your way through them. When he sees how well you're doing the lord makes a swift exit. You and <ally> leave the arena alive, a trail of bodies behidn you."],
+          "check": ["TEAM", 15],
+          "succeed": ["CON 1", "They send in the troops and you <attack> your way through them. When he sees how well you're doing the lord makes a swift exit. You and <ally> leave the arena alive, a trail of bodies behind you."],
           "fail": ["HP -12,allyHP -12", "It's tough going getting out, there seems to be an endless supply of guards. You take some bad hits, but eventually get away. You finally stop to rest in a clearing in the woods."]
         }
       }
