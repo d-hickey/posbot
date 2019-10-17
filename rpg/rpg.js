@@ -366,12 +366,14 @@ function HandleResult(userID, channelID, char, result, item, ally){
         }
         else if (outcome === "swap"){
             message += Swap(userID, allyID);
+            char = save.chars[userID];
         }
         else if (outcome === "gen"){
             var newchar = CharGen();
             newchar.name = char.name;
             newchar.weapon = char.weapon;
-            char = newchar;
+            save.chars[userID] = newchar;
+            char = save.chars[userID];
             message += " You have been rebuilt. Generated from scratch.";
         }
         else if (outcome === "allygen"){
@@ -455,6 +457,10 @@ function Swap(userID, allyID){
     ally.class = temp.class;
     ally.story = temp.story;
     ally.stats = temp.stats;
+
+    save.chars[userID] = char;
+    save.chars[allyID] = ally;
+
     return util.format(" %s and %s have had their character sheets swapped.", char.name, ally.name);
 }
 
