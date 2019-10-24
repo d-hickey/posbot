@@ -535,10 +535,15 @@ function Entry(client, userID, channelID){
     bot = client;
 
     if (userID in save.chars && !(userID in save.events)){
+        var rpgChan = channelID;
+        if (save.channel){
+            rpgChan = save.channel;
+        }
+
         var time = save.chars[userID].time++;
         var chance = randomInt.Get(1, time);
         if (chance > save.chance){
-            RunEvent(userID, channelID);
+            RunEvent(userID, rpgChan);
             save.chars[userID].time = 0;
         }
         SaveGame();
