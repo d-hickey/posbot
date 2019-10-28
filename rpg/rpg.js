@@ -211,7 +211,7 @@ function RunEvent(userID, channelID, goToPage=0){
     }
     var index = randomInt.Get(0, genParts.events.length - 1);
     var ev = genParts.events[index];
-    
+
     if (goToPage){
         ev = genParts.events.filter(event => event.page === goToPage)[0];
         //console.log("Flipping to page", goToPage, ev.summary)
@@ -377,7 +377,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             char.weapon = item;
         }
         else if (outcome === "swap"){
-            message += Swap(userID, allyID);
+            message += Swap(userID, ally);
             char = save.chars[userID];
         }
         else if (outcome === "gen"){
@@ -406,13 +406,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             else if (stat === "stat"){
                 var statIndex = randomInt.Get(0, genParts.stats.length - 1);
                 var upgraded = genParts.stats[statIndex];
-                var oldvalue = char.stats[upgraded];
-                char.stats[upgraded] += amount;
-                var direction = "increases";
-                if (amount < 0){
-                    direction = "decreases";
-                }
-                message += util.format(" Your %s %s from %d to %d.", upgraded, direction, oldvalue, char.stats[upgraded]);
+                message += UpgradeStat(char, upgraded);
             }
             else if (stat === "allyHP"){
                 save.chars[ally].stats.HP += amount;
@@ -424,15 +418,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
                 }
             }
             else{
-                if (!(stat in char.stats)){
-                    char.stats[stat] = 0;
-                }
-                char.stats[stat] += amount;
-                message += util.format(" Your %s changes by %d and is now %d.", stat, amount, char.stats[stat]);
-                if (stat === "HP" && char.stats[stat] < 1){
-                    message += " You die.";
-                    char.alive = false;
-                }
+                message += UpgradeStat(char, stat);
             }
         }
     }
@@ -454,6 +440,26 @@ function HandleAllyDeath(userID){
     if (userID in save.events){
         delete save.events[userID];
     }
+}
+
+function UpdateStat(char, stat){
+    if (!(stat in char.stats)){
+        char.stats[stat] = 0;
+    }
+
+    var oldvalue = char.stats[stat];
+    char.stats[stat] += amount;
+
+    var direction = "increases";
+    if (amount < 0){
+        direction = "decreases";
+    }
+    message = util.format(" Your %s %s from %d to %d.", stat, direction, oldvalue, char.stats[stat]);
+    if (stat === "HP" && char.stats[stat] < 1){
+        message += " You die.";
+        char.alive = false;
+    }
+    return message;
 }
 
 function Swap(userID, allyID){
