@@ -193,7 +193,7 @@ function BioString(userID){
 }
 
 // Events
-function RunEvent(userID, channelID){
+function RunEvent(userID, channelID, goToPage=0){
     if (!save.chars[userID].alive){
         var resChance = randomInt.Get(0, 100);
         if (resChance >= 95){
@@ -211,6 +211,15 @@ function RunEvent(userID, channelID){
     }
     var index = randomInt.Get(0, genParts.events.length - 1);
     var ev = genParts.events[index];
+    
+    if (goToPage){
+        ev = genParts.events.filter(event => event.page === goToPage)[0];
+        //console.log("Flipping to page", goToPage, ev.summary)
+    }
+    else if (ev.page){
+        RunEvent(userID, channelID);
+        return;
+    }
 
     var summary = ev.summary;
     var item = {};
@@ -334,11 +343,14 @@ function HandleResult(userID, channelID, char, result, item, ally){
     delete save.events[userID];
     var outcomes = result[0].split(",");
     var message = result[1];
+    var goToPage = 0;
+    if (result.length == 3){
+        goToPage = result[2];
+    }
     message = message.replace("<attack>", genParts.weapon[char.weapon.type]);
     if (ally && ally != "" && ally in save.chars){
         message = message.replace("<ally>", AllyDisplayName(ally));
     }
-
     for (var outcome of outcomes){
         if (outcome === "die"){
             char.alive = false;
@@ -430,6 +442,12 @@ function HandleResult(userID, channelID, char, result, item, ally){
     });
 
     SaveGame();
+
+    if(goToPage){
+        if (char.alive){
+            RunEvent(userID, channelID, goToPage);
+        }
+    }
 }
 
 function HandleAllyDeath(userID){

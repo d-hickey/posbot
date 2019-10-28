@@ -1086,7 +1086,42 @@
           "fail": ["COOL -3", "Almost everyone else has joined in. You try to act cool, but you just look like a loner. This is just like fantasy highschool all over again."]
         }
       }
+  },
+  {
+      "summary": "You find a void puzzle cube. The cube is surrounded with eldritch energy, it doesn't so much tell you that it will never be solved, you just know.",
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Try to solve the puzzle cube.",
+          "check": ["CON", 50],
+          "succeed": ["GOLD 400", "That wasn't so hard. You are rewarded for your persistence. The Elder Gods have taken note."],
+          "fail": ["GOLD -10,", "You are wasting your time and time is money. The cube takes its fee.", 1]
+        },
+        "B": {
+          "action": "Walk away.",
+          "check": [],
+          "succeed": ["", "You walk away from the challenge. A safe choice."]
+        }
+      }
+  },
+  {
+        "summary": "You face the impossible challenge once more. You are compelled to go on.",
+        "page": 1,
+        "setup": [],
+        "choices": {
+        "A": {
+          "action": "Try Again. You will not be defeated!",
+          "check": ["CON", 50],
+          "succeed": ["GOLD 400", "Impossible is nothing. You are rewarded for your persistence. The Elder Gods have taken note."],
+          "fail": ["GOLD -10,", "You are wasting your time and time is money. The cube takes its fee once more.", 1]
+        },
+        "B": {
+          "action": "Give up.",
+          "check": [],
+          "succeed": ["", "A wise choice. You leave the puzzle behind you. But will the puzzle ever leave you?"]
+        }
     }
+  }
   ]
 
 }
