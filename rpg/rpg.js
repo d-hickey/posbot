@@ -406,7 +406,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             else if (stat === "stat"){
                 var statIndex = randomInt.Get(0, genParts.stats.length - 1);
                 var upgraded = genParts.stats[statIndex];
-                message += UpdateStat(char, upgraded);
+                message += UpdateStat(char, upgraded, amount);
             }
             else if (stat === "allyHP"){
                 save.chars[ally].stats.HP += amount;
@@ -418,7 +418,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
                 }
             }
             else{
-                message += UpdateStat(char, stat);
+                message += UpdateStat(char, stat, amount);
             }
         }
     }
@@ -442,7 +442,7 @@ function HandleAllyDeath(userID){
     }
 }
 
-function UpdateStat(char, stat){
+function UpdateStat(char, stat, amount){
     if (!(stat in char.stats)){
         char.stats[stat] = 0;
     }
