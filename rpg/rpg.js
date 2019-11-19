@@ -193,7 +193,7 @@ function BioString(userID){
 }
 
 // Events
-function RunEvent(userID, channelID, goToPage=0){
+function RunEvent(userID, channelID, goToPage=0, item={}, ally=""){
     if (!save.chars[userID].alive){
         var resChance = randomInt.Get(0, 100);
         if (resChance >= 95){
@@ -202,10 +202,20 @@ function RunEvent(userID, channelID, goToPage=0){
             bot.sendMessage({
                 to: channelID,
                 message: util.format(
-                    "<@%s> %s awakes in a field outside a quiet hamlet, alive and well. How did they get here? Didn't they die? Maybe it was all just a bad dream",
+                    "<@%s> %s awakes in a field outside a quiet hamlet, alive and well. How did they get here? Didn't they die? Maybe it was all just a bad dream.",
                     userID, save.chars[userID].name
                 )
             });
+        }
+        if (resChance <= 5){
+            bot.sendMessage({
+                to: channelID,
+                message: util.format(
+                    "<@%s> %s awakes one day, amongst the clouds. Far below them is the world they knew. In front of them is an open door. What they see on the other side cannot be seen by us. They take one last look at the world below and step through.",
+                    userID, save.chars[userID].name
+                )
+            });
+            PermaKillChar(userID);
         }
         return;
     }
@@ -222,31 +232,33 @@ function RunEvent(userID, channelID, goToPage=0){
     }
 
     var summary = ev.summary;
-    var item = {};
-    var ally = "";
     for (var task of ev.setup){
         if (task === "weapon"){
-            item = WeaponGen();
+            if (item === {}){
+                item = WeaponGen();
+            }
             summary = summary.replace("<weapon>", WeaponString(item));
         }
-        if (task === "ally"){
+        if (task === "ally" && ally === ""){
             ally = GetAlly(userID, true);
             if (ally === ""){
                 // No allies, run different event
                 RunEvent(userID, channelID);
                 return;
             }
-            summary = summary.replace("<ally>", AllyDisplayName(ally));
         }
-        if (task === "dead"){
+        if (task === "dead" && ally === ""){
             ally = GetAlly(userID, false);
             if (ally === ""){
                 // No allies, run different event
                 RunEvent(userID, channelID);
                 return;
             }
-            summary = summary.replace("<ally>", AllyDisplayName(ally));
         }
+    }
+
+    if (ally){
+        summary = summary.replace("<ally>", AllyDisplayName(ally));
     }
 
     var alert = util.format("<@%s> %s\n%s", userID, summary, ChoiceString(ev.choices));
@@ -353,13 +365,12 @@ function HandleResult(userID, channelID, char, result, item, ally){
     }
     for (var outcome of outcomes){
         if (outcome === "die"){
-            char.alive = false;
+            KillChar(userID);
             message += " You died.";
         }
         else if (outcome === "allydie"){
             message += util.format(" %s dies.", AllyDisplayName(ally));
-            save.chars[ally].alive = false;
-            HandleAllyDeath(ally);
+            KillChar(ally);
         }
         else if (outcome === "allyrevive"){
             save.chars[ally].alive = true;
@@ -395,6 +406,10 @@ function HandleResult(userID, channelID, char, result, item, ally){
             save.chars[ally] = newally;
             message += util.format(" %s has been completely remade. Somebody should tell them.", AllyDisplayName(ally));
         }
+        else if (outcome === "allyperma"){
+            message += util.format(" %s has been destroyed, never to return to this world.", AllyDisplayName(ally));
+            PermaKillChar(ally);
+        }
         else if (outcome !== ""){
             var parts = outcome.split(" ");
             var stat = parts[0];
@@ -406,19 +421,18 @@ function HandleResult(userID, channelID, char, result, item, ally){
             else if (stat === "stat"){
                 var statIndex = randomInt.Get(0, genParts.stats.length - 1);
                 var upgraded = genParts.stats[statIndex];
-                message += UpdateStat(char, upgraded, amount);
+                message += UpdateStat(userID, upgraded, amount);
             }
             else if (stat === "allyHP"){
                 save.chars[ally].stats.HP += amount;
                 message += util.format(" %s's HP changes by %d and is now %d.", AllyDisplayName(ally), amount, save.chars[ally].stats.HP);
                 if (save.chars[ally].stats.HP < 1){
                     message += " They die.";
-                    save.chars[ally].alive = false;
-                    HandleAllyDeath(ally);
+                    KillChar(ally);
                 }
             }
             else{
-                message += UpdateStat(char, stat, amount);
+                message += UpdateStat(userID, stat, amount);
             }
         }
     }
@@ -431,18 +445,30 @@ function HandleResult(userID, channelID, char, result, item, ally){
 
     if(goToPage){
         if (char.alive){
-            RunEvent(userID, channelID, goToPage);
+            RunEvent(userID, channelID, goToPage, item, ally);
         }
     }
 }
 
-function HandleAllyDeath(userID){
+function KillChar(userID){
+    save.chars[userID].alive = false;
     if (userID in save.events){
         delete save.events[userID];
     }
+    for (var id in save.events){
+        if (save.events[id].ally == userID){
+            delete save.events[id];
+        }
+    }
 }
 
-function UpdateStat(char, stat, amount){
+function PermaKillChar(userID){
+    KillChar(userID);
+    delete save.chars[userID];
+}
+
+function UpdateStat(userID, stat, amount){
+    var char = save.chars[userID];
     if (!(stat in char.stats)){
         char.stats[stat] = 0;
     }
@@ -457,7 +483,7 @@ function UpdateStat(char, stat, amount){
     message = util.format(" Your %s %s from %d to %d.", stat, direction, oldvalue, char.stats[stat]);
     if (stat === "HP" && char.stats[stat] < 1){
         message += " You die.";
-        char.alive = false;
+        KillChar(userID);
     }
     return message;
 }
@@ -494,11 +520,13 @@ function Commands(client, userID, channelID, cmd, args) {
     switch (cmd) {
         case "newchar": // Fallthrough
         case "rollchar":
-            CreateCharacter(userID);
-            bot.sendMessage({
-                to: channelID,
-                message: CharacterString(userID)
-            });
+            if (!(userID in save.chars) || !save.chars[userID].alive){
+                CreateCharacter(userID);
+                bot.sendMessage({
+                    to: channelID,
+                    message: CharacterString(userID)
+                });
+            }
             break;
         case "char": // Fallthrough
         case "showchar":

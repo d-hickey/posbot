@@ -1009,10 +1009,9 @@
       "setup": ["dead"],
       "choices": {
         "A": {
-          "action": "Their work is unfinished. Say a prayer of resurrection.",
-          "check": ["WIS", 12],
-          "succeed": ["allyrevive", "The tomb is bathed in golden light as you say the words. Darkness returns as you finish, and nothing happens. You sit down, defeated. At least you gave it your all. Then the coffin stirs."],
-          "fail": ["WIS 1", "You pray your hardest. You feel the power of the gods flowing through you into the room. But it is not enough. Maybe they're too long gone, maybe you have more to learn."]
+          "action": "You're here to bring them back.",
+          "check": [],
+          "succeed": ["", "After some searching you find a large stone coffin. Surely this contains what is left of them.", 2]
         },
         "B": {
           "action": "You're here to loot, obviously.",
@@ -1021,16 +1020,60 @@
           "fail": ["GOLD 20,HP -10,allyrevive", "You make your way through the tomb, checking every corner. You find some gold here and there... Wait, was that coffin always open? You're hit by something from the darkness."]
         },
         "C": {
+          "action": "You're here to make sure they stay dead.",
+          "check": ["DEX", 10],
+          "succeed": ["", "The tomb is dark and treacherous, but you find your way to your quarry.", 3],
+          "fail": ["", "The spirits of the tomb sense your intentions. You find yourself lost, walking in circles, until eventually you're back at the exit."]
+        }
+      }
+    },
+    {
+      "summary": "Maybe it wasn't their time, maybe they just owe you money. Either way you're bringing them back.",
+      "page": 2,
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Their work is unfinished. Say a prayer of resurrection.",
+          "check": ["WIS", 12],
+          "succeed": ["allyrevive", "The tomb is bathed in golden light as you say the words. Darkness returns as you finish, and nothing happens. You sit down, defeated. At least you gave it your all. Then the coffin stirs."],
+          "fail": ["WIS 1", "You pray your hardest. You feel the power of the gods flowing through you into the room. But it is not enough. Maybe they're too long gone, maybe you have more to learn."]
+        },
+        "B": {
           "action": "You can rebuild them. You have the technology.",
           "check": ["TECH", 20],
           "succeed": ["allyrevive,TECH 2", "The tomb is filled with the sound of power tools. You replace flesh with metal. You wire circuitry to organs. Eventually a cry is heard echoing through the halls: \"It's alive\"."],
           "fail": ["TECH 1,INT 1", "In the end all you really manage to to drill some metal into a corpse. A good learning experience at least."]
         },
-        "D": {
+        "C": {
           "action": "Challenge the coffin to a game of cards. If you win it has to release its prisoner.",
           "check": ["WEIRD", 15],
           "succeed": ["allyrevive,WEIRD 1", "You play the best you ever have. Your poker face is impenetrable. But it's close, the tide looks to be turning against you. And then you see it, your opening. SNAP!"],
           "fail": ["WEIRD 1,HP -3", "You are found days later, surrounded by playing cards. You whisper to the rescue team 'I fold'."]
+        }
+      }
+    },
+    {
+      "summary": "You stand over the corpse of <ally>. You steel yourself for what must be done.",
+      "page": 3,
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "Destroy the body, so that they never return.",
+          "check": ["STR", 15],
+          "succeed": ["allyperma,title 48,WEIRD 3", "It's a gruesome affair which I shan't recount here, but you ensure <ally> will not be coming back."],
+          "fail": ["INT 1", "Some powerful magic must be protecting the body, you remember going to strike and then you woke up in a forest nowhere near where you were. You learned something at least."]
+        },
+        "B": {
+          "action": "They were powerful in life and now that power is yours to take. This spell is difficult to cast and will certainly destroy their remains.",
+          "check": ["INT", 25],
+          "succeed": ["stat 10,allyperma", "A beam of energy connects you and the body. The body turns to ash and you feel considerably empowered."],
+          "fail": ["HP -10,allyrevive", "A beam of energy connects you and the body. You feel lightheaded, is the beam flowing away from you?"]
+        },
+        "C": {
+          "action": "You did bring all of these explosives. It'd be a shame not to use them. The real trick will be escaping the blast.",
+          "check": ["DEX", 15],
+          "succeed": ["COOL 1,allyperma", "Like a scene out of an action movie, you escape the tomb with fire licking at your heels, walls crumbling around you and the floor falling away behind you."],
+          "fail": ["die,allyperma", "You light the fuse and run. You duck under low beams and dive over gaps in the floor. You attempting to roll under a closing door but it falls on your leg. Whoops."]
         }
       }
     },
