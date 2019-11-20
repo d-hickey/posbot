@@ -262,6 +262,13 @@ function RunEvent(userID, channelID, goToPage=0, item={}, ally=""){
                 return;
             }
         }
+        if (task === "debt"){
+            if (!("GOLD" in save.chars[userID].stats) || save.chars[userID].stats.GOLD >= 0){
+                // Not in debt, run different event
+                RunEvent(userID, channelID);
+                return;
+            }
+        }
     }
 
     if (ally){
@@ -352,7 +359,7 @@ function Action(userID, channelID, letter){
         mod = GetWeaponBonus(char) + GetWeaponBonus(save.chars[ev.ally]);
     }
     else if (stat === "DUAL"){
-        mod = char.stat["STR"];
+        mod = char.stat.STR;
     }
     else{
         mod = char.stats[stat];

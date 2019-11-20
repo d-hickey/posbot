@@ -1129,8 +1129,8 @@
           "fail": ["COOL -3", "Almost everyone else has joined in. You try to act cool, but you just look like a loner. This is just like fantasy highschool all over again."]
         }
       }
-  },
-  {
+    },
+    {
       "summary": "You find a void puzzle cube. The cube is surrounded with eldritch energy, it doesn't so much tell you that it will never be solved, you just know.",
       "setup": [],
       "choices": {
@@ -1146,12 +1146,12 @@
           "succeed": ["", "You walk away from the challenge. A safe choice."]
         }
       }
-  },
-  {
-        "summary": "You face the impossible challenge once more. You are compelled to go on.",
-        "page": 1,
-        "setup": [],
-        "choices": {
+    },
+    {
+      "summary": "You face the impossible challenge once more. You are compelled to go on.",
+      "page": 1,
+      "setup": [],
+      "choices": {
         "A": {
           "action": "Try Again. You will not be defeated!",
           "check": ["CON", 50],
@@ -1163,8 +1163,56 @@
           "check": [],
           "succeed": ["", "A wise choice. You leave the puzzle behind you. But will the puzzle ever leave you?"]
         }
+      }
+    },
+    {
+      "summary": "You're in the red, you owe money to the wrong people and they've sent their collectors to... well, collect.",
+      "setup": ["debt"],
+      "choices": {
+        "A": {
+          "action": "You're going to stand your ground.",
+          "check": [],
+          "succeed": ["", "They find your door unlocked, you're inside waiting.", 4]
+        },
+        "B": {
+          "action": "You attempt to hide, sneak out, give them the slip.",
+          "check": ["DEX", 20],
+          "succeed": ["GOLD 20", "They kick in your door, but you're already gone. In your escape you find a couple trinkets that could help pay off this debt."],
+          "fail": ["COOL -1", "They break down your door and you've only gotten one leg through the window. Awkward", 4]
+        }
+      }
+    },
+    {
+      "summary": "You've got debt collectors in your home. Doesn't look like they want tea.",
+      "page": 4,
+      "setup": [],
+      "choices": {
+        "A": {
+          "action": "If it's a fight they want, you can certainly provide.",
+          "check": ["ATT", 14],
+          "succeed": ["GOLD 50", "They've got the numbers for sure, they really don't expect you to <attack> all of them. They underestimate you. You take the gold from their bodies, they're helping you pay your debts after all."],
+          "fail": ["HP -10", "All that bravery doesn't help when 10 enforcers come at you at the same time."]
+        },
+        "B": {
+          "action": "Insist on the tea. You can talk this out. Plus it has a great fragrance.",
+          "check": ["CHA", 20],
+          "succeed": ["GOLD 10", "They seem to really enjoy the tea. You sell them the usual platitudes about your debts. It's an altogether pleasant affair. Some of them tip you as they leave."],
+          "fail": ["HP -10", "They are not impressed by your hot leaf water. You try to tell them that they're only perperuating a broken and oppressive system that doesn't benefit them in the long run. It is hard to get a word past their fists though."]
+        },
+        "C": {
+          "action": "This is exactly why you wired your entry way with explosives.",
+          "check": ["TECH", 12],
+          "succeed": ["GOLD 5", "You smile and welcome them in. The one in charge steps on the pressure plate. You search the mess that's left for gold. Most of this will be needed to repair the door, and clean the floor."],
+          "fail": ["HP -15", "You laugh as they trigger your trap. Then you wake up outside the ruins of your home, having been thrown clear. Maybe the explosive yield of that trap was too high."]
+        },
+        "D": {
+          "action": "Introduce them your doll collection. Your friends.",
+          "check": ["WEIRD", 15],
+          "succeed": ["WEIRD 1", "They finally break while you're explaining Agatha's complex backstory. They make their excuses and leave in a hurry. Agatha spent a summer as a debt collector, you know."],
+          "fail": ["WEIRD 1,HP -10", "The worst part isn't what they do to you, but what they do to your dolls. Especially Piotr. Piotr deserved a better end than this."]
+        }
+      }
     }
-  }
   ]
 
 }
