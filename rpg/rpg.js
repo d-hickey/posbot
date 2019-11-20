@@ -22,6 +22,12 @@ var weaponChoices = {
         "action": "Keep your weapon.",
         "check": [],
         "succeed": ["", "You're too attached to your current weapon, and you can only hold one."]
+    },
+    "C": {
+        "action": "Try to wield this weapon in your offhand. Is that even possible? It would surely require great strength.",
+        "check": ["DUAL 20"],
+        "succeed": ["offhand", "You're too attached to your current weapon, and you can only hold one."],
+        "fail": ["COOL -1", "Like many loose limes, you simply cannot hold two weapons at the same time. But you do embarrass yourself trying."]
     }
 };
 
@@ -93,7 +99,7 @@ function WeaponGen() {
     else if (rarity >= 95){
         bonus = 4;
     }
-    if (rarity >= 85){
+    else if (rarity >= 85){
         bonus = 3;
     }
     else if (rarity >= 65){
@@ -160,6 +166,7 @@ function CharGen(){
     char.class = ClassGen();
     char.story = StoryGen();
     char.weapon = WeaponGen();
+    char.offhand = {};
     char.stats = StatsGen();
     char.time = 0;
     char.alive = true;
@@ -293,6 +300,14 @@ function AllyDisplayName(userID){
     return util.format("%s (%s)", name, nick);
 }
 
+function GetWeaponBonus(char){
+    var bonus = char.weapon.bonus;
+    if ("offhand" in char && char.offhand != {}){
+        bonus += char.offhand.bonus;
+    }
+    return bonus;
+}
+
 function ChoiceString(choices){
     var strings = [];
     for (var letter in choices){
@@ -327,20 +342,23 @@ function Action(userID, channelID, letter){
     var dc = check[1];
     var mod = 0;
     if (stat === "ATT"){
-        mod = char.weapon.bonus;
+        mod = GetWeaponBonus(char);
     }
     else if (stat === "FIGHT"){
-        mod = char.weapon.bonus;
-        dc = randomInt.Get(1, 20) + save.chars[ev.ally].weapon.bonus;
+        mod = GetWeaponBonus(char);
+        dc = randomInt.Get(1, 20) + GetWeaponBonus(save.chars[ev.ally]);
     }
     else if (stat === "TEAM"){
-        mod = char.weapon.bonus + save.chars[ev.ally].weapon.bonus;
+        mod = GetWeaponBonus(char) + GetWeaponBonus(save.chars[ev.ally]);
+    }
+    else if (stat === "DUAL"){
+        mod = char.stat["STR"];
     }
     else{
         mod = char.stats[stat];
     }
     var roll = randomInt.Get(1, 20);
-    if (stat === "GOLD"){
+    if (stat === "GOLD" || stat === "DUAL"){
         roll = 0;
     }
 
@@ -386,6 +404,9 @@ function HandleResult(userID, channelID, char, result, item, ally){
         }
         else if (outcome === "take"){
             char.weapon = item;
+        }
+        else if (outcome === "offhand"){
+            char.offhand = item;
         }
         else if (outcome === "swap"){
             message += Swap(userID, ally);
