@@ -453,7 +453,6 @@
     "you were recruited for an expedition to a far away land"
   ],
   "destiny": [
-    "are dead, maybe for real this time",
     "are destined for greatness, according to that fortune teller",
     "are determind to see things through to their end, no matter the outcome",
     "are happily married",
@@ -491,7 +490,7 @@
     "mace": "smash",
     "bomb": "explode",
     "shield": "bash",
-    "holy symbol": "bless",
+    "symbol": "bless",
     "familiar": "command your familiar to attack",
     "whip": "whip",
     "katana": "shinobi execute",

@@ -204,8 +204,7 @@ function RunEvent(userID, channelID, goToPage=0, item={}, ally=""){
     if (!save.chars[userID].alive){
         var resChance = randomInt.Get(0, 100);
         if (resChance >= 95){
-            save.chars[userID].alive = true;
-            save.chars[userID].stats.HP = randomInt.Get(1, 20);
+            ReviveChar(userID);
             bot.sendMessage({
                 to: channelID,
                 message: util.format(
@@ -398,8 +397,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             KillChar(ally);
         }
         else if (outcome === "allyrevive"){
-            save.chars[ally].alive = true;
-            save.chars[ally].stats.HP = randomInt.Get(1, 20);
+            ReviveChar(ally);
             message += util.format(" %s is returned from death.", AllyDisplayName(ally));
         }
         else if (outcome === "weapon" && char.alive){
@@ -493,6 +491,14 @@ function KillChar(userID){
 function PermaKillChar(userID){
     KillChar(userID);
     delete save.chars[userID];
+}
+
+function ReviveChar(userID){
+    // Clear any events using KillChar
+    KillChar(userID);
+    save.chars[userID].alive = true;
+    save.chars[userID].stats.HP = randomInt.Get(1, 20);
+    save.chars[userID].stats.GOLD = 0;
 }
 
 function UpdateStat(userID, stat, amount){
