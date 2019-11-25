@@ -25,8 +25,8 @@ var weaponChoices = {
     },
     "C": {
         "action": "Try to wield this weapon in your offhand. Is that even possible? It would surely require great strength.",
-        "check": ["DUAL 20"],
-        "succeed": ["offhand", "You're too attached to your current weapon, and you can only hold one."],
+        "check": ["DUAL", 20],
+        "succeed": ["offhand", "Whoa! Did you always have this other hand? It holds stuff too, just like you're first hand. You're now holding two weapons."],
         "fail": ["COOL -1", "Like many loose limes, you simply cannot hold two weapons at the same time. But you do embarrass yourself trying."]
     }
 };
@@ -188,7 +188,11 @@ function CharacterString(userID) {
     if (!char.alive){
         return util.format("You were %s. But now you are dead. You can use !rollchar for another chance at life.", char.name);
     }
-    return util.format("You are %s, %s %s\nYour weapon of choice: %s\n%s\n%s", char.name, char.race, char.class, WeaponString(char.weapon), char.story, StatString(char.stats));
+    var offhand = "";
+    if ("offhand" in char && char.offhand != {}){
+        offhand = util.format(" and %s", WeaponString(char.offhand));
+    }
+    return util.format("You are %s, %s %s\nYour weapon of choice: %s%s\n%s\n%s", char.name, char.race, char.class, WeaponString(char.weapon), offhand, char.story, StatString(char.stats));
 }
 
 function BioString(userID){
@@ -581,9 +585,13 @@ function Commands(client, userID, channelID, cmd, args) {
             break;
         case "showweapon":
             if (userID in save.chars){
+                var mess = util.format("Your weapon is: %s", WeaponString(save.chars[userID].weapon));
+                if ("offhand" in save.chars[userID] && save.chars[userID].offhand != {}){
+                    mess += util.format(" and in your offhand you hold: %s", WeaponString(save.chars[userID].offhand));
+                }
                 bot.sendMessage({
                     to: channelID,
-                    message: util.format("Your weapon is: %s", WeaponString(save.chars[userID].weapon))
+                    message: mess
                 });
             }
             break;
