@@ -362,7 +362,7 @@ function Action(userID, channelID, letter){
         mod = GetWeaponBonus(char) + GetWeaponBonus(save.chars[ev.ally]);
     }
     else if (stat === "DUAL"){
-        mod = char.stat.STR;
+        mod = char.stats.STR;
     }
     else{
         mod = char.stats[stat];
