@@ -26,7 +26,7 @@ var weaponChoices = {
     "C": {
         "action": "Try to wield this weapon in your offhand. Is that even possible? It would surely require great strength.",
         "check": ["DUAL", 20],
-        "succeed": ["offhand", "Whoa! Did you always have this other hand? It holds stuff too, just like you're first hand. You're now holding two weapons."],
+        "succeed": ["offhand", "Whoa! Did you always have this other hand? It holds stuff too, just like your first hand. You're now holding two weapons."],
         "fail": ["COOL -1", "Like many loose limes, you simply cannot hold two weapons at the same time. But you do embarrass yourself trying."]
     }
 };
@@ -639,7 +639,9 @@ function Entry(client, userID, channelID){
         var chance = randomInt.Get(1, time);
         if (chance > save.chance){
             RunEvent(userID, rpgChan);
-            save.chars[userID].time = 0;
+            if (userID in save.chars){
+                save.chars[userID].time = 0;
+            }
         }
         SaveGame();
     }

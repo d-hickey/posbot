@@ -46,10 +46,11 @@ function send_markov(channelID) {
         }
     ).end(limit).process();
 
-    markov = markov.replace(/(com\/.*?\/status\/)/gi, "https://twitter.$1");
-
-    markov = markov.replace(/com\/r\//gi, "https://reddit.com/r/");
-
+    if (markov) {
+        markov = markov.replace(/(com\/.*?\/status\/)/gi, "https://twitter.$1");
+        markov = markov.replace(/com\/r\//gi, "https://reddit.com/r/");
+    }
+    
     bot.sendMessage({
         to: channelID,
         message: markov
