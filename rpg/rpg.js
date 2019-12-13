@@ -322,7 +322,7 @@ function AllyDisplayName(userID){
 
 function GetWeaponBonus(char){
     var bonus = char.weapon.bonus;
-    if ("offhand" in char && !IsObjectEmpty(char.offhand){
+    if ("offhand" in char && !IsObjectEmpty(char.offhand)){
         bonus += char.offhand.bonus;
     }
     return bonus;
