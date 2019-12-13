@@ -31,6 +31,16 @@ var weaponChoices = {
     }
 };
 
+function IsObjectEmpty(object){
+    if (!object){
+        return true;
+    }
+    if (Object.keys(char.offhand).length === 0){
+        return true;
+    }
+    return false;
+}
+
 function SaveGame() {
     var saveJson = JSON.stringify(save, null, 4);
     fs.writeFileSync('./rpg/save.json', saveJson);
@@ -244,7 +254,7 @@ function RunEvent(userID, channelID, goToPage=0, item={}, ally=""){
     var summary = ev.summary;
     for (var task of ev.setup){
         if (task === "weapon"){
-            if (item === {}){
+            if (IsObjectEmpty(item)){
                 item = WeaponGen();
             }
             summary = summary.replace("<weapon>", WeaponString(item));
@@ -312,7 +322,7 @@ function AllyDisplayName(userID){
 
 function GetWeaponBonus(char){
     var bonus = char.weapon.bonus;
-    if ("offhand" in char && char.offhand != {}){
+    if ("offhand" in char && !IsObjectEmpty(char.offhand){
         bonus += char.offhand.bonus;
     }
     return bonus;
