@@ -50,7 +50,7 @@ function send_markov(channelID) {
         markov = markov.replace(/(com\/.*?\/status\/)/gi, "https://twitter.$1");
         markov = markov.replace(/com\/r\//gi, "https://reddit.com/r/");
     }
-    
+
     bot.sendMessage({
         to: channelID,
         message: markov
@@ -114,6 +114,11 @@ function entry(client, userID, channelID, message){
 
     if (message.indexOf(bot_at) > -1){
         var messageContents = message.replace(bot_at, "");
+
+        // Discord currently has two formats for @s
+        // Remove the formatting for both
+        messageContents = messageContents.replace("<@>", "");
+        messageContents = messageContents.replace("<@!>", "");
         messageContents = messageContents.replace(/^\s+/, "");
         messageContents = messageContents.replace(/\s+$/, "");
 
