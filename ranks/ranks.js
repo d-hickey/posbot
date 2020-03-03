@@ -4,6 +4,7 @@ var util = require("util");
 
 // Local
 var randomInt = require("../randomint");
+var user = require("../user");
 
 // Discord client
 var bot;
@@ -193,7 +194,7 @@ function Leaderboard(channelID){
             continue;
         }
         var rankVal = GetRankValue(userID);
-        var member = getMember(userID);
+        var member = user.GetMember(bot, userID);
         if (!(rankVal in leaderboard)){
             leaderboard[rankVal] = [];
         }

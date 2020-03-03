@@ -29,12 +29,12 @@ function FindQuote(channelID, messageID, commandID, quoterID, channelKey){
 
 function SendQuote(channelID, commandID, quoterID, message, channelKey){
     var quote = {color: 6826080};
-    var member = user.GetMember(bot, message.author.id);
-    var quoter = user.GetMember(bot, quoterID);
+    var member = user.GetMember(bot, message.author.id, channelID);
+    var quoter = user.GetMember(bot, quoterID, channelID);
 
     var server = bot.channels[channelKey].guild_id;
 
-    var link = util.format("https://discordapp.com/channels/%s/%s/%s", server, channelKey, message.id)
+    var link = util.format("https://discordapp.com/channels/%s/%s/%s", server, channelKey, message.id);
 
     quote.description = util.format("[%s](%s)", message.content, link);
     quote.author = {name: member.nick};

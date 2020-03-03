@@ -571,7 +571,7 @@ bot.on("message", function(user, userID, channelID, message, evt) {
                 }
                 break;
             case "whoami":
-                var member = userInfo.GetMember(bot, userID);
+                var member = userInfo.GetMember(bot, userID, channelID);
 
                 bot.sendMessage({
                     to: channelID,

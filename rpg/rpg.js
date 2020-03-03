@@ -285,7 +285,7 @@ function RunEvent(userID, channelID, goToPage=0, item={}, ally=""){
     }
 
     if (ally){
-        summary = summary.replace("<ally>", AllyDisplayName(ally));
+        summary = summary.replace("<ally>", AllyDisplayName(ally, channelID));
     }
 
     var alert = util.format("<@%s> %s\n%s", userID, summary, ChoiceString(ev.choices));
@@ -314,9 +314,9 @@ function GetAlly(userID, alive){
     return candidates[index];
 }
 
-function AllyDisplayName(userID){
+function AllyDisplayName(userID, channelID){
     var name = save.chars[userID].name;
-    var nick = user.GetMember(bot, userID).nick;
+    var nick = user.GetMember(bot, userID, channelID).nick;
     return util.format("%s (%s)", name, nick);
 }
 
@@ -399,7 +399,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
     }
     message = message.replace("<attack>", genParts.weapon[char.weapon.type]);
     if (ally && ally != "" && ally in save.chars){
-        message = message.replace("<ally>", AllyDisplayName(ally));
+        message = message.replace("<ally>", AllyDisplayName(ally, channelID));
     }
     for (var outcome of outcomes){
         if (outcome === "die"){
@@ -407,12 +407,12 @@ function HandleResult(userID, channelID, char, result, item, ally){
             message += " You died.";
         }
         else if (outcome === "allydie"){
-            message += util.format(" %s dies.", AllyDisplayName(ally));
+            message += util.format(" %s dies.", AllyDisplayName(ally, channelID));
             KillChar(ally);
         }
         else if (outcome === "allyrevive"){
             ReviveChar(ally);
-            message += util.format(" %s is returned from death.", AllyDisplayName(ally));
+            message += util.format(" %s is returned from death.", AllyDisplayName(ally, channelID));
         }
         else if (outcome === "weapon" && char.alive){
             var weaponEvent = {};
@@ -444,10 +444,10 @@ function HandleResult(userID, channelID, char, result, item, ally){
             newally.name = save.chars[ally].name;
             newally.weapon = save.chars[ally].weapon;
             save.chars[ally] = newally;
-            message += util.format(" %s has been completely remade. Somebody should tell them.", AllyDisplayName(ally));
+            message += util.format(" %s has been completely remade. Somebody should tell them.", AllyDisplayName(ally, channelID));
         }
         else if (outcome === "allyperma"){
-            message += util.format(" %s has been destroyed, never to return to this world.", AllyDisplayName(ally));
+            message += util.format(" %s has been destroyed, never to return to this world.", AllyDisplayName(ally, channelID));
             PermaKillChar(ally);
         }
         else if (outcome !== ""){
@@ -465,7 +465,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
             }
             else if (stat === "allyHP"){
                 save.chars[ally].stats.HP += amount;
-                message += util.format(" %s's HP changes by %d and is now %d.", AllyDisplayName(ally), amount, save.chars[ally].stats.HP);
+                message += util.format(" %s's HP changes by %d and is now %d.", AllyDisplayName(ally, channelID), amount, save.chars[ally].stats.HP);
                 if (save.chars[ally].stats.HP < 1){
                     message += " They die.";
                     KillChar(ally);
