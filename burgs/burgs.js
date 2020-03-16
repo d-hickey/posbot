@@ -160,6 +160,10 @@ function Eaten(username, userID, consumed) {
     }
     var foundBurg = {};
     for (var burg of burgers.burgers) {
+        if (burg.burger.toLowerCase() === consumed.toLowerCase()){
+            foundBurg = burg;
+            break;
+        }
         if (burg.burger.toLowerCase().indexOf(consumed.toLowerCase()) > -1) {
             if (IsEmpty(foundBurg)) {
                 foundBurg = burg;
