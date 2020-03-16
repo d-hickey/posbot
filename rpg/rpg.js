@@ -282,6 +282,13 @@ function RunEvent(userID, channelID, goToPage=0, item={}, ally=""){
                 return;
             }
         }
+        if (task === "dupe-titles"){
+            if (!CheckDupeTitles(userID)){
+                // No dupe titles, run different event
+                RunEvent(userID, channelID);
+                return;
+            }
+        }
     }
 
     if (ally){
@@ -312,6 +319,22 @@ function GetAlly(userID, alive){
 
     var index = randomInt.Get(0, candidates.length - 1);
     return candidates[index];
+}
+
+function CheckDupeTitles(userID) {
+    var char = save.chars[userID];
+    var name = char.name;
+    var titles = name.match(/\s\"[a-z\-\s]+\"/gi);
+    if (titles) {
+        for (var title of titles) {
+            var re = new RegExp(title, "gi");
+            var count = (name.match(re) || []).length;
+            if (count > 1) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 function AllyDisplayName(userID, channelID){
@@ -450,13 +473,20 @@ function HandleResult(userID, channelID, char, result, item, ally){
             message += util.format(" %s has been destroyed, never to return to this world.", AllyDisplayName(ally, channelID));
             PermaKillChar(ally);
         }
+        else if (outcome === "shuffle-titles") {
+            ShuffleTitles(userID);
+            message += util.format("\n%s", BioString(userID));
+        }
+        else if (outcome === "remove-titles") {
+            RemoveTitles(userID);
+            message += " You have lost all of your titles.";
+        }
         else if (outcome !== ""){
             var parts = outcome.split(" ");
             var stat = parts[0];
             var amount = parseInt(parts[1]);
             if (stat === "title"){
-                char.name += util.format(" \"%s\"", genParts.title[amount]);
-                message += " You are given the title " + genParts.title[amount];
+                message += GiveTitle(userID, amount);
             }
             else if (stat === "stat"){
                 var statIndex = randomInt.Get(0, genParts.stats.length - 1);
@@ -485,7 +515,7 @@ function HandleResult(userID, channelID, char, result, item, ally){
 
     if(goToPage){
         if (char.alive){
-            RunEvent(userID, channelID, goToPage, item, ally);
+            setTimeout(RunEvent, 1000, userID, channelID, goToPage, item, ally);
         }
     }
 }
@@ -513,6 +543,37 @@ function ReviveChar(userID){
     save.chars[userID].alive = true;
     save.chars[userID].stats.HP = randomInt.Get(1, 20);
     save.chars[userID].stats.GOLD = 0;
+}
+
+function GiveTitle(userID, titleIndex=0) {
+    if (save.chars[userID].name.length > 1000) {
+        return " You would have been given a title, but the scribes of the land only have so much space in their missives and your name is already too long.";
+    }
+    if (!titleIndex || titleIndex === 0) {
+        titleIndex = randomInt.Get(0, genParts.title.length - 1);
+    }
+    var title = genParts.title[titleIndex];
+    while (save.chars[userID].name.indexOf(title) > -1) {
+        var index = randomInt.Get(0, genParts.title.length - 1);
+        title = genParts.title[index];
+    }
+
+    save.chars[userID].name += util.format(" \"%s\"", title);
+    return " You are given the title " + title;
+}
+
+function ShuffleTitles(userID) {
+    var name = save.chars[userID].name;
+    var count = name.match(/ \"[a-z \-]+\"/gi).length;
+    RemoveTitles(userID);
+    for (var i = 0; i < count; i++) {
+        GiveTitle(userID);
+    }
+}
+
+function RemoveTitles(userID) {
+    var name = save.chars[userID].name;
+    save.chars[userID].name = name.replace(/ \"[a-z \-]+\"/gi, "");
 }
 
 function UpdateStat(userID, stat, amount){
