@@ -15,6 +15,7 @@ var config = JSON.parse(fs.readFileSync('./markov/config.json', 'utf8'));
 
 //Emma's Markov
 var bot_at = config.bot;
+var bot_role = config.role;
 var history = read_history();
 var quotes = new MarkovChain(history);
 var messageCount = 0;
@@ -112,8 +113,9 @@ function chance_message(){
 function entry(client, userID, channelID, message){
     bot = client;
 
-    if (message.indexOf(bot_at) > -1){
+    if (message.indexOf(bot_at) > -1 || message.indexOf(bot_role) > -1){
         var messageContents = message.replace(bot_at, "");
+        messageContents = message.replace(bot_role, "");
 
         // Discord currently has two formats for @s
         // Remove the formatting for both

@@ -542,6 +542,17 @@ bot.on("message", function(user, userID, channelID, message, evt) {
                     message: chip
                 });
                 break;
+            case "heyemma":
+                var emma = "😏";
+                rubyPatience = rubyPatience + 1;
+                if (rubyPatience > 2) {
+                    chip = "life is just _so_ hard";
+                }
+                bot.sendMessage({
+                    to: channelID,
+                    message: emma
+                });
+                break;
             case "determination": // Fallthrough
             case "savepoint":
                 bot.sendMessage({
