@@ -178,7 +178,7 @@ function Commands(client, userID, channelID, cmd, args) {
                 var doneList = cmd.split("-")[1];
                 if (doneList) {
                     if (args.length > 0) {
-                        RemoveTask(userID, channelID, args, doneList)
+                        RemoveTask(userID, channelID, args, doneList);
                     }
                 }
             }
