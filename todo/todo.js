@@ -9,18 +9,21 @@ var bot;
 var tasks = JSON.parse(fs.readFileSync('./todo/todo.json', 'utf8'));
 
 function WriteTasks() {
-    var taskJson = JSON.stringify(tasks);
+    var taskJson = JSON.stringify(tasks, null, 4);
     fs.writeFileSync('./todo/todo.json', taskJson);
 }
 
-function AddTask(userID, channelID, task) {
+function AddTask(userID, channelID, task, list = "do") {
     var userAt = util.format("<@%s>", userID);
     if (userID === "squad") {
         userAt = "Squad!";
     }
 
     if (!(userID in tasks)) {
-        tasks[userID] = [];
+        tasks[userID] = {};
+    }
+    if (!(list in tasks[userID])) {
+        tasks[userID][list] = [];
     }
 
     if (!task || task === "") {
@@ -31,7 +34,7 @@ function AddTask(userID, channelID, task) {
         return;
     }
 
-    if (tasks[userID].length > 19) {
+    if (tasks[userID][list].length > 19) {
         bot.sendMessage({
             to: channelID,
             message: util.format("%s This feature takes up enough space as it is. Maybe you should clear some of the items already on your list.", userAt)
@@ -39,27 +42,27 @@ function AddTask(userID, channelID, task) {
         return;
     }
 
-    tasks[userID].push(task);
+    tasks[userID][list].push(task);
     WriteTasks();
 
-    ShowTasks(userID, channelID);
+    ShowTasks(userID, channelID, "", list);
 }
 
-function ShowTasks(userID, channelID, message = "") {
+function ShowTasks(userID, channelID, message = "", list = "do") {
     var userAt = util.format("<@%s>", userID);
     if (userID === "squad") {
         userAt = "Squad!";
     }
 
-    if (!(userID in tasks)) {
+    if (!(userID in tasks) || !(list in tasks[userID])) {
         bot.sendMessage({
             to: channelID,
-            message: util.format("%s You don't have a to do list!", userAt)
+            message: util.format("%s You don't have a to %s list!", userAt, list)
         });
         return;
     }
 
-    if (tasks[userID].length === 0) {
+    if (tasks[userID][list].length === 0) {
         bot.sendMessage({
             to: channelID,
             message: util.format("%s <:waow:375020892591489025> You have no items left on your list!", userAt)
@@ -68,8 +71,8 @@ function ShowTasks(userID, channelID, message = "") {
     }
 
     var tasklist = "";
-    for (var i = 0; i < tasks[userID].length; i++) {
-        tasklist = tasklist + util.format("%d. %s\n", i, tasks[userID][i]);
+    for (var i = 0; i < tasks[userID][list].length; i++) {
+        tasklist = tasklist + util.format("%d. %s\n", i, tasks[userID][list][i]);
     }
 
     if (message === "") {
@@ -82,11 +85,11 @@ function ShowTasks(userID, channelID, message = "") {
     });
 }
 
-function RemoveTask(userID, channelID, indices) {
-    if (!(userID in tasks)) {
+function RemoveTask(userID, channelID, indices, list = "do") {
+    if (!(userID in tasks) || !(list in tasks[userID])) {
         bot.sendMessage({
             to: channelID,
-            message: util.format("<@%s> You don't have a to do list!", userID)
+            message: util.format("<@%s> You don't have a to %s list!", userID, list)
         });
         return;
     }
@@ -103,7 +106,7 @@ function RemoveTask(userID, channelID, indices) {
             return;
         }
 
-        if (i < 0 || i > tasks[userID].length - 1) {
+        if (i < 0 || i > tasks[userID][list].length - 1) {
             bot.sendMessage({
                 to: channelID,
                 message: util.format("<@%s> You don't have a task with index %s. Please try again, but do better.", userID, index)
@@ -115,14 +118,14 @@ function RemoveTask(userID, channelID, indices) {
     numbers = numbers.sort(function(a, b) { return b - a; });
 
     for (var num of numbers) {
-        tasks[userID].splice(num, 1);
+        tasks[userID][list].splice(num, 1);
     }
 
     WriteTasks();
 
     var message = "<:waow:375020892591489025> you did it! Here's what's left on the list:";
 
-    ShowTasks(userID, channelID, message);
+    ShowTasks(userID, channelID, message, list);
 }
 
 function Commands(client, userID, channelID, cmd, args) {
@@ -157,6 +160,27 @@ function Commands(client, userID, channelID, cmd, args) {
         case "squaddone":
             if (args.length > 0) {
                 RemoveTask("squad", channelID, args);
+            }
+            break;
+        default:
+            if (cmd.startsWith("to-")) {
+                var list = cmd.split("-")[1];
+                if (list) {
+                    if (args.length > 0) {
+                        var listTask = args.join(" ");
+                        AddTask(userID, channelID, listTask, list);
+                    } else {
+                        ShowTasks(userID, channelID, "", list);
+                    }
+                }
+            }
+            else if (cmd.startsWith("done-")) {
+                var doneList = cmd.split("-")[1];
+                if (doneList) {
+                    if (args.length > 0) {
+                        RemoveTask(userID, channelID, args, doneList)
+                    }
+                }
             }
             break;
     }
