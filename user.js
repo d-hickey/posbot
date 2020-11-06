@@ -16,7 +16,7 @@ function getMemberObject(userID, serverKey) {
             return bot.servers[serverKey].members[memberID];
         }
     }
-    return Undefined;
+    return undefined;
 }
 
 // Gets Member object for a given user ID
