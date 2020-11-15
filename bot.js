@@ -92,17 +92,16 @@ function getRedditComment(sub, callback) {
 }
 
 // Get Gift
-function getImgurImage(callback) {
-    var url = "http://www.imgur.com/random";
+function getFlickrImage(callback) {
+    var url = "https://api.flickr.com/services/feeds/photos_public.gne?format=json";
 
     request(url, function(error, response, body) {
-        //console.log("error:", error); // Print the error if one occurred
-        //console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
-        //console.log("body:", body); // Print the HTML for the Google homepage.
-
-        var regex = /https?:\/\/i.imgur.com\/[a-zA-Z0-9]+\.[a-zA-Z]+/g;
-        var images = body.match(regex);
-        var image = images[0];
+        body = body.replace("jsonFlickrFeed(", "");
+        body = body.replace(/\)$/, "");
+        var feed = JSON.parse(body);
+        var images = feed.items;
+        var index = randomInt.Get(0, images.length - 1);
+        var image = images[index].link;
 
         return callback(image);
     });
@@ -126,7 +125,7 @@ function regift(userID, channelID) {
         xmasGifts.regifted = [];
         xmasGifts.regifted.push(userID);
     }
-    getImgurImage(function(image) {
+    getFlickrImage(function(image) {
         xmasGifts[userID] = image;
         bot.sendMessage({
             to: channelID,
@@ -149,17 +148,24 @@ function IsXmas() {
 
 // Birthdays
 var birthdays = JSON.parse(fs.readFileSync('bdays.json', 'utf8'));
-var baby = "";
+function SaveBirthdays(){
+    var bdaysJson = JSON.stringify(birthdays, null, 4);
+    fs.writeFileSync('bdays.json', bdaysJson);
+}
 
 function IsBirthday(userID) {
-    var today = new Date().toString();
-    for (var bday in birthdays) {
-        if (today.indexOf(bday) > -1 && birthdays[bday] == userID && birthdays[bday] != baby) {
-            baby = birthdays[bday];
-            return true;
-        }
+    if (birthdays.today.includes(userID)){
+        return true;
     }
     return false;
+}
+
+function DeliveredBirthdayGift(userID){
+    var index = birthdays.today.indexOf(userID);
+    if (index > -1) {
+        birthdays.today.splice(index, 1);
+    }
+    SaveBirthdays();
 }
 
 // Ruby vars
@@ -200,6 +206,23 @@ function CheckConnection() {
 // Noon scheduler
 var noonScheduler = schedule.scheduleJob("0 12 * * *", function() {
     remind.CheckDailyReminders(bot);
+});
+
+// Midnight scheduler
+var midnightScheduler = schedule.scheduleJob("0 0 * * *", function() {
+    var today = new Date().toString();
+    for (var bday in birthdays) {
+        if (bday === "today"){
+            continue;
+        }
+        if (today.indexOf(bday) > -1) {
+            if (!("today" in birthdays)){
+                birthdays.today = [];
+            }
+            birthdays.today.push(birthdays[bday]);
+        }
+    }
+    SaveBirthdays();
 });
 
 // Minute scheduler
@@ -650,7 +673,7 @@ bot.on("message", function(user, userID, channelID, message, evt) {
     // Check xmas
     if (IsXmas()) {
         if (!(userID in xmasGifts)) {
-            getImgurImage(function(image) {
+            getFlickrImage(function(image) {
                 xmasGifts[userID] = image;
                 bot.sendMessage({
                     to: channelID,
@@ -662,12 +685,14 @@ bot.on("message", function(user, userID, channelID, message, evt) {
 
     // Check Birthdays
     if (IsBirthday(userID)) {
-        getImgurImage(function(image) {
+        getFlickrImage(function(image) {
             bot.sendMessage({
                 to: channelID,
-                message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere's your gift %s", baby, image)
+                message: util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere's your gift %s", userID, image)
             });
+
         });
+        DeliveredBirthdayGift(userID);
     }
 
     // Check markov triggers and update history
