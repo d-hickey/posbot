@@ -196,10 +196,31 @@ bot.on("ready", function(evt) {
     logger.info(bot.username + " - (" + bot.id + ")");
 });
 
+var backoff = 1;
+var attempts = 1;
 function CheckConnection() {
-    if (!bot.connected) {
-        logger.info("Bot has lost connection to Discord. Reconnecting.");
-        bot.connect();
+    if (!(bot.connected)) {
+        if (attempts >= backoff){
+            logger.info("Bot has lost connection to Discord. Reconnecting.");
+            setTimeout(function(){
+                bot.connect();
+                setTimeout(function(){
+                    if (!(bot.connected)){
+                        backoff = backoff * 2;
+                        if (backoff > 10){
+                            process.exit(1);
+                        }
+                    }
+                    else{
+                        backoff = 1;
+                        attempts = 1;
+                    }
+                }, 10000);
+            }, 5000);
+        }
+        else{
+            attempts++;
+        }
     }
 }
 
@@ -486,6 +507,19 @@ bot.on("message", function(user, userID, channelID, message, evt) {
                     message: "Pong!"
                 });
                 break;
+            case "disconnect":
+                if (userID === "88614328499961856"){
+                    bot.disconnect();
+                }
+                break;
+            case "reconnect":
+                    if (userID === "88614328499961856"){
+                        bot.disconnect();
+                        setTimeout(function(){
+                            bot.connect();
+                        }, 5000);
+                    }
+                    break;
             case "notail":
                 var noun = "flower";
                 var choice = randomInt.Get(1, 3);
