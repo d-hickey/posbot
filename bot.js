@@ -593,6 +593,7 @@ bot.on("message", function(user, userID, channelID, message, evt) {
                 rubyPatience = rubyPatience + 1;
                 if (rubyPatience > 2) {
                     chip = "_bonks head on leg_";
+                    rubyPatience = 0;
                 }
                 bot.sendMessage({
                     to: channelID,
@@ -602,8 +603,12 @@ bot.on("message", function(user, userID, channelID, message, evt) {
             case "heyemma":
                 var emma = "😏";
                 rubyPatience = rubyPatience + 1;
+                if (rubyPatience > 1) {
+                    emma = "^^";
+                }
                 if (rubyPatience > 2) {
-                    chip = "life is just _so_ hard";
+                    emma = "life is just _so_ hard";
+                    rubyPatience = 0;
                 }
                 bot.sendMessage({
                     to: channelID,

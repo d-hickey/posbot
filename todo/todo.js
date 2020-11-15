@@ -48,6 +48,36 @@ function AddTask(userID, channelID, task, list = "do") {
     ShowTasks(userID, channelID, "", list);
 }
 
+function ShowLists(userID, channelID) {
+    var userAt = util.format("<@%s>", userID);
+
+    if (!(userID in tasks)) {
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("%s You have no to do lists", userAt)
+        });
+        return;
+    }
+    var lists = [];
+    for (var list in tasks[userID]){
+        if (tasks[userID][list].length > 0){
+            lists.push(list);
+        }
+    }
+    if (lists.length > 0){
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("%s Your lists are: %s", userAt, lists.join(", "))
+        });
+    }
+    else{
+        bot.sendMessage({
+            to: channelID,
+            message: util.format("%s You have no to do lists", userAt)
+        });
+    }
+}
+
 function ShowTasks(userID, channelID, message = "", list = "do") {
     var userAt = util.format("<@%s>", userID);
     if (userID === "squad") {
@@ -142,6 +172,10 @@ function Commands(client, userID, channelID, cmd, args) {
             break;
         case "tasks":
             ShowTasks(userID, channelID);
+            break;
+        case "lists":
+        case "showlists":
+            ShowLists(userID, channelID);
             break;
         case "todone": // Fallthrough
         case "removetask":
