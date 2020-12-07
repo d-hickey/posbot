@@ -486,6 +486,37 @@ function cheese(userID, channelID) {
     });
 }
 
+function rockpaperscissors(userID, channelID) {
+    bot.sendMessage({
+        to: channelID,
+        message: util.format("<@%s> Ok, on 'Shoot', are you ready?", userID)
+    });
+
+    var options = ["Rock", "Paper", "Scissors"];
+    var index = randomInt.Get(0, 2);
+    var choice = options[index];
+
+    options.push("Shoot!");
+    options.push("Pos chooses: " + choice);
+
+    timeoutThenMessage(channelID, 1000, options);
+}
+
+function timeoutThenMessage(channelID, timeout, messages){
+    if (messages.length === 0){
+        return;
+    }
+
+    setTimeout(function(){
+        bot.sendMessage({
+            to: channelID,
+            message: messages[0]
+        });
+        messages.shift();
+        timeoutThenMessage(channelID, timeout, messages)
+    }, timeout);
+}
+
 bot.on("message", function(user, userID, channelID, message, evt) {
     if (userID == bot.id) {
         return;
@@ -678,6 +709,10 @@ bot.on("message", function(user, userID, channelID, message, evt) {
                 break;
             case "cheese":
                 cheese(userID, channelID);
+                break;
+            case "rps": // Fallthrough
+            case "rockpaperscissors":
+                rockpaperscissors(userID, channelID);
                 break;
             default:
                 // No other cases matched, check other modules
