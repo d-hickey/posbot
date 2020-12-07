@@ -497,9 +497,9 @@ function rockpaperscissors(userID, channelID) {
     var choice = options[index];
 
     options.push("Shoot!");
-    options.push("Pos chooses: " + choice);
+    options.push(choice);
 
-    timeoutThenMessage(channelID, 1000, options);
+    timeoutThenMessage(channelID, 1500, options);
 }
 
 function timeoutThenMessage(channelID, timeout, messages){
