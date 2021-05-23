@@ -151,7 +151,7 @@ function SaveBirthdays(){
 }
 
 function IsBirthday(userID) {
-    if (birthdays.today.includes(userID)){
+    if (birthdays.today && birthdays.today.includes(userID)){
         return true;
     }
     return false;
@@ -766,7 +766,7 @@ bot.on("messageCreate", (msg) => {
     }
 
     // Check markov triggers and update history
-    markov.Update(bot, userID, channelID, message);
+    markov.Update(bot, userID, channelID, message, msg.id);
 
     // Check rpg triggers
     // rpg.Update(bot, userID, channelID);

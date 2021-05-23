@@ -1,25 +1,25 @@
 // Standard
-var fs = require("fs");
-var util = require("util");
+const fs = require("fs");
+const util = require("util");
 
-// Third Part
-var MarkovChain = require("markovchain");
+// Third Party
+const MarkovChain = require("markovchain");
 
 // Local
-var randomInt = require("../randomint");
+const randomInt = require("../randomint");
 
 // Discord client
-var bot;
+let bot;
 
-var config = JSON.parse(fs.readFileSync('./markov/config.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync("./markov/config.json", "utf8"));
 
 //Emma's Markov
-var bot_at = config.bot;
-var bot_role = config.role;
-var history = read_history();
-var quotes = new MarkovChain(history);
-var messageCount = 0;
-var timeSinceLast = 0;
+const bot_at = config.bot;
+const bot_role = config.role;
+let history = read_history();
+let quotes = new MarkovChain(history);
+let messageCount = 0;
+let timeSinceLast = 0;
 
 function read_history(){
     return fs.readFileSync("chat.log", "utf8");
@@ -39,10 +39,10 @@ function update_chat_log(message){
 }
 
 function send_markov(channelID) {
-    var limit = randomInt.Get(1, 25);
-    var markov = quotes.start(
+    let limit = randomInt.Get(1, 25);
+    let markov = quotes.start(
         function(wordList) {
-            var tmpList = Object.keys(wordList);
+            let tmpList = Object.keys(wordList);
             return tmpList[~~(Math.random()*tmpList.length)];
         }
     ).end(limit).process();
@@ -52,23 +52,26 @@ function send_markov(channelID) {
         markov = markov.replace(/com\/r\//gi, "https://reddit.com/r/");
     }
 
-    bot.sendMessage({
-        to: channelID,
-        message: markov
-    });
+    bot.createMessage(channelID, markov);
 }
 
-function specific_markov(userID, channelID, word) {
-    var limit = randomInt.Get(2, 20);
-    bot.sendMessage({
-        to: channelID,
-        message: util.format("<@%s> %s", userID, quotes.start(word).end(limit).process())
-    });
+function specific_markov(userID, channelID, messageID, word) {
+    let limit = randomInt.Get(2, 20);
+    bot.createMessage(
+        channelID,
+        {
+            content: util.format("%s", quotes.start(word).end(limit).process()),
+            messageReference: {
+                channelID: channelID,
+                messageID: messageID
+            }
+        }
+    );
 }
 
 // Advice
 function asking_for_advice(message){
-    var lower = message.toLowerCase();
+    let lower = message.toLowerCase();
 
     if (lower.indexOf("no good for me") > -1){
         return true;
@@ -98,24 +101,24 @@ function asking_for_advice(message){
 }
 
 function chance_message(){
-    var potential = 0;
-    var target = config.chance;
+    let potential = 0;
+    let target = config.chance;
     if (timeSinceLast > target){
         potential = timeSinceLast - target;
     }
 
-    var probability = (potential / timeSinceLast) * 100;
+    let probability = (potential / timeSinceLast) * 100;
 
-    return util.format("There has been %d messages since last pos markov. The current target is %d. This gives a markov probability of %d / %d which is %d\%",
+    return util.format("There has been %d messages since last pos markov. The current target is %d. This gives a markov probability of %d / %d which is %d%",
         timeSinceLast, target, potential, timeSinceLast, probability);
 }
 
-function entry(client, userID, channelID, message){
+function entry(client, userID, channelID, message, messageID){
     bot = client;
 
     if (message.indexOf(bot_at) > -1 || message.indexOf(bot_role) > -1){
-        var messageContents = message.replace(bot_at, "");
-        messageContents = message.replace(bot_role, "");
+        let messageContents = message.replace(bot_at, "");
+        messageContents = messageContents.replace(bot_role, "");
 
         // Discord currently has two formats for @s
         // Remove the formatting for both
@@ -125,20 +128,20 @@ function entry(client, userID, channelID, message){
         messageContents = messageContents.replace(/\s+$/, "");
 
         if (asking_for_advice(messageContents)){
-            bot.sendMessage({
-                to: channelID,
-                message: util.format("<@%s> That's a great question. I get asked about this topic a lot and it reminds me of a quote:\n\"BITCH, DON'T\"\n-me", userID)
-            });
+            bot.createMessage(
+                channelID, 
+                util.format("<@%s> That's a great question. I get asked about this topic a lot and it reminds me of a quote:\n\"BITCH, DON'T\"\n-me", userID)
+            );
         }
         else{
-            var messageParts = messageContents.split(/\s+/);
-            var index = randomInt.Get(0, messageParts.length - 1);
-            var word = messageParts[index];
+            let messageParts = messageContents.split(/\s+/);
+            let index = randomInt.Get(0, messageParts.length - 1);
+            let word = messageParts[index];
             if (!word.trim()){
                 send_markov(channelID);
             }
             else{
-                specific_markov(userID, channelID, word);
+                specific_markov(userID, channelID, messageID, word);
             }
         }
     }
@@ -148,7 +151,7 @@ function entry(client, userID, channelID, message){
 
         // Check markov trigger
         timeSinceLast++;
-        var chance = randomInt.Get(1, timeSinceLast);
+        let chance = randomInt.Get(1, timeSinceLast);
         if (chance > config.chance){
             send_markov(channelID);
             timeSinceLast = 1;
