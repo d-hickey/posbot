@@ -1,11 +1,11 @@
-var util = require("util");
+const util = require("util");
 
-var randomInt = require("../randomint");
+const randomInt = require("../randomint");
 
 // Discord client
-var bot;
+let bot;
 
-var improvements = [
+const improvements = [
     "Sometimes withholding the truth, whether it be with a close friend or family member, can hold you back from having a genuine relationship. Have the conversation.",
     "There's nothing wrong with feeling good about yourself, and you can always use that positive energy to help others as well. Compliment yourself, and others.",
     "Little grooming habits do wonders for your overall look. It also shows you've gone the extra mile to take care of yourself, which reinforces the idea that you'll do the same in other facets of your life and for those you care most about.",
@@ -23,21 +23,18 @@ var improvements = [
 ];
 
 function Improve(userID, channelID){
-    var index = randomInt.Get(0, improvements.length-1);
-
-    bot.sendMessage({
-        to: channelID,
-        message: util.format("<@%s> %s", userID, improvements[index])
-    });
+    let index = randomInt.Get(0, improvements.length-1);
+    
+    bot.createMessage(channelID, util.format("<@%s> %s", userID, improvements[index]));
 }
 
 function Commands(client, userID, channelID, cmd){
     bot = client;
 
     switch(cmd){
-        case "improve":
-            Improve(userID, channelID);
-            break;
+    case "improve":
+        Improve(userID, channelID);
+        break;
     }
 }
 

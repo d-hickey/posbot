@@ -1,19 +1,22 @@
-var bot;
+let bot;
 
-function getServerKeyByChannel(channelID){
-    for (var serverKey in bot.servers){
-        for (var id in bot.servers[serverKey].channels){
-            if (channelID === id){
-                return serverKey;
+function getServerByChannel(channelID){
+    for (let server of bot.guilds){
+        for (let channel in server[1].channels){
+            if (channel[0] === channelID){
+                return server[1];
             }
         }
     }
 }
 
-function getMemberObject(userID, serverKey) {
-    for (var memberID in bot.servers[serverKey].members){
-        if (memberID === userID){
-            return bot.servers[serverKey].members[memberID];
+function getMemberObject(userID, server) {
+    console.log(server);
+    for (let member of server.members){
+        console.log("in loop");
+        console.log(member);
+        if (member[0] === userID){
+            return member[1];
         }
     }
     return undefined;
@@ -23,22 +26,20 @@ function getMemberObject(userID, serverKey) {
 function GetMember(client, userID, channelID="") {
     bot = client;
     if (channelID) {
-        var currentServer = getServerKeyByChannel(channelID);
-        var member = getMemberObject(userID, currentServer);
+        let currentServer = getServerByChannel(channelID);
+        let member = getMemberObject(userID, currentServer);
         if (member) {
             return member;
         }
     }
-    for (var serverKey in bot.servers){
-        var memberObj = getMemberObject(userID, serverKey);
+    for (let server of bot.guilds){
+        let memberObj = getMemberObject(userID, server[1]);
         if (memberObj) {
             return memberObj;
         }
     }
 
-    var fakemember = {};
-    fakemember.nick = "Undefined User";
-    return fakemember;
+    return undefined;
 }
 
 exports.GetMember = GetMember;

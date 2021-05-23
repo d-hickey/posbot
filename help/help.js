@@ -1,13 +1,9 @@
-var util = require("util");
-
-var ranks = require("../ranks/ranks");
-
-var logger = require("winston");
+const util = require("util");
 
 // Discord client
-var bot;
+let bot;
 
-var help = {
+const help = {
     "ping": {
         "alias": [],
         "args": "",
@@ -77,21 +73,6 @@ var help = {
         "alias": [],
         "args": "",
         "desc": "Displays your message stats for the all text channels"
-    },
-    "rank": {
-        "alias": [],
-        "args": "",
-        "desc": "Displays your current pos Level"
-    },
-    "buy-microtransaction": {
-        "alias": [],
-        "args": "<link>",
-        "desc": "Exchange a link for progress"
-    },
-    "leaderboard": {
-        "alias": [],
-        "args": "",
-        "desc": "Shows the rank leaderboard"
     },
     "8ball": {
         "alias": [],
@@ -188,16 +169,6 @@ var help = {
         "args": "",
         "desc": "Get some posbot certified tips on how to improve yourself, your outlook and your life."
     },
-    "gaydar": {
-        "alias": [],
-        "args": "",
-        "desc": "Killian requested this one."
-    },
-    "werewolf": {
-        "alias": [],
-        "args": "",
-        "desc": "Start a game of werewolf. Other werewolf commands should be explained as part of the game"
-    },
     "newgift": {
         "alias": [],
         "args": "",
@@ -257,33 +228,33 @@ var help = {
 
 // Help
 function PrintHelp(channelID, userID, args) {
-    var key = "";
+    let key = "";
     if (args.length === 0) {
         key = "help";
     } else {
         key = args[0];
     }
     if (key in help) {
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("<@%s> %s", userID, BuildCommandDescription(key))
-        });
+        bot.createMessage(
+            channelID,
+            util.format("<@%s> %s", userID, BuildCommandDescription(key))
+        );
         return;
     }
-    for (var comm in help) {
-        var index = help[comm].alias.indexOf(key);
+    for (let comm in help) {
+        let index = help[comm].alias.indexOf(key);
         if (index > -1) {
-            bot.sendMessage({
-                to: channelID,
-                message: util.format("<@%s> %s", userID, BuildCommandDescription(comm, index))
-            });
+            bot.createMessage(
+                channelID,
+                util.format("<@%s> %s", userID, BuildCommandDescription(comm, index))
+            );
             return;
         }
     }
 
-    var search = args[0];
-    var commands = [];
-    for (var command in help) {
+    let search = args[0];
+    let commands = [];
+    for (let command in help) {
         if (command.indexOf(search) > -1) {
             commands.push(command);
         } else if (help[command].desc.indexOf(search) > -1) {
@@ -294,26 +265,26 @@ function PrintHelp(channelID, userID, args) {
     }
 
     if (commands.length > 0) {
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("<@%s> Possible commands based on search term %s: %s", userID, search, commands.join(", "))
-        });
+        bot.createMessage(
+            channelID,
+            util.format("<@%s> Possible commands based on search term %s: %s", userID, search, commands.join(", "))
+        );
     } else {
-        bot.sendMessage({
-            to: channelID,
-            message: util.format("<@%s> Nothing found with search term %s", userID, search)
-        });
+        bot.createMessage(
+            channelID,
+            util.format("<@%s> Nothing found with search term %s", userID, search)
+        );
     }
 }
 
 function BuildCommandDescription(key, aliasIndex = -1) {
-    var aliasList = help[key].alias.slice(0);
-    var comm = key;
+    let aliasList = help[key].alias.slice(0);
+    let comm = key;
     if (aliasIndex > -1) {
         comm = aliasList.splice(aliasIndex, 1);
         aliasList.push(key);
     }
-    var command = comm + " ";
+    let command = comm + " ";
     if (help[key].args !== "") {
         command += help[key].args + " ";
     }
@@ -325,9 +296,9 @@ function BuildCommandDescription(key, aliasIndex = -1) {
 }
 
 function PrintHelpAll(channelID, userID) {
-    var allhelp = [];
-    var helppart = "";
-    for (var command in help) {
+    let allhelp = [];
+    let helppart = "";
+    for (let command in help) {
         helppart += BuildCommandDescription(command) + "\n";
         if (helppart.length > 1900){
             allhelp.push(helppart);
@@ -336,35 +307,32 @@ function PrintHelpAll(channelID, userID) {
     }
     allhelp.push(helppart);
 
-    bot.sendMessage({
-        to: channelID,
-        message: "Response is in your DMs, yo."
-    });
+    bot.createMessage(channelID, "Response is in your DMs, yo.");
 
-    for (var msgpart of allhelp){
-        if (msgpart !== ""){
-            bot.sendMessage({
-                to: userID,
-                message: msgpart
-            }, function(err){
-                logger.info(err);
-            });
+    let promise = bot.getDMChannel(userID);
+    promise.then(dm => {
+        for (let msgpart of allhelp){
+            if (msgpart !== ""){
+                bot.createMessage(dm.id, msgpart);
+            }
         }
-    }
+    }, reason => {
+        console.log(reason);
+    });
 }
 
 function Commands(client, userID, channelID, cmd, args) {
     bot = client;
 
     switch (cmd) {
-        case "halp": // Fallthrough
-        case "man": // Fallthrough
-        case "help":
-            PrintHelp(channelID, userID, args);
-            break;
-        case "helpall":
-            PrintHelpAll(channelID, userID);
-            break;
+    case "halp": // Fallthrough
+    case "man": // Fallthrough
+    case "help":
+        PrintHelp(channelID, userID, args);
+        break;
+    case "helpall":
+        PrintHelpAll(channelID, userID);
+        break;
     }
 }
 

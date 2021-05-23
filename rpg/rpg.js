@@ -9,8 +9,8 @@ var user = require("../user");
 // Discord client
 var bot;
 
-var genParts = JSON.parse(fs.readFileSync('./rpg/rpg_names.json', 'utf8'));
-var save = JSON.parse(fs.readFileSync('./rpg/save.json', 'utf8'));
+var genParts = JSON.parse(fs.readFileSync("./rpg/rpg_names.json", "utf8"));
+var save = JSON.parse(fs.readFileSync("./rpg/save.json", "utf8"));
 
 var weaponChoices = {
     "A": {
@@ -43,7 +43,7 @@ function IsObjectEmpty(object){
 
 function SaveGame() {
     var saveJson = JSON.stringify(save, null, 4);
-    fs.writeFileSync('./rpg/save.json', saveJson);
+    fs.writeFileSync("./rpg/save.json", saveJson);
 }
 
 // Character Gen
@@ -144,7 +144,7 @@ function WeaponString(weapon){
 }
 
 function StatsGen() {
-    stats = {};
+    let stats = {};
     for (var stat of genParts.stats) {
         var score = randomInt.Get(1, 20);
         stats[stat] = score;
@@ -324,7 +324,7 @@ function GetAlly(userID, alive){
 function CheckDupeTitles(userID) {
     var char = save.chars[userID];
     var name = char.name;
-    var titles = name.match(/\s\"[a-z\-\s]+\"/gi);
+    var titles = name.match(/\s"[a-z\-\s]+"/gi);
     if (titles) {
         for (var title of titles) {
             var re = new RegExp(title, "gi");
@@ -564,7 +564,7 @@ function GiveTitle(userID, titleIndex=0) {
 
 function ShuffleTitles(userID) {
     var name = save.chars[userID].name;
-    var count = name.match(/ \"[a-z \-]+\"/gi).length;
+    var count = name.match(/ "[a-z -]+"/gi).length;
     RemoveTitles(userID);
     for (var i = 0; i < count; i++) {
         GiveTitle(userID);
@@ -573,7 +573,7 @@ function ShuffleTitles(userID) {
 
 function RemoveTitles(userID) {
     var name = save.chars[userID].name;
-    save.chars[userID].name = name.replace(/ \"[a-z \-]+\"/gi, "");
+    save.chars[userID].name = name.replace(/ "[a-z -]+"/gi, "");
 }
 
 function UpdateStat(userID, stat, amount){
@@ -589,7 +589,7 @@ function UpdateStat(userID, stat, amount){
     if (amount < 0){
         direction = "decreases";
     }
-    message = util.format(" Your %s %s from %d to %d.", stat, direction, oldvalue, char.stats[stat]);
+    let message = util.format(" Your %s %s from %d to %d.", stat, direction, oldvalue, char.stats[stat]);
     if (stat === "HP" && char.stats[stat] < 1){
         message += " You die.";
         KillChar(userID);
@@ -627,73 +627,73 @@ function Commands(client, userID, channelID, cmd, args) {
     bot = client;
 
     switch (cmd) {
-        case "newchar": // Fallthrough
-        case "rollchar":
-            if (!(userID in save.chars) || !save.chars[userID].alive){
-                CreateCharacter(userID);
-                bot.sendMessage({
-                    to: channelID,
-                    message: CharacterString(userID)
-                });
+    case "newchar": // Fallthrough
+    case "rollchar":
+        if (!(userID in save.chars) || !save.chars[userID].alive){
+            CreateCharacter(userID);
+            bot.sendMessage({
+                to: channelID,
+                message: CharacterString(userID)
+            });
+        }
+        break;
+    case "char": // Fallthrough
+    case "showchar":
+        if (userID in save.chars){
+            bot.sendMessage({
+                to: channelID,
+                message: CharacterString(userID)
+            });
+        }
+        break;
+    case "showname":
+        if (userID in save.chars){
+            bot.sendMessage({
+                to: channelID,
+                message: BioString(userID)
+            });
+        }
+        break;
+    case "showeapon": // Fallthrough
+    case "showweapon":
+        if (userID in save.chars){
+            var mess = util.format("Your weapon is: %s", WeaponString(save.chars[userID].weapon));
+            if ("offhand" in save.chars[userID] && Object.keys(save.chars[userID].offhand).length !== 0){
+                mess += util.format(" and in your offhand you hold: %s", WeaponString(save.chars[userID].offhand));
             }
-            break;
-        case "char": // Fallthrough
-        case "showchar":
-            if (userID in save.chars){
-                bot.sendMessage({
-                    to: channelID,
-                    message: CharacterString(userID)
-                });
-            }
-            break;
-        case "showname":
-            if (userID in save.chars){
-                bot.sendMessage({
-                    to: channelID,
-                    message: BioString(userID)
-                });
-            }
-            break;
-        case "showeapon": // Fallthrough
-        case "showweapon":
-            if (userID in save.chars){
-                var mess = util.format("Your weapon is: %s", WeaponString(save.chars[userID].weapon));
-                if ("offhand" in save.chars[userID] && Object.keys(save.chars[userID].offhand).length !== 0){
-                    mess += util.format(" and in your offhand you hold: %s", WeaponString(save.chars[userID].offhand));
-                }
-                bot.sendMessage({
-                    to: channelID,
-                    message: mess
-                });
-            }
-            break;
-        case "showstats":
-            if (userID in save.chars){
-                bot.sendMessage({
-                    to: channelID,
-                    message: StatString(save.chars[userID].stats)
-                });
-            }
-            break;
-        case "choose":
-            Action(userID, channelID, args[0]);
-            break;
-        case "a": // Fallthrough
-        case "A":
-            Action(userID, channelID, 'A');
-            break;
-        case "b": // Fallthrough
-        case "B":
-            Action(userID, channelID, 'B');
-            break;
-        case "c": // Fallthrough
-        case "C":
-            Action(userID, channelID, 'C');
-            break;
-        case "d": // Fallthrough
-        case "D":
-            Action(userID, channelID, 'D');
-            break;
+            bot.sendMessage({
+                to: channelID,
+                message: mess
+            });
+        }
+        break;
+    case "showstats":
+        if (userID in save.chars){
+            bot.sendMessage({
+                to: channelID,
+                message: StatString(save.chars[userID].stats)
+            });
+        }
+        break;
+    case "choose":
+        Action(userID, channelID, args[0]);
+        break;
+    case "a": // Fallthrough
+    case "A":
+        Action(userID, channelID, "A");
+        break;
+    case "b": // Fallthrough
+    case "B":
+        Action(userID, channelID, "B");
+        break;
+    case "c": // Fallthrough
+    case "C":
+        Action(userID, channelID, "C");
+        break;
+    case "d": // Fallthrough
+    case "D":
+        Action(userID, channelID, "D");
+        break;
     }
 }
 
