@@ -778,10 +778,16 @@ bot.on("messageCreate", (msg) => {
             "don't worry sam! Something something something"
         );
     }
-    if (message.toLowerCase().indexOf("^w^") > -1) {
+    else if (message.toLowerCase().indexOf("^w^") > -1) {
         bot.createMessage(
             channelID,
             "How he do that face?"
+        );
+    }
+    else if (message.toLowerCase().indexOf("good, you") > -1) {
+        bot.createMessage(
+            channelID,
+            "Good, you?"
         );
     }
 
