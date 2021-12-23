@@ -11,10 +11,7 @@ function getServerByChannel(channelID){
 }
 
 function getMemberObject(userID, server) {
-    console.log(server);
     for (let member of server.members){
-        console.log("in loop");
-        console.log(member);
         if (member[0] === userID){
             return member[1];
         }

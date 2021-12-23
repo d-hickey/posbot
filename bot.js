@@ -12,6 +12,7 @@ const schedule = require("node-schedule");
 const auth = require("./auth.json");
 const burgs = require("./burgs/burgs");
 const help = require("./help/help");
+const horoscope = require("./horoscope/horoscope");
 const improve = require("./improve/improve");
 const markov = require("./markov/markov");
 const randomInt = require("./randomint");
@@ -724,6 +725,8 @@ bot.on("messageCreate", (msg) => {
             // No other cases matched, check other modules
             // Help
             help.Commands(bot, userID, channelID, cmd, args);
+            // Horoscope
+            horoscope.Commands(bot, userID, channelID, cmd);
             // Improve yourself
             improve.Commands(bot, userID, channelID, cmd);
             // To Do List
@@ -792,7 +795,7 @@ bot.on("messageCreate", (msg) => {
     }
 
     // Update user message stats
-    updateUserMsgCount(channelID, userID, false);
+    // updateUserMsgCount(channelID, userID, false);
 });
 
 bot.connect();
