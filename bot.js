@@ -20,6 +20,7 @@ const remind = require("./remind/remind");
 // const rpg = require("./rpg/rpg");
 const todo = require("./todo/todo");
 const userInfo = require("./user");
+const wordStats = require("./word_stats/word_stats");
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -245,6 +246,7 @@ schedule.scheduleJob("0 0 * * *", function() {
 schedule.scheduleJob("* * * * *", function() {
     CheckConnection();
     remind.CheckMinuteReminders(bot);
+    wordStats.Write();
 });
 
 //Channel History
@@ -737,6 +739,8 @@ bot.on("messageCreate", (msg) => {
             // rpg.Commands(bot, userID, channelID, cmd, args);
             // Burger checklist
             burgs.Commands(bot, member.username, userID, channelID, cmd, args);
+            // Word stats
+            wordStats.Commands(bot, userID, channelID, cmd);
             break;
         }
 
@@ -770,6 +774,9 @@ bot.on("messageCreate", (msg) => {
 
     // Check markov triggers and update history
     markov.Update(bot, userID, channelID, message, msg.id);
+
+    // Update Word Stats
+    wordStats.Update(userID, message);
 
     // Check rpg triggers
     // rpg.Update(bot, userID, channelID);
