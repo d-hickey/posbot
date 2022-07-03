@@ -12,6 +12,8 @@ const USER_DICTIONARY = "./word_stats/user.json";
 let GlobalDict;
 let UserDict;
 
+const BORING_WORDS = JSON.parse(fs.readFileSync("./word_stats/stop_words.json", "utf8"));
+
 function GetGlobalDictionary(){
     if (GlobalDict){
         return GlobalDict;
@@ -117,7 +119,7 @@ function OptOut(userID, channelID){
     bot.createMessage(channelID, util.format("<@%s> %s", userID, message));
 }
 
-function GetTopFive(dictionary){
+function GetTopFive(dictionary, interesting = false){
     // Create items array
     let items = Object.keys(dictionary).map(function(key) {
         return [key, dictionary[key]];
@@ -127,15 +129,22 @@ function GetTopFive(dictionary){
     items.sort(function(first, second) {
         return second[1] - first[1];
     });
+
+    if (interesting){
+        console.log(items);
+        console.log(BORING_WORDS);
+        items = items.filter(item => BORING_WORDS.indexOf(item[0]) === -1);
+        console.log(items);
+    }
     
     // Create a new array with only the first 5 items
     return items.slice(0, 5);
 }
 
-function TopWords(userID, channelID){
+function TopWords(userID, channelID, interesting = false){
     let dictionary = GetGlobalDictionary();
 
-    let top = GetTopFive(dictionary);
+    let top = GetTopFive(dictionary, interesting);
 
     let message = "Top 5 words used by everyone:\n";
     for (let word of top){
@@ -145,7 +154,7 @@ function TopWords(userID, channelID){
     bot.createMessage(channelID, util.format("<@%s> %s", userID, message));
 }
 
-function UserTopWords(userID, channelID){
+function UserTopWords(userID, channelID, interesting = false){
     let dictionary = GetUserDictionary();
 
     if (!(userID in dictionary)){
@@ -154,7 +163,7 @@ function UserTopWords(userID, channelID){
     }
     let userLevel = dictionary[userID];
 
-    let top = GetTopFive(userLevel);
+    let top = GetTopFive(userLevel, interesting);
 
     let message = "Top 5 words used by you:\n";
     for (let word of top){
@@ -179,6 +188,12 @@ function Commands(client, userID, channelID, cmd){
         break;
     case "mytopwords":
         UserTopWords(userID, channelID);
+        break;
+    case "interestingwords":
+        TopWords(userID, channelID, true);
+        break;
+    case "myinterestingwords":
+        UserTopWords(userID, channelID, true);
         break;
     }
 }
