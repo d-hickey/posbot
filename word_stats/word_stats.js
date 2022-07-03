@@ -119,7 +119,7 @@ function OptOut(userID, channelID){
     bot.createMessage(channelID, util.format("<@%s> %s", userID, message));
 }
 
-function GetTopFive(dictionary, interesting = false){
+function GetTopAmount(dictionary, amount = 5, interesting = false){
     // Create items array
     let items = Object.keys(dictionary).map(function(key) {
         return [key, dictionary[key]];
@@ -134,14 +134,19 @@ function GetTopFive(dictionary, interesting = false){
         items = items.filter(item => BORING_WORDS.indexOf(item[0]) === -1);
     }
     
-    // Create a new array with only the first 5 items
-    return items.slice(0, 5);
+    // if amount is greater than list or set to -1 return all items
+    if (amount === -1 || amount > items.length){
+        return items;
+    }
+
+    // Create a new array with only the first X items
+    return items.slice(0, amount);
 }
 
-function TopWords(userID, channelID, interesting = false){
+function TopWords(userID, channelID, amount = 5, interesting = false){
     let dictionary = GetGlobalDictionary();
 
-    let top = GetTopFive(dictionary, interesting);
+    let top = GetTopAmount(dictionary, amount, interesting);
 
     let message = "Top 5 words used by everyone:\n";
     for (let word of top){
@@ -151,7 +156,7 @@ function TopWords(userID, channelID, interesting = false){
     bot.createMessage(channelID, util.format("<@%s> %s", userID, message));
 }
 
-function UserTopWords(userID, channelID, interesting = false){
+function UserTopWords(userID, channelID, interesting = false, unique = -1){
     let dictionary = GetUserDictionary();
 
     if (!(userID in dictionary)){
@@ -160,9 +165,27 @@ function UserTopWords(userID, channelID, interesting = false){
     }
     let userLevel = dictionary[userID];
 
-    let top = GetTopFive(userLevel, interesting);
+    let amount = 5;
+    if (unique > 0) {
+        amount = -1;
+    }
+
+    let top = GetTopAmount(userLevel, amount, interesting);
+
+    if (unique > 0){
+        let globalDict = GetGlobalDictionary();
+        let globalTop = GetTopAmount(globalDict, unique, true);
+        let globalWords = globalTop.map(item => item[0]);
+        top = top.filter(word => globalWords.indexOf(word[0]) === -1);
+        top = top.slice(0, 5);
+    }
 
     let message = "Top 5 words used by you:\n";
+
+    if (unique > 0){
+        message += util.format("(Removed all Stop Words and then also the %d most used words)\n", unique);
+    }
+
     for (let word of top){
         message += util.format("- %s: %d uses\n", word[0], word[1]);
     }
@@ -170,7 +193,7 @@ function UserTopWords(userID, channelID, interesting = false){
     bot.createMessage(channelID, util.format("<@%s> %s", userID, message));
 }
 
-function Commands(client, userID, channelID, cmd){
+function Commands(client, userID, channelID, cmd, args){
     bot = client;
 
     switch(cmd){
@@ -187,11 +210,22 @@ function Commands(client, userID, channelID, cmd){
         UserTopWords(userID, channelID);
         break;
     case "interestingwords":
-        TopWords(userID, channelID, true);
+        TopWords(userID, channelID, 5, true);
         break;
     case "myinterestingwords":
         UserTopWords(userID, channelID, true);
         break;
+    case "myuniquewords": {
+        let unique = 25;
+        if (args.length > 0) {
+            unique = parseInt(args[0]);
+            if (isNaN(unique)){
+                unique = 25;
+            }
+        }
+        UserTopWords(userID, channelID, true, unique);
+        break;
+    }
     }
 }
 

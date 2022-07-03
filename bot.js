@@ -740,7 +740,7 @@ bot.on("messageCreate", (msg) => {
             // Burger checklist
             burgs.Commands(bot, member.username, userID, channelID, cmd, args);
             // Word stats
-            wordStats.Commands(bot, userID, channelID, cmd);
+            wordStats.Commands(bot, userID, channelID, cmd, args);
             break;
         }
 
