@@ -131,10 +131,7 @@ function GetTopFive(dictionary, interesting = false){
     });
 
     if (interesting){
-        console.log(items);
-        console.log(BORING_WORDS);
         items = items.filter(item => BORING_WORDS.indexOf(item[0]) === -1);
-        console.log(items);
     }
     
     // Create a new array with only the first 5 items
