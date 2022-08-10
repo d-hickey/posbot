@@ -22,6 +22,10 @@ let messageCount = 0;
 let timeSinceLast = 0;
 
 function read_history(){
+    if (!fs.existsSync("chat.log")){
+        fs.writeFileSync("chat.log", "");
+        return "";
+    }
     return fs.readFileSync("chat.log", "utf8");
 }
 

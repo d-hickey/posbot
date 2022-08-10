@@ -50,10 +50,16 @@ function diceRoll(args) {
 
         if (isPositiveNumber(amount) && isPositiveNumber(dicenumber)) {
             let total = 0;
+            let parts = []
+
+
+
             for (let i = 0; i < +amount; i++) {
-                total = total + randomInt.Get(1, +dicenumber);
+                roll = randomInt.Get(1, +dicenumber);
+                parts.push(roll);
+                total = total + roll;
             }
-            return total;
+            return util.format("(%s) = %d", parts.join(" + "), total);
         }
     }
 
