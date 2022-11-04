@@ -17,6 +17,7 @@ const improve = require("./improve/improve");
 const markov = require("./markov/markov");
 const randomInt = require("./randomint");
 const remind = require("./remind/remind");
+const soccer = require("./soccer/soccer");
 // const rpg = require("./rpg/rpg");
 const todo = require("./todo/todo");
 const userInfo = require("./user");
@@ -741,6 +742,8 @@ bot.on("messageCreate", (msg) => {
             todo.Commands(bot, userID, channelID, cmd, args);
             // Reminders
             remind.Commands(bot, userID, channelID, cmd, args);
+            // Soccer Sweepstakes
+            soccer.Commands(bot, userID, channelID, cmd, args);
             // RPG
             // rpg.Commands(bot, userID, channelID, cmd, args);
             // Burger checklist

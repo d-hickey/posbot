@@ -1,0 +1,345 @@
+{
+  "teams": [
+    "Argentina",
+    "Australia",
+    "Belgium",
+    "Brazil",
+    "Cameroon",
+    "Canada",
+    "Costa Rica",
+    "Croatia",
+    "Denmark",
+    "Ecuador",
+    "England",
+    "France",
+    "Germany",
+    "Ghana",
+    "Iran",
+    "Japan",
+    "Mexico",
+    "Morocco",
+    "Netherlands",
+    "Poland",
+    "Portugal",
+    "Qatar",
+    "Saudi Arabia",
+    "Senegal",
+    "Serbia",
+    "South Korea",
+    "Spain",
+    "Switzerland",
+    "Tunisia",
+    "Uruguay",
+    "USA",
+    "Wales"
+  ],
+  "group_stage": true,
+  "groups": {
+    "A": [
+      {
+        "name": "Ecuador",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Netherlands",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Qatar",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Senegal",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ],
+    "B": [
+      {
+        "name": "England",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Iran",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "USA",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Wales",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ],
+    "C": [
+      {
+        "name": "Argentina",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Mexico",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Poland",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Saudi Arabia",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ],
+    "D": [
+      {
+        "name": "Australia",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Denmark",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "France",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Tunisia",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ],
+    "E": [
+      {
+        "name": "Costa Rica",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Germany",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Japan",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Spain",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ],
+    "F": [
+      {
+        "name": "Belgium",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Canada",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Croatia",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Morocco",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ],
+    "G": [
+      {
+        "name": "Brazil",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Cameroon",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Serbia",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Switzerland",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ],
+    "H": [
+      {
+        "name": "Ghana",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Portugal",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "South Korea",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      },
+      {
+        "name": "Uruguay",
+        "won": 0,
+        "lost": 0,
+        "draw": 0,
+        "points": 0,
+        "gf": 0,
+        "ga": 0
+      }
+    ]
+  },
+  "results": [],
+  "players": {}
+}
