@@ -16,7 +16,7 @@ const HelpMessage = "Alright listen up, because I'm only going to say this once 
 "~~You stake your bet by using \"!soccer pay <meme_link>\", then~~ you can pull a team using \"!soccer draw\". Entries are limited to 4 per person.\n" +
 "If you want to withdraw ~~your bet~~, you can use \"!soccer pullout\". If you want to check your teams, you can use \"!soccer teams\".\n" +
 "To record a result use \"!soccer record <team> <score> <team> <score>\" e.g. \"!soccer record ireland 3 england 1\" \n" +
-"Other commands available: \"!soccer group <group_letter>\", \"!soccer team <team_name>\", \"!soccer amiwinning\"~~, \"!soccer amilosing\", \"!soccer prizes\"~~";
+"Other commands available: \"!soccer group <group_letter>\", ~~\"!soccer team <team_name>\",~~ \"!soccer amiwinning\"~~, \"!soccer amilosing\", \"!soccer prizes\"~~";
 
 const BadInputResponse = [
     "Maybe you should try \"!soccer help\"",
@@ -118,6 +118,16 @@ function GetGroups(){
     return stakes.groups;
 }
 
+function GetPlaces(){
+    let stakes = GetSweepstakes();
+
+    if (!("places" in stakes)){
+        stakes.places = {};
+    }
+
+    return stakes.places;
+}
+
 // Message Generators
 function GetMessage (choices) {
     const choice = randomInt.Get(0, choices.length - 1);
@@ -176,10 +186,15 @@ function Record(userID, channelID, args){
 function ValidateResult(userID, channelID, args){
     let message = "";
 
-    if (args.length !== 4){
+    let settings = GetSettings();
+    
+    if ("no_update_players" in settings && settings.no_update_players.indexOf(userID) !== -1){
+        message = "Yeah, I just don't trust you with this command.";
+    }
+    else if (args.length !== 4){
         message = "Not enough inputs. It's \"!soccer record <team> <score> <team> <score>\"";
     }
-    else if (Number.isNaN(args[1]) || Number.isNaN(args[3])){
+    else if (Number.isNaN(parseInt(args[1])) || Number.isNaN(parseInt(args[3]))){
         message = "Scores gotta be numbers dingus!";
     }
     else{
@@ -244,6 +259,36 @@ function RecordKnockoutStage(){
     //Todo
 }
 
+function AmIWinning(userID, channelID){
+    let teams = GetUserTeams(userID);
+    if (teams.length === 0){
+        bot.createMessage(channelID, util.format("<@%s> No 😒", userID));
+        return;
+    }
+
+    const places = GetPlaces();
+    let message = "Your teams:\n";
+
+    for (let team of teams){
+        let teamPlace = "";
+
+        for (let place in places){
+            if (places[place].indexOf(team) !== -1){
+                teamPlace = place;
+                break;
+            }
+        }
+
+        if (teamPlace === ""){
+            teamPlace = "Still in the running!";
+        }
+
+        message += util.format("%s - %s\n", team, teamPlace);
+    }
+
+    bot.createMessage(channelID, util.format("<@%s> message", userID, message));
+}
+
 function Commands(client, userID, channelID, cmd, args){
     bot = client;
 
@@ -270,9 +315,12 @@ function Commands(client, userID, channelID, cmd, args){
         bot.createMessage(channelID, util.format("<@%s> %s", userID, HelpMessage));
         break;
     case "pullout":
-        bot.createMessage(channelID, util.format("<@%s> %s", userID, PulloutResponse));
+        bot.createMessage(channelID, util.format("<@%s> %s", userID, GetMessage(PulloutResponse)));
         break;
     case "amiwinning":
+        AmIWinning(userID, channelID);
+        break;
+    case "group":
         break;
     case "record":
         Record(userID, channelID, args);
