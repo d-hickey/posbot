@@ -289,6 +289,71 @@ function AmIWinning(userID, channelID){
     bot.createMessage(channelID, util.format("<@%s> message", userID, message));
 }
 
+function GroupInfo(userID, channelID, group){
+    if (!group){
+        bot.createMessage(channelID, util.format("<@%s> You gotta at least specify a group, sweet child.", userID));
+        return;
+    }
+
+    group = group.toUpperCase();
+
+    let groups = GetGroups();
+
+    if (!(group in groups)){
+        bot.createMessage(channelID, util.format("<@%s> That's not a real group, is it?", userID));
+        return;
+    }
+
+    let teams = groups[group];
+    let message = util.format("Table for Group %s:\n", group);
+    message += "```Country             W  D  L  GF  GA  Pts\n";
+
+    let rows = [];
+    for (let team of teams){
+        let name = BuildCell(team.name, 19);
+        let wins = BuildCell(team.won, 2);
+        let draws = BuildCell(team.draw, 2);
+        let losses = BuildCell(team.lost, 2);
+        let gf = BuildCell(team.gf, 3);
+        let ga = BuildCell(team.ga, 3);
+        let points = BuildCell(team.points, 3);
+        let row = util.format("%s %s %s %s %s %s %s", name, wins, draws, losses, gf, ga, points).trim();
+        rows.push(row);
+    }
+
+    rows.sort(RowSorter);
+
+    message += rows.join("\n");
+
+    message += "```";
+
+    bot.createMessage(channelID, util.format("<@%s> message", userID, message));
+}
+
+function RowSorter(a, b){
+    const aPoints = ExtractPoints(a);
+    const bPoints = ExtractPoints(b);
+    if ( aPoints <bPoints ){
+        return 1;
+    }
+    if ( aPoints > bPoints ){
+        return -1;
+    }
+    return 0;
+}
+
+function ExtractPoints(row){
+    const cells = row.split(" ");
+    const points = cells[cells.length - 1];
+    return parseInt(points);
+}
+
+function BuildCell(item, totalSpace){
+    let stringified = item.toString();
+    let spaces = totalSpace - stringified.length;
+    return util.format("%s%s", stringified, " ".repeat(spaces));
+}
+
 function Commands(client, userID, channelID, cmd, args){
     bot = client;
 
@@ -321,6 +386,7 @@ function Commands(client, userID, channelID, cmd, args){
         AmIWinning(userID, channelID);
         break;
     case "group":
+        GroupInfo(userID, channelID, args[0]);
         break;
     case "record":
         Record(userID, channelID, args);
