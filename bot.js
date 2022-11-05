@@ -247,6 +247,7 @@ schedule.scheduleJob("0 0 * * *", function() {
         }
     }
     SaveBirthdays();
+    soccer.ClearDrew();
 });
 
 // Minute scheduler
