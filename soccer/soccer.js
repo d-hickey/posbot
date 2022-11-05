@@ -47,6 +47,21 @@ function GetSettings(){
     return SoccerSettings;
 }
 
+function WriteSettings(){
+    let settings = GetSettings();
+    let json = JSON.stringify(settings, null, 4);
+    fs.writeFileSync(SETTINGS_FILE, json);
+}
+
+function GetDrewToday(){
+    let settings = GetSettings();
+    if (!("drew_today" in settings)){
+        settings.drew_today = [];
+    }
+
+    return settings.drew_today;
+}
+
 function GetStakesPath(){
     GetSettings();
     const current = SoccerSettings.current;
@@ -136,6 +151,12 @@ function GetMessage (choices) {
 
 // Commands
 function Draw(userID, channelID){
+    let drew = GetDrewToday();
+    if (drew.indexOf(userID) !== -1){
+        bot.createMessage(channelID, util.format("<@%s> Limiting to one draw per day for added tension.", userID));
+        return;
+    }
+
     let teams = GetUserTeams(userID);
     let message = "";
     if (teams.length == 4){
@@ -153,7 +174,9 @@ function Draw(userID, channelID){
 
             available.splice(index, 1);
             WriteSweepstakes();
-            // TODO Add draw to settings
+            
+            drew.push(userID);
+            WriteSettings();
         }
     }
 
@@ -394,4 +417,12 @@ function Commands(client, userID, channelID, cmd, args){
     }
 }
 
+function ClearDrewToday(){
+    let drew = GetDrewToday();
+    drew = [];
+    WriteSettings();
+    return drew;
+}
+
 exports.Commands = Commands;
+exports.ClearDrew = ClearDrewToday;
