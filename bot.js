@@ -32,7 +32,7 @@ logger.level = "debug";
 
 // Dice Roll
 function isPositiveNumber(num) {
-    if (num && num !== Number.isNaN && +num > 0) {
+    if (num && Number.isNaN(num) && +num > 0) {
         return true;
     }
     return false;
@@ -51,12 +51,10 @@ function diceRoll(args) {
 
         if (isPositiveNumber(amount) && isPositiveNumber(dicenumber)) {
             let total = 0;
-            let parts = []
-
-
+            let parts = [];
 
             for (let i = 0; i < +amount; i++) {
-                roll = randomInt.Get(1, +dicenumber);
+                let roll = randomInt.Get(1, +dicenumber);
                 parts.push(roll);
                 total = total + roll;
             }
