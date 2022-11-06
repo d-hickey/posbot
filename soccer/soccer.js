@@ -418,10 +418,10 @@ function Commands(client, userID, channelID, cmd, args){
 }
 
 function ClearDrewToday(){
-    let drew = GetDrewToday();
-    drew = [];
+    let settings = GetSettings();
+    settings.drew_today = [];
     WriteSettings();
-    return drew;
+    return settings;
 }
 
 exports.Commands = Commands;
