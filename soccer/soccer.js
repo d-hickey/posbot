@@ -16,7 +16,7 @@ const HelpMessage = "Alright listen up, because I'm only going to say this once 
 "~~You stake your bet by using \"!soccer pay <meme_link>\", then~~ you can pull a team using \"!soccer draw\". Entries are limited to 4 per person.\n" +
 "If you want to withdraw ~~your bet~~, you can use \"!soccer pullout\". If you want to check your teams, you can use \"!soccer teams\".\n" +
 "To record a result use \"!soccer record <team> <score> <team> <score>\" e.g. \"!soccer record ireland 3 england 1\" \n" +
-"Other commands available: \"!soccer group <group_letter>\", ~~\"!soccer team <team_name>\",~~ \"!soccer amiwinning\"~~, \"!soccer amilosing\", \"!soccer prizes\"~~";
+"Other commands available: \"!soccer group <group_letter>\", \"!soccer team <team_name>\", \"!soccer amiwinning\"~~, \"!soccer amilosing\", \"!soccer prizes\"~~";
 
 const BadInputResponse = [
     "Maybe you should try \"!soccer help\"",
@@ -91,6 +91,16 @@ function WriteSweepstakes(){
     fs.writeFileSync(path, json);
 }
 
+function GetPlayers(){
+    let stakes = GetSweepstakes();
+
+    if (!("players" in stakes)){
+        stakes.players = {};
+    }
+
+    return stakes.players;
+}
+
 function GetUserTeams(userID){
     let stakes = GetSweepstakes();
 
@@ -141,6 +151,29 @@ function GetPlaces(){
     }
 
     return stakes.places;
+}
+
+// Helpers
+function ArrayContainsIgnoreCase(array, item){
+    return array.some(element =>{
+        return element.toLowerCase() === item.toLowerCase();
+    });
+}
+
+function DoesTeamExist(team){
+    const available = GetAvailableTeams();
+    if (ArrayContainsIgnoreCase(available, team)){
+        return true;
+    }
+
+    const players = GetPlayers();
+    for (let id in players){
+        if (ArrayContainsIgnoreCase(players[id], team)){
+            return true;
+        }
+    }
+
+    return false;
 }
 
 // Message Generators
@@ -220,24 +253,8 @@ function ValidateResult(userID, channelID, args){
     else if (Number.isNaN(parseInt(args[1])) || Number.isNaN(parseInt(args[3]))){
         message = "Scores gotta be numbers dingus!";
     }
-    else{
-        let groups = GetGroups();
-        let team1 = false;
-        let team2 = false;
-        for (let group in groups){
-            let teams = groups[group];
-            for (let team of teams){
-                if (team.name.toLowerCase() === args[0].toLowerCase()){
-                    team1 = true;
-                }
-                else if (team.name.toLowerCase() === args[2].toLowerCase()){
-                    team2 = true;
-                }
-            }
-        }
-        if (!team1 || !team2){
-            message = "Trying to pull wool over the eyes of ol' posbot eh? At least one of these teams is a fake! Keep it up and we'll see what happens.";
-        }
+    else if (!DoesTeamExist(args[0]) || !DoesTeamExist(args[2])){
+        message = "Trying to pull wool over the eyes of ol' posbot eh? At least one of these teams is a fake! Keep it up and we'll see what happens.";
     }
 
     if (message !== ""){
@@ -280,6 +297,35 @@ function RecordGroupTeam(team, score, against){
 
 function RecordKnockoutStage(){
     //Todo
+}
+
+function Team(userID, channelID, args){
+    if (args.length === 0){
+        bot.createMessage(channelID, util.format("<@%s> Specify a team please", userID));
+        return;
+    }
+    if (!DoesTeamExist(args[0])){
+        bot.createMessage(channelID, util.format("<@%s> That is not a team in this tournament", userID));
+        return;
+    }
+
+    if (IsGroupStage()){
+        const groups = GetGroups();
+        for (let group in groups){
+            let teams = groups[group];
+            for (let team of teams){
+                if (team.name.toLowerCase() === args[0].toLowerCase()){
+                    bot.createMessage(channelID, util.format("<@%s> %s are currently in Group %s", userID, team.name, group));
+                    return;
+                }
+            }
+        }
+        bot.createMessage(channelID, util.format("<@%s> Your team exists but I couldn't find it in any group. Strange. This should be unreachable code!", userID));
+        return;
+    }
+    else{
+        //Todo
+    }
 }
 
 function AmIWinning(userID, channelID){
@@ -396,8 +442,13 @@ function Commands(client, userID, channelID, cmd, args){
     case "draw":
         Draw(userID, channelID);
         break;
+    case "list":
+    case "check":
     case "teams":
         Teams(userID, channelID);
+        break;
+    case "team":
+        Team(userID, channelID, args);
         break;
     case "help":
         bot.createMessage(channelID, util.format("<@%s> %s", userID, HelpMessage));
