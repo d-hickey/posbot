@@ -95,6 +95,25 @@ function getRedditComment(sub, callback) {
     });
 }
 
+function getRedditImage(sub, callback){
+    let url = "https://reddit.com/r/" + sub + "/top/.json?t=month&limit=100";
+    logger.info(url);
+    let image = "<Oh I completely failed to get an image here>";
+
+    request(url, function(error, response, body) {
+        if (error){
+            logger.error(error);
+            return callback(image);
+        }
+
+        let redditResponse = JSON.parse(body);
+        let post = randomInt.Get(0, redditResponse.data.children.length);
+
+        image = redditResponse.data.children[post].data.url;
+        return callback(image);
+    });
+}
+
 // Get Gift
 function getFlickrImage(callback) {
     let url = "https://api.flickr.com/services/feeds/photos_public.gne?format=json";
@@ -772,12 +791,24 @@ bot.on("messageCreate", (msg) => {
     // Check Birthdays
     if (IsBirthday(userID)) {
         getFlickrImage(function(image) {
-            bot.createMessage(
-                channelID,
-                util.format("Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere's your gift %s", userID, image)
-            );
+            getRedditImage("pic", function(redditPic){
+                getRedditImage("HighQualityGifs", function(redditGif){
+                    let picsum = util.format("https://picsum.photos/id/%d/3840/2160", randomInt.Get(1, 1080));
+                    bot.createMessage(
+                        channelID,
+                        util.format(
+                            "Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere are some gifts I've gathered specifically for you.\nPicsum: %s\nFlickr: %s\nReddit pic: %s\nReddit gif: %s", 
+                            userID,
+                            picsum,
+                            image,
+                            redditPic,
+                            redditGif
+                        )
+                    );
+                    DeliveredBirthdayGift(userID);
+                });
+            });
         });
-        DeliveredBirthdayGift(userID);
     }
 
     // Check markov triggers and update history
