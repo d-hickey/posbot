@@ -161,6 +161,7 @@ function ArrayContainsIgnoreCase(array, item){
 }
 
 function DoesTeamExist(team){
+    team = team.replace("_", " ");
     const available = GetAvailableTeams();
     if (ArrayContainsIgnoreCase(available, team)){
         return true;
@@ -266,13 +267,15 @@ function ValidateResult(userID, channelID, args){
 
 function RecordGroupStage(args){
     let groups = GetGroups();
+    let team1 = args[0].replace("_", " ").toLowerCase();
+    let team2 = args[2].replace("_", " ").toLowerCase();
     for (let group in groups){
         let teams = groups[group];
         for (let team of teams){
-            if (team.name.toLowerCase() === args[0].toLowerCase()){
+            if (team.name.toLowerCase() === team1){
                 RecordGroupTeam(team, parseInt(args[1]), parseInt(args[3]));
             }
-            else if (team.name.toLowerCase() === args[2].toLowerCase()){
+            else if (team.name.toLowerCase() === team2){
                 RecordGroupTeam(team, parseInt(args[3]), parseInt(args[1]));
             }
         }
@@ -304,7 +307,8 @@ function Team(userID, channelID, args){
         bot.createMessage(channelID, util.format("<@%s> Specify a team please", userID));
         return;
     }
-    if (!DoesTeamExist(args[0])){
+    let team_name = args[0].replace("_", " ").toLowerCase();
+    if (!DoesTeamExist(team_name)){
         bot.createMessage(channelID, util.format("<@%s> That is not a team in this tournament", userID));
         return;
     }
@@ -314,7 +318,7 @@ function Team(userID, channelID, args){
         for (let group in groups){
             let teams = groups[group];
             for (let team of teams){
-                if (team.name.toLowerCase() === args[0].toLowerCase()){
+                if (team.name.toLowerCase() === team_name){
                     bot.createMessage(channelID, util.format("<@%s> %s are currently in Group %s", userID, team.name, group));
                     return;
                 }
