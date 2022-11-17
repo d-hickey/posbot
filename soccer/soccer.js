@@ -68,6 +68,14 @@ function GetStakesPath(){
     return  "./soccer/" + current;
 }
 
+function GetLimit(){
+    let settings = GetSettings();
+    if (!("limit" in settings)){
+        return 4;
+    }
+    return settings.limit;
+}
+
 function GetSweepstakes(){
     if (Sweepstakes){
         return Sweepstakes;
@@ -193,7 +201,8 @@ function Draw(userID, channelID){
 
     let teams = GetUserTeams(userID);
     let message = "";
-    if (teams.length == 4){
+    let limit = GetLimit();
+    if (teams.length == limit){
         message = "You cannot hold any more team!";
     }
     else{
@@ -479,5 +488,18 @@ function ClearDrewToday(){
     return settings;
 }
 
+function UpdateLimit(){
+    let settings = GetSettings();
+    if (!("newLimit" in settings)){
+        return;
+    }
+
+    settings.limit = settings.newLimit;
+    delete settings.newLimit;
+    WriteSettings();
+    return settings;
+}
+
 exports.Commands = Commands;
 exports.ClearDrew = ClearDrewToday;
+exports.UpdateLimit = UpdateLimit;
