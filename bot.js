@@ -274,6 +274,12 @@ schedule.scheduleJob("* * * * *", function() {
     wordStats.Write();
 });
 
+// Random point in day scheduler, kicked off at 6pm
+schedule.scheduleJob("0 18 * * *", function() {
+    let delay = randomInt.Get(1000, 180000); //86400000);
+    setTimeout(soccer.UpdateLimit, delay);
+});
+
 //Channel History
 let userMsgCount = JSON.parse(fs.readFileSync("messagecount.json", "utf8"));
 let updateFile = true;
