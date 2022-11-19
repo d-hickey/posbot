@@ -171,6 +171,16 @@ function GetKnockout(){
     return stakes.knockout;
 }
 
+function GetResults(){
+    let stakes = GetSweepstakes();
+
+    if (!("results" in stakes)){
+        stakes.results = [];
+    }
+
+    return stakes.results;
+}
+
 function GetNextMatch(teamName){
     if (IsGroupStage()){
         return [];
@@ -213,6 +223,23 @@ function GetTeamPositionInGroup(teamName){
     return "";
 }
 
+function GetTeamsKnockoutMatchIndex(teamNameA, teamNameB){
+    teamNameA = teamNameA.replace("_", " ").toLowerCase();
+    teamNameB = teamNameB.replace("_", " ").toLowerCase();
+
+    let knockout = GetKnockout();
+    for (let match in knockout){
+        if (
+            ArrayContainsIgnoreCase(knockout[match], teamNameA) && 
+            ArrayContainsIgnoreCase(knockout[match], teamNameB) && 
+            !ArrayContainsIgnoreCase(knockout[match], "played")
+        ){
+            return match;
+        }
+    }
+    return "-1";
+}
+
 // Helpers
 const ordinals = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th"];
 
@@ -253,6 +280,31 @@ function ResolveMatchReferences(match){
         }
     }
     return resolved;
+}
+
+function IsDuplicateResult(a, b){
+    if (a[0].toLowerCase() === b[0].toLowerCase()){
+        return (
+            a[1] === b[1] &&
+            a[2].toLowerCase() === b[2].toLowerCase() &&
+            a[3] === b[3]
+        );
+    }
+    if (a[0].toLowerCase() === b[2].toLowerCase()){
+        return (
+            a[1] === b[3] &&
+            a[2].toLowerCase() === b[0].toLowerCase() &&
+            a[3] === b[1]
+        );
+    }
+    return false;
+}
+
+function ReplaceCode(array, code, replacement){
+    let index = array.indexOf(code);
+    if (index !== -1){
+        array[index] = replacement;
+    }
 }
 
 // Message Generators
@@ -312,8 +364,11 @@ function Record(userID, channelID, args){
         RecordGroupStage(args);
     }
     else{
-        RecordKnockoutStage();
+        RecordKnockoutStage(args);
     }
+
+    let results = GetResults();
+    results.push(args);
 
     WriteSweepstakes();
     bot.createMessage(channelID, util.format("<@%s> Done!", userID));
@@ -335,6 +390,26 @@ function ValidateResult(userID, channelID, args){
     }
     else if (!DoesTeamExist(args[0]) || !DoesTeamExist(args[2])){
         message = "Trying to pull wool over the eyes of ol' posbot eh? At least one of these teams is a fake! Keep it up and we'll see what happens.";
+    }
+    else{
+        if (IsGroupStage()){
+            let results = GetResults();
+            for (let result of results){
+                if (IsDuplicateResult(result, args)){
+                    message = "I already have this result, thanks!";
+                }
+                break;
+            }
+        }
+        else{
+            let knockoutIndex = GetTeamsKnockoutMatchIndex(args[0], args[2]);
+            if (knockoutIndex == "-1"){
+                message = "I don't have that match in my schedule";
+            }
+            else if (args[1] == args[3]){
+                message = "Knockout matches can't end in a draw";
+            }
+        }
     }
 
     if (message !== ""){
@@ -377,8 +452,45 @@ function RecordGroupTeam(team, score, against){
     }
 }
 
-function RecordKnockoutStage(){
-    //Todo
+function RecordKnockoutStage(args){
+    let knockout = GetKnockout();
+    let knockoutIndex = GetTeamsKnockoutMatchIndex(args[0], args[2]);
+
+    let winner, loser;
+    if (parseInt(args[1]) > parseInt(args[3])){
+        winner = args[0].replace("_", " ").toLowerCase();
+        loser = args[2];
+    }
+    else{
+        winner = args[2].replace("_", " ").toLowerCase();
+        loser = args[0];
+    }
+    
+    let match = knockout[knockoutIndex];
+    if (match[0].toLowerCase() === winner){
+        winner = match[0];
+        loser = match[1];
+    }
+    else if (match[1].toLowerCase() === winner){
+        winner = match[1];
+        loser = match[0];
+    }
+
+    match.push("played");
+
+    const winnerCode = knockoutIndex + "-1";
+    const loserCode = knockoutIndex + "-2";
+
+    for (let matchIndex in knockout){
+        ReplaceCode(knockout[matchIndex], winnerCode, winner);
+        ReplaceCode(knockout[matchIndex], loserCode, loser);
+    }
+
+    let places = GetPlaces();
+    for (let position in places){
+        ReplaceCode(places[position], winnerCode, winner);
+        ReplaceCode(places[position], loserCode, loser);
+    }
 }
 
 function Team(userID, channelID, args){
