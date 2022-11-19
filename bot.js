@@ -276,7 +276,7 @@ schedule.scheduleJob("* * * * *", function() {
 
 // Random point in day scheduler, kicked off at 6pm
 schedule.scheduleJob("0 18 * * *", function() {
-    let delay = randomInt.Get(1000, 180000); //86400000);
+    let delay = randomInt.Get(1000, 86400000);
     setTimeout(soccer.UpdateLimit, delay);
 });
 
