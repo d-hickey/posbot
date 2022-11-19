@@ -171,20 +171,33 @@ function GetKnockout(){
     return stakes.knockout;
 }
 
-function GetNextMatch(team){
+function GetNextMatch(teamName){
     if (IsGroupStage()){
         return [];
     }
     let knockout = GetKnockout();
     for (let match in knockout){
-        if (ArrayContainsIgnoreCase(knockout[match], team) && !ArrayContainsIgnoreCase(knockout[match], "played")){
+        if (ArrayContainsIgnoreCase(knockout[match], teamName) && !ArrayContainsIgnoreCase(knockout[match], "played")){
             return ResolveMatchReferences(knockout[match]);
         }
     }
     return [];
 }
 
+function NextMatchString(teamName){
+    let next = GetNextMatch(teamName);
+
+    if (next.length === 0){
+        return util.format(
+            "We're in the knockout stages, and %s hasn't placed, but also has no upcoming match. Something went wrong?", 
+            teamName,
+        );
+    }
+    return util.format("Knockout stages, next match: %s vs %s", next[0], next[1]);
+}
+
 function GetTeamPositionInGroup(teamName){
+    teamName = teamName.replace("_", " ").toLowerCase();
     const groups = GetGroups();
     for (let group in groups){
         let teams = groups[group];
@@ -393,31 +406,21 @@ function Team(userID, channelID, args){
                 util.format("<@%s> %s", userID, position)
             );
         }
-                    return;
-                }
+        return;
+    }
     const places = GetPlaces();
 
     for (let place in places){
         if (ArrayContainsIgnoreCase(places[place], teamName)){
             bot.createMessage(channelID, util.format("<@%s> %s placed %s", userID, args[0], place));
             return;
-            }
         }
-
-    let next = GetNextMatch(teamName);
-    if (next.length === 0){
-        bot.createMessage(
-            channelID,
-            util.format(
-                "<@%s> We're in the knockout stages, and %s hasn't placed, but also has no upcoming match. Something went wrong?", 
-                userID, args[0]
-            )
-        );
-        return;
     }
+
+    let next = NextMatchString(teamName);
     bot.createMessage(
         channelID,
-        util.format("<@%s> Knockout stages, next match: %s vs %s", userID, next[0], next[1])
+        util.format("<@%s> %s", userID, next)
     );
 }
 
@@ -431,11 +434,11 @@ function AmIWinning(userID, channelID){
     const places = GetPlaces();
     let message = "Your teams:\n";
 
-    for (let team of teams){
+    for (let teamName of teams){
         let teamPlace = "";
 
         for (let place in places){
-            if (places[place].indexOf(team) !== -1){
+            if (places[place].indexOf(teamName) !== -1){
                 teamPlace = place;
                 break;
             }
@@ -443,9 +446,15 @@ function AmIWinning(userID, channelID){
 
         if (teamPlace === ""){
             teamPlace = "Still in the running!";
+            if (IsGroupStage()){
+                teamPlace = GetTeamPositionInGroup(teamName);
+            }
+            else{
+                teamPlace = NextMatchString(teamName);
+            }
         }
 
-        message += util.format("%s - %s\n", team, teamPlace);
+        message += util.format("%s - %s\n", teamName, teamPlace);
     }
 
     bot.createMessage(channelID, util.format("<@%s> message", userID, message));
