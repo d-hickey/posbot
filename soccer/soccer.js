@@ -387,6 +387,8 @@ function GroupInfo(userID, channelID, group){
     }
 
     let teams = groups[group];
+    teams.sort(GroupSorter);
+
     let message = util.format("Table for Group %s:\n", group);
     message += "```Country             W  D  L  GF  GA  Pts\n";
 
@@ -403,8 +405,6 @@ function GroupInfo(userID, channelID, group){
         rows.push(row);
     }
 
-    rows.sort(RowSorter);
-
     message += rows.join("\n");
 
     message += "```";
@@ -412,22 +412,23 @@ function GroupInfo(userID, channelID, group){
     bot.createMessage(channelID, util.format("<@%s> message", userID, message));
 }
 
-function RowSorter(a, b){
-    const aPoints = ExtractPoints(a);
-    const bPoints = ExtractPoints(b);
-    if ( aPoints <bPoints ){
+function GroupSorter(teamA, teamB){
+    if (teamA.points < teamB.points){
         return 1;
     }
-    if ( aPoints > bPoints ){
+    if (teamA.points > teamB.points){
+        return -1;
+    }
+    // Same points, resolve by goal diff
+    const aGD = teamA.gf - teamA.ga;
+    const bGD = teamB.gf - teamB.ga;
+    if (aGD < bGD){
+        return 1;
+    }
+    if (aGD > bGD){
         return -1;
     }
     return 0;
-}
-
-function ExtractPoints(row){
-    const cells = row.split(" ");
-    const points = cells[cells.length - 1];
-    return parseInt(points);
 }
 
 function BuildCell(item, totalSpace){
