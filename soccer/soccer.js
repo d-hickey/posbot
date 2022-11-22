@@ -397,8 +397,8 @@ function ValidateResult(userID, channelID, args){
             for (let result of results){
                 if (IsDuplicateResult(result, args)){
                     message = "I already have this result, thanks!";
+                    break;
                 }
-                break;
             }
         }
         else{
