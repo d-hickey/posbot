@@ -744,6 +744,8 @@ function BreakTie(teamName){
         for (let team of teams){
             if (team.name.toLowerCase() == teamName){
                 team.gf++;
+                let stakes = GetSweepstakes();
+                stakes.tie = [];
                 return;
             }
         }
