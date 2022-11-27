@@ -141,6 +141,11 @@ function IsGroupStage(){
     return stakes.groupStage;
 }
 
+function SetGroupStage(flag){
+    let stakes = GetSweepstakes();
+    return stakes.groupStage = flag;
+}
+
 function GetGroups(){
     let stakes = GetSweepstakes();
 
@@ -629,6 +634,13 @@ function GroupSorter(teamA, teamB){
     if (aGD > bGD){
         return -1;
     }
+    // Same GD, resolve by total goals scored
+    if (teamA.gf < teamB.gf){
+        return 1;
+    }
+    if (teamA.gf > teamB.gf){
+        return -1;
+    }
     return 0;
 }
 
@@ -636,6 +648,106 @@ function BuildCell(item, totalSpace){
     let stringified = item.toString();
     let spaces = totalSpace - stringified.length;
     return util.format("%s%s", stringified, " ".repeat(spaces));
+}
+
+function AdvanceToKnockout(userID, channelID){
+    const resolved = FindTies(userID, channelID);
+    if (!resolved){
+        return;
+    }
+
+    let knockout = GetKnockout();
+    let places = GetPlaces();
+
+    let groups = GetGroups();
+    for (let group in groups){
+        let position = 1;
+        let teams = groups[group].sort(GroupSorter);
+        for (let team of teams){
+            let code = group + "-" + position;
+            for (let matchIndex in knockout){
+                ReplaceCode(knockout[matchIndex], code, team.name);
+            }
+            for (let place in places){
+                ReplaceCode(places[place], code, team.name);
+            }
+            position++;
+        }
+    }
+    SetGroupStage(false);
+    WriteSweepstakes();
+    bot.createMessage(
+        channelID, util.format("<@%s> Teams have been advanced to knockout stages.", userID)
+    );
+}
+
+function FindTies(userID, channelID){
+    let groups = GetGroups();
+    for (let group in groups){
+        let teams = groups[group];
+        for (let i = 0; i < teams.length; i++){
+            for (let j = i+1; j < teams.length; j++){
+                let teamA = teams[i];
+                let teamB = teams[j];
+                if (GroupSorter(teamA, teamB) === 0){
+                    PushTie(teamA, teamB);
+                    bot.createMessage(
+                        channelID, 
+                        util.format("<@%s> I have %s and %s at a tie. Please resolve using !soccer resolve <winner>", userID, teamA.name, teamB.name)
+                    );
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+function PushTie(teamA, teamB){
+    let stakes = GetSweepstakes();
+    stakes.tie = [teamA.name, teamB.name];
+    WriteSweepstakes();
+}
+
+function ResolveTie(userID, channelID, args){
+    if (args.length < 1){
+        bot.createMessage(
+            channelID, util.format("<@%s> Specify a tie winner using !soccer resolve <winner>", userID)
+        );
+        return;
+    }
+    let teamName = args[0].replace("_", " ").toLowerCase();
+    if (!IsTeamInTie(teamName)){
+        bot.createMessage(
+            channelID, util.format("<@%s> This team is not in a tiebreaker", userID)
+        );
+        return;
+    }
+    // Break tie by adding 1 to winner's GF
+    BreakTie(teamName);
+    WriteSweepstakes();
+    AdvanceToKnockout(userID, channelID);
+}
+
+function IsTeamInTie(teamName){
+    let stakes = GetSweepstakes();
+    if (!("tie" in stakes)){
+        return false;
+    }
+    return ArrayContainsIgnoreCase(stakes.tie, teamName);
+}
+
+function BreakTie(teamName){
+    let groups = GetGroups();
+    for (let group in groups){
+        let teams = groups[group];
+        for (let team of teams){
+            if (team.name.toLowerCase() == teamName){
+                team.gf++;
+                return;
+            }
+        }
+    }
 }
 
 function Commands(client, userID, channelID, cmd, args){
@@ -679,6 +791,12 @@ function Commands(client, userID, channelID, cmd, args){
         break;
     case "record":
         Record(userID, channelID, args);
+        break;
+    case "advance":
+        AdvanceToKnockout(userID, channelID);
+        break;
+    case "resolve":
+        ResolveTie(userID, channelID, args);
         break;
     }
 }
