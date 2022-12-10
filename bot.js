@@ -32,7 +32,7 @@ logger.level = "debug";
 
 // Dice Roll
 function isPositiveNumber(num) {
-    if (num && Number.isNaN(num) && +num > 0) {
+    if (num && !Number.isNaN(num) && +num > 0) {
         return true;
     }
     return false;
@@ -45,7 +45,7 @@ function diceRoll(args) {
         let amount = diceParts[0];
         let dicenumber = diceParts[1];
 
-        if (amount === "") {
+        if (!amount) {
             amount = "1";
         }
 
@@ -58,6 +58,10 @@ function diceRoll(args) {
                 parts.push(roll);
                 total = total + roll;
             }
+            if (amount === "1"){
+                return total;
+            }
+
             return util.format("(%s) = %d", parts.join(" + "), total);
         }
     }
