@@ -7,7 +7,8 @@ const logger = require("winston");
 const DEFAULT_RESPONSE = "Welcome to burgers. Use !burg all to see full list of burgers. Use !burg todo to see burgers not eaten. " +
 "Use !burg eaten to see the conquered burgers. Use !burg eater <name/id> to see a user's contributions. " +
 "Use !burg info <restaurant> to get info on a particular culinary establishment. Use !burg at <location> to search for burgers by location. " +
-"Use !burg score to see the burger leaderboard. Use !burg ate <restaurant> to record your visit to one of the entries.";
+"Use !burg score to see the burger leaderboard. Use !burg ate <restaurant> to record your visit to one of the entries. " +
+"Use !burg unate <restaurant> to remove a recorded visit.";
 
 // Discord client
 let bot;
@@ -95,22 +96,30 @@ function ByEater(name) {
     return block;
 }
 
+function GetBurgerRestaurantByName(name) {
+    let foundBurg = {};
+    for (let burg of burgers.burgers) {
+        if (burg.burger.toLowerCase() === name.toLowerCase()){
+            return burg;
+        }
+        if (burg.burger.toLowerCase().indexOf(name.toLowerCase()) > -1) {
+            if (IsEmpty(foundBurg)) {
+                foundBurg = burg;
+            } else {
+                return {};
+            }
+        }
+    }
+    return foundBurg
+}
+
 function ByJoint(joint) {
     if (!joint) {
         return "Please enter a location";
     }
-    let foundBurg = {};
-    for (let burg of burgers.burgers) {
-        if (burg.burger.toLowerCase().indexOf(joint.toLowerCase()) > -1) {
-            if (IsEmpty(foundBurg)) {
-                foundBurg = burg;
-            } else {
-                return "Input argument too vague";
-            }
-        }
-    }
+    let foundBurg = GetBurgerRestaurantByName(joint)
     if (IsEmpty(foundBurg)) {
-        return "Burg joint not found";
+        return "Burg joint not found or input too vague";
     }
 
     let eaten = "";
@@ -170,22 +179,11 @@ function Eaten(username, userID, consumed) {
     if (!consumed) {
         return "Please enter a location";
     }
-    let foundBurg = {};
-    for (let burg of burgers.burgers) {
-        if (burg.burger.toLowerCase() === consumed.toLowerCase()){
-            foundBurg = burg;
-            break;
-        }
-        if (burg.burger.toLowerCase().indexOf(consumed.toLowerCase()) > -1) {
-            if (IsEmpty(foundBurg)) {
-                foundBurg = burg;
-            } else {
-                return "Input argument too vague";
-            }
-        }
-    }
+
+    let foundBurg = GetBurgerRestaurantByName(consumed)
+
     if (IsEmpty(foundBurg)) {
-        return "Burg joint not found";
+        return "Burg joint not found or input too vague";
     }
 
     foundBurg.eaten.push(userID);
@@ -201,6 +199,34 @@ function Eaten(username, userID, consumed) {
 
     return "Successfully updated entry for " + foundBurg.burger;
 }
+
+
+function Uneaten(username, userID, consumed) {
+    if (!UserInPlay(userID)){
+        return "You've never even eaten a burger"
+    }
+    if (!consumed) {
+        return "Please enter a location";
+    }
+    let foundBurg = GetBurgerRestaurantByName(consumed)
+
+    if (IsEmpty(foundBurg)) {
+        return "Burg joint not found or input too vague";
+    }
+
+    const index = foundBurg.eaten.indexOf(userID);
+    if (index > -1) {
+        foundBurg.eaten.splice(index, 1)
+    }
+    else {
+        return "You haven't eaten " + foundBurg.burger;
+    }
+
+    WriteBurgs();
+
+    return "Successfully updated entry for " + foundBurg.burger;
+}
+
 
 function Failed(failed) {
     if (!failed) {
@@ -325,6 +351,10 @@ function Commands(client, user, userID, channelID, cmd, args) {
     case "done": // Fallthrough
     case "ate":
         bot.createMessage(channelID, Eaten(user, userID, args.join(" ")));
+        break;
+    case "undone": // Fallthrough
+    case "unate":
+        bot.createMessage(channelID, Uneaten(user, userID, args.join(" ")));
         break;
     case "failed":
     case "fail":
