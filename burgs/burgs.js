@@ -110,14 +110,14 @@ function GetBurgerRestaurantByName(name) {
             }
         }
     }
-    return foundBurg
+    return foundBurg;
 }
 
 function ByJoint(joint) {
     if (!joint) {
         return "Please enter a location";
     }
-    let foundBurg = GetBurgerRestaurantByName(joint)
+    let foundBurg = GetBurgerRestaurantByName(joint);
     if (IsEmpty(foundBurg)) {
         return "Burg joint not found or input too vague";
     }
@@ -180,7 +180,7 @@ function Eaten(username, userID, consumed) {
         return "Please enter a location";
     }
 
-    let foundBurg = GetBurgerRestaurantByName(consumed)
+    let foundBurg = GetBurgerRestaurantByName(consumed);
 
     if (IsEmpty(foundBurg)) {
         return "Burg joint not found or input too vague";
@@ -203,12 +203,12 @@ function Eaten(username, userID, consumed) {
 
 function Uneaten(username, userID, consumed) {
     if (!UserInPlay(userID)){
-        return "You've never even eaten a burger"
+        return "You've never even eaten a burger";
     }
     if (!consumed) {
         return "Please enter a location";
     }
-    let foundBurg = GetBurgerRestaurantByName(consumed)
+    let foundBurg = GetBurgerRestaurantByName(consumed);
 
     if (IsEmpty(foundBurg)) {
         return "Burg joint not found or input too vague";
@@ -216,7 +216,7 @@ function Uneaten(username, userID, consumed) {
 
     const index = foundBurg.eaten.indexOf(userID);
     if (index > -1) {
-        foundBurg.eaten.splice(index, 1)
+        foundBurg.eaten.splice(index, 1);
     }
     else {
         return "You haven't eaten " + foundBurg.burger;
