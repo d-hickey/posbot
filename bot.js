@@ -104,7 +104,12 @@ function getRedditImage(sub, callback){
     logger.info(url);
     let image = "<Oh I completely failed to get an image here>";
 
-    request(url, function(error, response, body) {
+    const headers = {
+        "User-Agent": "d-hickey/posbot",
+        "Authorization": "Bearer"
+    };
+
+    request({uri: url, headers: headers}, function(error, response, body) {
         if (error){
             logger.error(error);
             return callback(image);
