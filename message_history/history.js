@@ -44,7 +44,7 @@ function QueryChannelHistory(channelID, before) {
     bot.getMessages(
         channelID,
         {
-            limit: 100,
+            limit: 1000,
             before: before
         }
     ).then(messages => {
@@ -56,7 +56,7 @@ function QueryChannelHistory(channelID, before) {
             const userID = user.id;
             UpdateUserMessageCount(channelID, userID);
         }
-        if (count < 100){
+        if (count < 1000){
             WriteCountDictionary();
             bot.createMessage(
                 channelID,
@@ -68,7 +68,7 @@ function QueryChannelHistory(channelID, before) {
         }
     }).catch(err => {
         logger.error("got error, waiting for 10 seconds\n " + err);
-        setTimeout(QueryChannelHistory(channelID, nextBefore), 10000);
+        setTimeout(QueryChannelHistory, 10000, channelID, before);
     });
 }
 
