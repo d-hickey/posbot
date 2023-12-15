@@ -15,6 +15,7 @@ const help = require("./help/help");
 const horoscope = require("./horoscope/horoscope");
 const improve = require("./improve/improve");
 const markov = require("./markov/markov");
+const messageHistory = require("./message_history/history");
 const randomInt = require("./randomint");
 const remind = require("./remind/remind");
 const soccer = require("./soccer/soccer");
@@ -289,146 +290,6 @@ schedule.scheduleJob("0 18 * * *", function() {
     setTimeout(soccer.UpdateLimit, delay);
 });
 
-//Channel History
-let userMsgCount = JSON.parse(fs.readFileSync("messagecount.json", "utf8"));
-let updateFile = true;
-
-function updateUserMsgCount(channel, user, createNewChan = true) {
-    if (channel in userMsgCount) {
-        if (user in userMsgCount[channel]) {
-            userMsgCount[channel][user]++;
-        } else {
-            userMsgCount[channel][user] = 1;
-        }
-    } else if (createNewChan) {
-        userMsgCount[channel] = {};
-        userMsgCount[channel][user] = 1;
-    }
-
-    if (updateFile) {
-        let msgJson = JSON.stringify(userMsgCount);
-        fs.writeFileSync("messagecount.json", msgJson);
-    }
-}
-
-function queryChannelHistory(chanID) {
-    logger.info("getting message history for channel: " + chanID);
-    bot.getMessages({
-        channelID: chanID,
-        limit: 100
-    }, function(err, messageArray) {
-        if (err) {
-            logger.info(err);
-        } else {
-            logger.info("1 array size: " + messageArray.length);
-            let lastID = 0;
-            for (let message of messageArray) {
-                logger.info("content: " + message.content);
-                if (message.content == null) { continue; }
-                lastID = message.id;
-                let user = message.author;
-                let userID = user.id;
-                updateUserMsgCount(chanID, userID);
-            }
-            getPastMessages(chanID, lastID, 2);
-
-            let msgJson = JSON.stringify(userMsgCount);
-            fs.writeFileSync("messagecount.json", msgJson);
-
-            logger.info("done outer history");
-        }
-    });
-
-}
-
-function getPastMessages(chanID, beforeID, count) {
-    bot.getMessages({
-        channelID: chanID,
-        before: beforeID,
-        limit: 100
-    }, function(err, messageArray) {
-        if (err) {
-            logger.info("got error, waiting for 10 seconds\n " + err);
-            setTimeout(getPastMessages(chanID, beforeID, count), 10000);
-        } else {
-            let lastID = 0;
-            logger.info(count + " array size: " + messageArray.length);
-            for (let message of messageArray) {
-                if (message.content == null) { continue; }
-                //logger.info(message.content);
-                lastID = message.id;
-                let user = message.author;
-                let userID = user.id;
-                updateUserMsgCount(chanID, userID);
-            }
-
-            if (messageArray.length == 100) {
-                getPastMessages(chanID, lastID, count + 1);
-            } else {
-                let msgJson = JSON.stringify(userMsgCount);
-                fs.writeFileSync("messagecount.json", msgJson);
-                logger.info("done history " + count);
-
-                bot.createMessage(
-                    chanID,
-                    "Done counting this channel"
-                );
-            }
-        }
-    });
-}
-
-function getMessageTotal() {
-    let total = 0;
-    for (let chan in userMsgCount) {
-        for (let user in userMsgCount[chan]) {
-            total = total + userMsgCount[chan][user];
-        }
-    }
-    return total;
-}
-
-function getChannelTotal(chan) {
-    let total = 0;
-    for (let user in userMsgCount[chan]) {
-        total = total + userMsgCount[chan][user];
-    }
-    return total;
-}
-
-function getUserTotal(id) {
-    let total = 0;
-    for (let chan in userMsgCount) {
-        if (id in userMsgCount[chan]) {
-            total = total + userMsgCount[chan][id];
-        }
-    }
-    return total;
-}
-
-function getMessageStats(channel, member) {
-    if (channel in userMsgCount) {
-        if (member.id in userMsgCount[channel]) {
-            let count = userMsgCount[channel][member.id];
-            let total = getChannelTotal(channel);
-            let percent = ((count / total) * 100).toFixed(2);
-
-            let respMsg = util.format("Wow %s! You've posted %d messages in this channel. Out of a total of %d, that's about %s percent.", member.nick, count, total, percent);
-            return respMsg;
-        }
-        return "You've never posted here? Weird";
-    }
-    return "Channel hasn't been counted.";
-}
-
-function getTotalStats(member) {
-    let count = getUserTotal(member.id);
-    let total = getMessageTotal();
-    let percent = ((count / total) * 100).toFixed(2);
-
-    let respMsg = util.format("Wow %s! You've posted %d messages in all (counted) channels. Out of a total of %d, that's about %s percent.", member.nick, count, total, percent);
-    return respMsg;
-}
 
 // Who Am I vars
 const whoYouAre = JSON.parse(fs.readFileSync("whoyouare.json", "utf8"));
@@ -714,27 +575,6 @@ bot.on("messageCreate", (msg) => {
                 getSavepoint()
             );
             break;
-        case "stats":
-            bot.createMessage(
-                channelID,
-                getMessageStats(channelID, member)
-            );
-            break;
-        case "statstotal":
-            bot.createMessage(
-                channelID,
-                getTotalStats(member)
-            );
-            break;
-        case "countmessages":
-            if (userID === "88614328499961856") {
-                if (args.length > 0) {
-                    queryChannelHistory(args[0]);
-                } else {
-                    queryChannelHistory(channelID);
-                }
-            }
-            break;
         case "whoami":
             bot.createMessage(
                 channelID,
@@ -783,6 +623,7 @@ bot.on("messageCreate", (msg) => {
             burgs.Commands(bot, member.username, userID, channelID, cmd, args);
             // Word stats
             wordStats.Commands(bot, userID, channelID, cmd, args);
+            messageHistory.Commands(bot, userID, channelID, cmd);
             break;
         }
 
@@ -856,7 +697,7 @@ bot.on("messageCreate", (msg) => {
     }
 
     // Update user message stats
-    // updateUserMsgCount(channelID, userID, false);
+    messageHistory.Update(channelID, userID, false, true);
 });
 
 bot.connect();
