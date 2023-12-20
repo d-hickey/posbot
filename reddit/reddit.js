@@ -12,7 +12,7 @@ const subs = [
 ];
 
 function GetRedditComment(sub, callback) {
-    let url = "http://www.reddit.com/r/" + sub + "/comments/.json?limit=50";
+    let url = "http://old.reddit.com/r/" + sub + "/comments/.json?limit=50";
     logger.info(url);
     let comment = "<Insert reddit comment here>";
 
@@ -54,7 +54,7 @@ function GetRandomRedditComment(callback){
 
 
 function GetRedditImage(sub, callback){
-    let url = "https://www.reddit.com/r/" + sub + "/top/.json?t=month&limit=100";
+    let url = "https://old.reddit.com/r/" + sub + "/top/.json?t=month&limit=100";
     logger.info(url);
     let image = "<Oh I completely failed to get an image here>";
 
