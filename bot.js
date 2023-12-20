@@ -17,6 +17,7 @@ const improve = require("./improve/improve");
 const markov = require("./markov/markov");
 const messageHistory = require("./message_history/history");
 const randomInt = require("./randomint");
+const reddit = require("./reddit/reddit");
 const remind = require("./remind/remind");
 const soccer = require("./soccer/soccer");
 // const rpg = require("./rpg/rpg");
@@ -70,59 +71,6 @@ function diceRoll(args) {
     return "Invalid Dice";
 }
 
-// Reddit Functions
-const subs = [
-    "amiugly", "awesome", "aww", "beauty", "boastme", "FancyFollicles", "gonewild", "happy", "LadyBoners", "MakeupAddiction",
-    "meirl", "me_irl", "Pareidolia", "PrequelMemes", "relationships", "RoastMe", "Tinder", "UpliftingNews"
-];
-
-function getRedditComment(sub, callback) {
-    let url = "http://www.reddit.com/r/" + sub + "/comments/.json?limit=50";
-    logger.info(url);
-    let comment = "<Insert reddit comment here>";
-
-    request(url, function(error, response, body) {
-        //console.log("error:", error); // Print the error if one occurred
-        //console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
-        //console.log("body:", body); // Print the HTML for the Google homepage.
-
-        let redditResponse = JSON.parse(body);
-        let post = randomInt.Get(0, 49);
-
-        comment = redditResponse.data.children[post].data.body;
-        if (comment.length > 2000 || comment.indexOf("I am a bot") > -1) {
-            return getRedditComment(sub, callback);
-        } else {
-            logger.info(comment);
-            return callback(comment);
-        }
-
-    });
-}
-
-function getRedditImage(sub, callback){
-    let url = "https://reddit.com/r/" + sub + "/top/.json?t=month&limit=100";
-    logger.info(url);
-    let image = "<Oh I completely failed to get an image here>";
-
-    const headers = {
-        "User-Agent": "d-hickey/posbot",
-        "Authorization": "Bearer"
-    };
-
-    request({uri: url, headers: headers}, function(error, response, body) {
-        if (error){
-            logger.error(error);
-            return callback(image);
-        }
-
-        let redditResponse = JSON.parse(body);
-        let post = randomInt.Get(0, redditResponse.data.children.length);
-
-        image = redditResponse.data.children[post].data.url;
-        return callback(image);
-    });
-}
 
 // Get Gift
 function getFlickrImage(callback) {
@@ -484,17 +432,14 @@ bot.on("messageCreate", (msg) => {
             break;
         }
         case "compliment":{
-            let subcount = subs.length;
-            let subno = randomInt.Get(0, subcount - 1);
-            let sub = subs[subno];
-            let rec = util.format("<@%s>", userID);
+            let receiver = util.format("<@%s>", userID);
             if (args.length > 0) {
-                rec = args.join(" ");
+                receiver = args.join(" ");
             }
-            getRedditComment(sub, function(comm) {
+            reddit.GetRandomRedditComment(function(comm) {
                 bot.createMessage(
                     channelID,
-                    rec + " " + comm
+                    receiver + " " + comm
                 );
             });
             break;
@@ -647,8 +592,8 @@ bot.on("messageCreate", (msg) => {
     // Check Birthdays
     if (IsBirthday(userID)) {
         getFlickrImage(function(image) {
-            getRedditImage("pic", function(redditPic){
-                getRedditImage("HighQualityGifs", function(redditGif){
+            reddit.GetRedditImage("pic", function(redditPic){
+                reddit.GetRedditImage("HighQualityGifs", function(redditGif){
                     let picsum = util.format("https://picsum.photos/id/%d/3840/2160", randomInt.Get(1, 1080));
                     bot.createMessage(
                         channelID,
