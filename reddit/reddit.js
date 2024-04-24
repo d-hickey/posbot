@@ -14,6 +14,8 @@ const subs = [
 function GetRedditComment(sub, callback) {
     let url = "http://old.reddit.com/r/" + sub + "/comments/.json?limit=50";
     logger.info(url);
+    const temp = "Reddit won't let me find you a compliment so you'll have to do it yourself, please go here and find a comment " + url;
+    return callback(temp); 
     let comment = "<Insert reddit comment here>";
 
     const headers = {
@@ -54,6 +56,7 @@ function GetRandomRedditComment(callback){
 
 
 function GetRedditImage(sub, callback){
+    return callback("reddit doesn't want me, a positivity bot, anonymously scraping their website so i got no image for ya");
     let url = "https://old.reddit.com/r/" + sub + "/top/.json?t=month&limit=100";
     logger.info(url);
     let image = "<Oh I completely failed to get an image here>";

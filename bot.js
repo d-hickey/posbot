@@ -592,23 +592,17 @@ bot.on("messageCreate", (msg) => {
     // Check Birthdays
     if (IsBirthday(userID)) {
         getFlickrImage(function(image) {
-            reddit.GetRedditImage("pic", function(redditPic){
-                reddit.GetRedditImage("HighQualityGifs", function(redditGif){
-                    let picsum = util.format("https://picsum.photos/id/%d/3840/2160", randomInt.Get(1, 1080));
-                    bot.createMessage(
-                        channelID,
-                        util.format(
-                            "Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere are some gifts I've gathered specifically for you.\nPicsum: %s\nFlickr: %s\nReddit pic: %s\nReddit gif: %s", 
-                            userID,
-                            picsum,
-                            image,
-                            redditPic,
-                            redditGif
-                        )
-                    );
-                    DeliveredBirthdayGift(userID);
-                });
-            });
+            let picsum = util.format("https://picsum.photos/id/%d/3840/2160", randomInt.Get(1, 1080));
+            bot.createMessage(
+                channelID,
+                util.format(
+                    "Happy Birthday <@%s>! 🎉 🍰 🎂 🎊\nHere are some gifts I've gathered specifically for you.\nPicsum: %s\nFlickr: %s\n~~Reddit pic:~~", 
+                    userID,
+                    picsum,
+                    image,
+                )
+            );
+            DeliveredBirthdayGift(userID);
         });
     }
 
