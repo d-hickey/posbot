@@ -575,109 +575,115 @@
         },
         "round_of_16": {
             "1": [
-                "knockout.round_of_32.1-winner",
-                "knockout.round_of_32.2-winner"
+                "round_of_32.1-1",
+                "round_of_32.2-1"
             ],
             "2": [
-                "knockout.round_of_32.3-winner",
-                "knockout.round_of_32.4-winner"
+                "round_of_32.3-1",
+                "round_of_32.4-1"
             ],
             "3": [
-                "knockout.round_of_32.5-winner",
-                "knockout.round_of_32.6-winner"
+                "round_of_32.5-1",
+                "round_of_32.6-1"
             ],
             "4": [
-                "knockout.round_of_32.7-winner",
-                "knockout.round_of_32.8-winner"
+                "round_of_32.7-1",
+                "round_of_32.8-1"
             ],
             "5": [
-                "knockout.round_of_32.9-winner",
-                "knockout.round_of_32.10-winner"
+                "round_of_32.9-1",
+                "round_of_32.10-1"
             ],
             "6": [
-                "knockout.round_of_32.11-winner",
-                "knockout.round_of_32.12-winner"
+                "round_of_32.11-1",
+                "round_of_32.12-1"
             ],
             "7": [
-                "third_place_qualified.1",
-                "third_place_qualified.2"
+                "round_of_32.13-1",
+                "round_of_32.14-1"
             ],
             "8": [
-                "third_place_qualified.3",
-                "third_place_qualified.4"
+                "round_of_32.15-1",
+                "round_of_32.16-1"
             ]
         },
         "quarterfinals": {
             "1": [
-                "knockout.round_of_16.1-winner",
-                "knockout.round_of_16.2-winner"
+                "round_of_16.1-1",
+                "round_of_16.2-1"
             ],
             "2": [
-                "knockout.round_of_16.3-winner",
-                "knockout.round_of_16.4-winner"
+                "round_of_16.3-1",
+                "round_of_16.4-1"
             ],
             "3": [
-                "knockout.round_of_16.5-winner",
-                "knockout.round_of_16.6-winner"
+                "round_of_16.5-1",
+                "round_of_16.6-1"
             ],
             "4": [
-                "knockout.round_of_16.7-winner",
-                "knockout.round_of_16.8-winner"
+                "round_of_16.7-1",
+                "round_of_16.8-1"
             ]
         },
         "semifinals": {
             "1": [
-                "knockout.quarterfinals.1-winner",
-                "knockout.quarterfinals.2-winner"
+                "quarterfinals.1-1",
+                "quarterfinals.2-1"
             ],
             "2": [
-                "knockout.quarterfinals.3-winner",
-                "knockout.quarterfinals.4-winner"
+                "quarterfinals.3-1",
+                "quarterfinals.4-1"
+            ]
+        },
+        "bronze_final": {
+            "1": [
+                "semifinals.1-2",
+                "semifinals.2-2"
             ]
         },
         "finals": {
             "1": [
-                "knockout.semifinals.1-winner",
-                "knockout.semifinals.2-winner"
+                "semifinals.1-1",
+                "semifinals.2-1"
             ]
         }
     },
     "places": {
         "1st": [
-            "knockout.finals.1-winner"
+            "finals.1-1"
         ],
         "2nd": [
-            "knockout.finals.1-runner-up"
+            "finals.1-2"
         ],
         "3rd": [
-            "knockout.semifinals.1-winner OR knockout.semifinals.2-winner"
+            "bronze_final.1-1"
         ],
         "4th": [
-            "knockout.semifinals.1-runner-up OR knockout.semifinals.2-runner-up"
+            "bronze_final.1-2"
         ],
         "Round_of_16_eliminated": [
-            "knockout.round_of_16.1-runner-up",
-            "knockout.round_of_16.2-runner-up",
-            "knockout.round_of_16.3-runner-up",
-            "knockout.round_of_16.4-runner-up",
-            "knockout.round_of_16.5-runner-up",
-            "knockout.round_of_16.6-runner-up",
-            "knockout.round_of_16.7-runner-up",
-            "knockout.round_of_16.8-runner-up"
+            "round_of_16.1-2",
+            "round_of_16.2-2",
+            "round_of_16.3-2",
+            "round_of_16.4-2",
+            "round_of_16.5-2",
+            "round_of_16.6-2",
+            "round_of_16.7-2",
+            "round_of_16.8-2"
         ],
         "Round_of_32_eliminated": [
-            "knockout.round_of_32.1-runner-up",
-            "knockout.round_of_32.2-runner-up",
-            "knockout.round_of_32.3-runner-up",
-            "knockout.round_of_32.4-runner-up",
-            "knockout.round_of_32.5-runner-up",
-            "knockout.round_of_32.6-runner-up",
-            "knockout.round_of_32.7-runner-up",
-            "knockout.round_of_32.8-runner-up",
-            "knockout.round_of_32.9-runner-up",
-            "knockout.round_of_32.10-runner-up",
-            "knockout.round_of_32.11-runner-up",
-            "knockout.round_of_32.12-runner-up"
+            "round_of_32.1-2",
+            "round_of_32.2-2",
+            "round_of_32.3-2",
+            "round_of_32.4-2",
+            "round_of_32.5-2",
+            "round_of_32.6-2",
+            "round_of_32.7-2",
+            "round_of_32.8-2",
+            "round_of_32.9-2",
+            "round_of_32.10-2",
+            "round_of_32.11-2",
+            "round_of_32.12-2"
         ],
         "Third in Group Stage but not Third Enough": [],
         "Fourth in Group Stage": [

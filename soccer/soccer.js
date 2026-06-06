@@ -246,18 +246,23 @@ function GetTeamPositionInGroup(teamName){
     return "";
 }
 
-function GetTeamsKnockoutMatchIndex(teamNameA, teamNameB){
+function GetTeamsKnockoutMatchIndex(teamNameA, teamNameB, prepend=""){
     teamNameA = teamNameA.replace("_", " ").toLowerCase();
     teamNameB = teamNameB.replace("_", " ").toLowerCase();
 
     let knockout = GetKnockout();
     for (let match in knockout){
-        if (
-            ArrayContainsIgnoreCase(knockout[match], teamNameA) && 
-            ArrayContainsIgnoreCase(knockout[match], teamNameB) && 
-            !ArrayContainsIgnoreCase(knockout[match], "played")
-        ){
-            return match;
+        if (Array.isArray(knockout[match])){
+            if (
+                ArrayContainsIgnoreCase(knockout[match], teamNameA) && 
+                ArrayContainsIgnoreCase(knockout[match], teamNameB) && 
+                !ArrayContainsIgnoreCase(knockout[match], "played")
+            ){
+                return match;
+            }
+        }
+        else if (knockout[match].constructor === Object){
+            return GetTeamsKnockoutMatchIndex(teamNameA, teamNameB, match + ".");
         }
     }
     return "-1";
@@ -495,8 +500,21 @@ function RecordKnockoutStage(args){
         winner = args[2].replace("_", " ").toLowerCase();
         loser = args[0];
     }
-    
-    let match = knockout[knockoutIndex];
+
+    let match = knockout;
+    // Different handling for a multi level knockout data structure vs a flat series of matches
+    // Multi level
+    if (knockoutIndex.indexOf(".") !== -1){
+        let indices = knockoutIndex.split(".");
+        for (let index of indices){
+            match = match[index];
+        }
+    }
+    // Flat
+    else {
+        match = knockout[knockoutIndex];
+    }
+
     if (match[0].toLowerCase() === winner){
         winner = match[0];
         loser = match[1];
