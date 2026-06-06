@@ -16,7 +16,6 @@ const improve = require("./improve/improve");
 const markov = require("./markov/markov");
 const messageHistory = require("./message_history/history");
 const randomInt = require("./randomint");
-const reddit = require("./reddit/reddit");
 const remind = require("./remind/remind");
 const soccer = require("./soccer/soccer");
 // const rpg = require("./rpg/rpg");
@@ -88,7 +87,7 @@ async function getFlickrImage(callback) {
         return callback(image);
     } catch (error) {
         logger.error("Flickr API error:", error);
-        return callback(null);
+        return callback("Flickr let us down on this one, sorry :(");
     }
 }
 
@@ -436,16 +435,10 @@ bot.on("messageCreate", (msg) => {
             break;
         }
         case "compliment":{
-            let receiver = util.format("<@%s>", userID);
-            if (args.length > 0) {
-                receiver = args.join(" ");
-            }
-            reddit.GetRandomRedditComment(function(comm) {
-                bot.createMessage(
-                    channelID,
-                    receiver + " " + comm
-                );
-            });
+            bot.createMessage(
+                channelID,
+                "Deprecated bc I don't want to set up reddit auth!"
+            );
             break;
         }
         case "markov":
