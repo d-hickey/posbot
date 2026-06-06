@@ -636,4 +636,13 @@ bot.on("messageCreate", (msg) => {
     messageHistory.Update(channelID, userID, false, true);
 });
 
+// Catch unhandled errors from node process or from bot shards and log them instead of crashing
+process.on("uncaughtException", function (err) {
+    logger.error(err);
+});
+
+bot.on("error", function (err, id) {
+    logger.error("Shard " + id + " errored with err " + err);
+});
+
 bot.connect();
