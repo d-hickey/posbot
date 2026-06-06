@@ -166,6 +166,16 @@ function GetPlaces(){
     return stakes.places;
 }
 
+function GetThirdPlaceGroupCombos(){
+    let stakes = GetSweepstakes();
+    
+    if (!("third_place_qualified" in stakes)){
+        return [];
+    }
+
+    return stakes.third_place_qualified;
+}
+
 function GetKnockout(){
     let stakes = GetSweepstakes();
 
@@ -305,10 +315,17 @@ function IsDuplicateResult(a, b){
     return false;
 }
 
-function ReplaceCode(array, code, replacement){
-    let index = array.indexOf(code);
-    if (index !== -1){
-        array[index] = replacement;
+function ReplaceCode(element, code, replacement){
+    if (Array.isArray(element)){
+        let index = element.indexOf(code);
+        if (index !== -1){
+            element[index] = replacement;
+        }
+    }
+    else if (element.constructor === Object){
+        for (let key in element){
+            ReplaceCode(element[key], code, replacement);
+        }
     }
 }
 
@@ -660,6 +677,12 @@ function AdvanceToKnockout(userID, channelID){
     let places = GetPlaces();
 
     let groups = GetGroups();
+
+    const thirdPlaceCombos = GetThirdPlaceGroupCombos();
+    const advanceThirdPlaceTeams = thirdPlaceCombos.length > 0;
+    const thirdPlaceTeams = {};
+    const advancedThirds = [];
+
     for (let group in groups){
         let position = 1;
         let teams = groups[group].sort(GroupSorter);
@@ -671,9 +694,34 @@ function AdvanceToKnockout(userID, channelID){
             for (let place in places){
                 ReplaceCode(places[place], code, team.name);
             }
+
+            if (position === 3 && advanceThirdPlaceTeams){
+                thirdPlaceTeams[group] = team;
+            }
+
             position++;
         }
     }
+
+    for (let combo of thirdPlaceCombos){
+        const eligibleTeams = [];
+        for (let group of groups){
+            if (combo.indexOf(group) !== -1){
+                const team = thirdPlaceTeams[group];
+                if (advancedThirds.indexOf(team) === -1){
+                    eligibleTeams.push(team);
+                }
+            }
+        }
+        eligibleTeams.sort(GroupSorter);
+        const team = eligibleTeams[0];
+        advancedThirds.push(team);
+        const code = combo + "-3";
+        for (let matchIndex in knockout){
+            ReplaceCode(knockout[matchIndex], code, team.name);
+        }
+    }
+
     SetGroupStage(false);
     WriteSweepstakes();
     bot.createMessage(
