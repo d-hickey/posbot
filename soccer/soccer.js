@@ -176,6 +176,14 @@ function GetThirdPlaceGroupCombos(){
     return stakes.third_place_qualified;
 }
 
+function SetStuckInThirdPlaceGroups(groups){
+    let places = GetPlaces();
+    if (("Third in Group Stage but not Third Enough" in places)){
+        places["Third in Group Stage but not Third Enough"] = groups;
+        WriteSweepstakes();
+    }
+}
+
 function GetKnockout(){
     let stakes = GetSweepstakes();
 
@@ -703,6 +711,8 @@ function AdvanceToKnockout(userID, channelID){
         }
     }
 
+    // Weird third place logic
+    // Place third place teams in the knockout bracket according to who did best of third place teams in group sets
     for (let combo of thirdPlaceCombos){
         const eligibleTeams = [];
         for (let group of groups){
@@ -721,6 +731,16 @@ function AdvanceToKnockout(userID, channelID){
             ReplaceCode(knockout[matchIndex], code, team.name);
         }
     }
+
+    // Set place for remaining third place teams
+    const stuckInThird = [];
+    for (let group in thirdPlaceTeams){
+        const team = thirdPlaceTeams[group];
+        if (advancedThirds.indexOf(team) === -1){
+            stuckInThird.push(team);
+        }
+    }
+    SetStuckInThirdPlaceGroups(stuckInThird);
 
     SetGroupStage(false);
     WriteSweepstakes();
