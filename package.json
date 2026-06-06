@@ -5,7 +5,7 @@
   "main": "bot.js",
   "author": "Darragh",
   "dependencies": {
-    "eris": "^0.17.1",
+    "eris": "^0.18.0",
     "markovchain": "^1.0.2",
     "node-schedule": "^2.1.0",
     "request": "^2.87.0",
