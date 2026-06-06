@@ -5,7 +5,6 @@ const util = require("util");
 // Third Party
 const Eris = require("eris");
 const logger = require("winston");
-const request = require("request");
 const schedule = require("node-schedule");
 
 // Local
@@ -73,10 +72,12 @@ function diceRoll(args) {
 
 
 // Get Gift
-function getFlickrImage(callback) {
+async function getFlickrImage(callback) {
     let url = "https://api.flickr.com/services/feeds/photos_public.gne?format=json";
 
-    request(url, function(error, response, body) {
+    try {
+        const response = await fetch(url);
+        let body = await response.text();
         body = body.replace("jsonFlickrFeed(", "");
         body = body.replace(/\)$/, "");
         let feed = JSON.parse(body);
@@ -85,7 +86,10 @@ function getFlickrImage(callback) {
         let image = images[index].link;
 
         return callback(image);
-    });
+    } catch (error) {
+        logger.error("Flickr API error:", error);
+        return callback(null);
+    }
 }
 
 function regift(userID, channelID) {

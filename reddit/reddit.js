@@ -1,4 +1,3 @@
-const request = require("request");
 const logger = require("winston");
 
 // Local
@@ -22,28 +21,31 @@ function GetRedditComment(sub, callback) {
         "User-Agent": "d-hickey/posbot",
     };
 
-    request({uri: url, headers: headers}, function(error, response, body) {
-        //console.log("error:", error); // Print the error if one occurred
-        //console.log("statusCode:", response && response.statusCode); // Print the response status code if a response was received
-        //console.log("body:", body); // Print the HTML
+    (async () => {
+        try {
+            const response = await fetch(url, { headers: headers });
+            const body = await response.text();
 
-        if (error){
+            if (!response.ok) {
+                logger.error("Reddit API error: " + response.status);
+                return callback(comment);
+            }
+
+            let redditResponse = JSON.parse(body);
+            let post = randomInt.Get(0, 49);
+
+            comment = redditResponse.data.children[post].data.body;
+            if (comment.length > 2000 || comment.indexOf("I am a bot") > -1) {
+                return GetRedditComment(sub, callback);
+            } else {
+                logger.info(comment);
+                return callback(comment);
+            }
+        } catch (error) {
             logger.error(error);
             return callback(comment);
         }
-
-        let redditResponse = JSON.parse(body);
-        let post = randomInt.Get(0, 49);
-
-        comment = redditResponse.data.children[post].data.body;
-        if (comment.length > 2000 || comment.indexOf("I am a bot") > -1) {
-            return GetRedditComment(sub, callback);
-        } else {
-            logger.info(comment);
-            return callback(comment);
-        }
-
-    });
+    })();
 }
 
 
@@ -65,18 +67,26 @@ function GetRedditImage(sub, callback){
         "User-Agent": "d-hickey/posbot",
     };
 
-    request({uri: url, headers: headers}, function(error, response, body) {
-        if (error){
+    (async () => {
+        try {
+            const response = await fetch(url, { headers: headers });
+            const body = await response.text();
+
+            if (!response.ok) {
+                logger.error("Reddit API error: " + response.status);
+                return callback(image);
+            }
+
+            let redditResponse = JSON.parse(body);
+            let post = randomInt.Get(0, redditResponse.data.children.length - 1);
+
+            image = redditResponse.data.children[post].data.url;
+            return callback(image);
+        } catch (error) {
             logger.error(error);
             return callback(image);
         }
-
-        let redditResponse = JSON.parse(body);
-        let post = randomInt.Get(0, redditResponse.data.children.length - 1);
-
-        image = redditResponse.data.children[post].data.url;
-        return callback(image);
-    });
+    })();
 }
 
 exports.GetRandomRedditComment = GetRandomRedditComment;
