@@ -204,14 +204,21 @@ function GetResults(){
     return stakes.results;
 }
 
-function GetNextMatch(teamName){
+function GetNextMatch(teamName, level=GetKnockout()){
     if (IsGroupStage()){
         return [];
     }
-    let knockout = GetKnockout();
-    for (let match in knockout){
-        if (ArrayContainsIgnoreCase(knockout[match], teamName) && !ArrayContainsIgnoreCase(knockout[match], "played")){
-            return ResolveMatchReferences(knockout[match]);
+    for (let match in level){
+        if (Array.isArray(level[match])){
+            if (ArrayContainsIgnoreCase(level[match], teamName) && !ArrayContainsIgnoreCase(level[match], "played")){
+                return ResolveMatchReferences(level[match]);
+            }
+        }
+        else if (level[match].constructor === Object){
+            let next = GetNextMatch(teamName, level[match]);
+            if (next.length > 0){
+                return next;
+            }
         }
     }
     return [];
@@ -230,7 +237,7 @@ function NextMatchString(teamName){
 }
 
 function GetTeamPositionInGroup(teamName){
-    teamName = teamName.replace("_", " ").toLowerCase();
+    teamName = teamName.replaceAll("_", " ").toLowerCase();
     const groups = GetGroups();
     for (let group in groups){
         let teams = groups[group];
@@ -247,22 +254,37 @@ function GetTeamPositionInGroup(teamName){
 }
 
 function GetTeamsKnockoutMatchIndex(teamNameA, teamNameB, prepend=""){
-    teamNameA = teamNameA.replace("_", " ").toLowerCase();
-    teamNameB = teamNameB.replace("_", " ").toLowerCase();
+    teamNameA = teamNameA.replaceAll("_", " ").toLowerCase();
+    teamNameB = teamNameB.replaceAll("_", " ").toLowerCase();
 
     let knockout = GetKnockout();
-    for (let match in knockout){
-        if (Array.isArray(knockout[match])){
+    let level = knockout
+    if (prepend !== ""){
+        const indices = prepend.split(".");
+        for (let index of indices){
+            if (index === "" || !(index in level)){
+                continue;
+            }
+            level = level[index];
+        }
+    }
+    for (let match in level){
+        if (Array.isArray(level[match])){
             if (
-                ArrayContainsIgnoreCase(knockout[match], teamNameA) && 
-                ArrayContainsIgnoreCase(knockout[match], teamNameB) && 
-                !ArrayContainsIgnoreCase(knockout[match], "played")
+                ArrayContainsIgnoreCase(level[match], teamNameA) && 
+                ArrayContainsIgnoreCase(level[match], teamNameB) && 
+                !ArrayContainsIgnoreCase(level[match], "played")
             ){
-                return match;
+                return prepend + match;
             }
         }
-        else if (knockout[match].constructor === Object){
-            return GetTeamsKnockoutMatchIndex(teamNameA, teamNameB, match + ".");
+        else{
+            if (level[match].constructor === Object){
+                const code =  GetTeamsKnockoutMatchIndex(teamNameA, teamNameB, prepend + match + ".");
+                if (code !== "-1"){
+                    return code;
+                }
+            }
         }
     }
     return "-1";
@@ -278,7 +300,7 @@ function ArrayContainsIgnoreCase(array, item){
 }
 
 function DoesTeamExist(team){
-    team = team.replace("_", " ");
+    team = team.replaceAll("_", " ");
     const available = GetAvailableTeams();
     if (ArrayContainsIgnoreCase(available, team)){
         return true;
@@ -294,13 +316,31 @@ function DoesTeamExist(team){
     return false;
 }
 
+function GetMatchByCode(code, level=GetKnockout()){
+    if (code.indexOf(".") !== -1){
+        const indices = code.split(".");
+        let match = level;
+        for (let index of indices){
+            if (index === "" || !(index in match)){
+                return [];
+            }
+            match = match[index];
+        }
+        return match;
+    }
+    if (code in level){
+        return level[code];
+    }
+    return [];
+}
+
 function ResolveMatchReferences(match){
     let resolved = [];
     let knockout = GetKnockout();
     for (let team of match){
         if (team.indexOf("-") !== -1){
-            const matchNumber = team.split("-")[0];
-            let reference = ResolveMatchReferences(knockout[matchNumber]);
+            const matchCode = team.split("-")[0];
+            let reference = ResolveMatchReferences(GetMatchByCode(matchCode));
             resolved.push(util.format("(Winner of %s vs %s)", reference[0], reference[1]));
         }
         else{
@@ -456,8 +496,8 @@ function ValidateResult(userID, channelID, args){
 
 function RecordGroupStage(args){
     let groups = GetGroups();
-    let team1 = args[0].replace("_", " ").toLowerCase();
-    let team2 = args[2].replace("_", " ").toLowerCase();
+    let team1 = args[0].replaceAll("_", " ").toLowerCase();
+    let team2 = args[2].replaceAll("_", " ").toLowerCase();
     for (let group in groups){
         let teams = groups[group];
         for (let team of teams){
@@ -493,11 +533,11 @@ function RecordKnockoutStage(args){
 
     let winner, loser;
     if (parseInt(args[1]) > parseInt(args[3])){
-        winner = args[0].replace("_", " ").toLowerCase();
+        winner = args[0].replaceAll("_", " ").toLowerCase();
         loser = args[2];
     }
     else{
-        winner = args[2].replace("_", " ").toLowerCase();
+        winner = args[2].replaceAll("_", " ").toLowerCase();
         loser = args[0];
     }
 
@@ -546,7 +586,7 @@ function Team(userID, channelID, args){
         bot.createMessage(channelID, util.format("<@%s> Specify a team please", userID));
         return;
     }
-    let teamName = args[0].replace("_", " ").toLowerCase();
+    let teamName = args[0].replaceAll("_", " ").toLowerCase();
     if (!DoesTeamExist(teamName)){
         bot.createMessage(channelID, util.format("<@%s> That is not a team in this tournament", userID));
         return;
@@ -733,7 +773,7 @@ function AdvanceToKnockout(userID, channelID){
     // Place third place teams in the knockout bracket according to who did best of third place teams in group sets
     for (let combo of thirdPlaceCombos){
         const eligibleTeams = [];
-        for (let group of groups){
+        for (let group in groups){
             if (combo.indexOf(group) !== -1){
                 const team = thirdPlaceTeams[group];
                 if (advancedThirds.indexOf(team) === -1){
@@ -802,7 +842,7 @@ function ResolveTie(userID, channelID, args){
         );
         return;
     }
-    let teamName = args[0].replace("_", " ").toLowerCase();
+    let teamName = args[0].replaceAll("_", " ").toLowerCase();
     if (!IsTeamInTie(teamName)){
         bot.createMessage(
             channelID, util.format("<@%s> This team is not in a tiebreaker", userID)
@@ -837,6 +877,27 @@ function BreakTie(teamName){
         }
     }
 }
+
+function SimulateGroupStage(){
+    let groups = GetGroups();
+    for (let group in groups){
+        let teams = groups[group];
+        for (let i = 0; i < teams.length; i++){
+            for (let j = i+1; j < teams.length; j++){
+                if (i === j){
+                    continue;
+                }
+                let teamA = teams[i];
+                let teamB = teams[j];
+                const scoreA = randomInt.Get(0, 5);
+                const scoreB = randomInt.Get(0, 5);
+                RecordGroupTeam(teamA, scoreA, scoreB);
+                RecordGroupTeam(teamB, scoreB, scoreA);
+            }
+        }
+    }
+}
+
 
 function Commands(client, userID, channelID, cmd, args){
     bot = client;
@@ -885,6 +946,9 @@ function Commands(client, userID, channelID, cmd, args){
         break;
     case "resolve":
         ResolveTie(userID, channelID, args);
+        break;
+    case "simulategroup":
+        SimulateGroupStage();
         break;
     }
 }

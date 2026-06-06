@@ -642,7 +642,7 @@ process.on("uncaughtException", function (err) {
 });
 
 bot.on("error", function (err, id) {
-    logger.error("Shard " + id + " errored with err " + err);
+    logger.error("Shard " + id + " errored with err " + err, err);
 });
 
 bot.connect();
