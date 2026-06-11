@@ -133,6 +133,23 @@ function GetAvailableTeams(){
     return stakes.teams;
 }
 
+function GetUnavailableTeams(){
+    let stakes = GetSweepstakes();
+
+    const unavailable = [];
+
+    if (!("players" in stakes)){
+        return unavailable;
+    }
+
+    for (let userID in stakes.players){
+        const teams = stakes.players[userID];
+        unavailable.push(...teams);
+    }
+
+    return unavailable;
+}
+
 function IsGroupStage(){
     let stakes = GetSweepstakes();
     if (!("groupStage" in stakes)){
@@ -949,6 +966,14 @@ function Commands(client, userID, channelID, cmd, args){
         break;
     case "simulategroup":
         SimulateGroupStage();
+        break;
+    case "available":
+        let available = GetAvailableTeams();
+        bot.createMessage(channelID, util.format("<@%s> Available teams: %s", userID, available.join(", ")));
+        break;
+    case "unavailable":
+        let unavailable = GetUnavailableTeams();
+        bot.createMessage(channelID, util.format("<@%s> Unavailable teams: %s", userID, unavailable.join(", ")));
         break;
     }
 }
